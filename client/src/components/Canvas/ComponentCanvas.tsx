@@ -1,25 +1,15 @@
 import React from 'react';
 import { useComponentStore } from '@/store/componentStore';
 import type { SerializableElement } from '@/store/componentStore';
-import { renderFromAst } from '@/lib/componentParser';
+import { IframeCanvas } from './IframeCanvas';
 
 export const ComponentCanvas = () => {
-  const { componentAst, selectedNodeId, setSelectedNodeId } = useComponentStore();
-
-  const handleSelectNode = (nodeId: string) => {
-    setSelectedNodeId(nodeId);
-  };
-
-  const renderedComponent = componentAst ? renderFromAst(componentAst, handleSelectNode) : null;
-
-  // We add a key to the root div to force a re-mount when the AST changes fundamentally.
-  // This helps clear old state and prevents stale closures in event handlers.
-  const astKey = componentAst ? JSON.stringify(componentAst).length : 0;
-
+  const { componentAst, componentPreviewAst, selectionMode, selectedNodeId } = useComponentStore();
+  const chosenAst = selectionMode === 'select' ? componentPreviewAst : componentAst;
   return (
-    <div key={astKey} className="relative w-full h-full p-4 overflow-auto">
-      {renderedComponent}
-      {selectedNodeId && <SelectionHighlighter ast={componentAst} />}
+    <div className="relative w-full h-full" data-canvas-overlay-container>
+      <IframeCanvas />
+      {selectedNodeId && <SelectionHighlighter ast={chosenAst} />}
     </div>
   );
 };
@@ -31,26 +21,33 @@ const SelectionHighlighter = ({ ast }: { ast: SerializableElement | null }) => {
   // Use a ref to get the actual DOM element corresponding to the selected node ID
   const [element, setElement] = React.useState<HTMLElement | null>(null);
   React.useEffect(() => {
-    if (selectedNodeId) {
-      const el = document.querySelector(`[data-node-id="${selectedNodeId}"]`) as HTMLElement;
-      setElement(el);
-    } else {
-      setElement(null);
-    }
-  }, [selectedNodeId, ast]); // Re-run when selection or the whole tree changes
+    const timeout = setTimeout(() => {
+      const iframe = document.querySelector('iframe[title="Component Canvas"]') as HTMLIFrameElement | null;
+      if (selectedNodeId && iframe && iframe.contentDocument) {
+        const el = iframe.contentDocument.querySelector(`[data-node-id="${selectedNodeId}"]`) as HTMLElement | null;
+        setElement(el);
+      } else {
+        setElement(null);
+      }
+    }, 0);
+    return () => clearTimeout(timeout);
+  }, [selectedNodeId, ast]);
 
   if (!element) return null;
 
   const rect = element.getBoundingClientRect();
-  const canvasRect = element.parentElement?.getBoundingClientRect();
+  const iframeEl = document.querySelector('iframe[title="Component Canvas"]') as HTMLIFrameElement | null;
+  const iframeRect = iframeEl?.getBoundingClientRect();
+  const container = document.querySelector('[data-canvas-overlay-container]') as HTMLElement | null;
+  const containerRect = container?.getBoundingClientRect();
 
-  if (!canvasRect) return null;
+  if (!iframeRect || !containerRect) return null;
 
   // Calculate position relative to the canvas
   const style: React.CSSProperties = {
     position: 'absolute',
-    left: `${rect.left - canvasRect.left}px`,
-    top: `${rect.top - canvasRect.top}px`,
+  left: `${iframeRect.left + rect.left - containerRect.left}px`,
+  top: `${iframeRect.top + rect.top - containerRect.top}px`,
     width: `${rect.width}px`,
     height: `${rect.height}px`,
     border: '2px solid #3b82f6', // A nice blue outline

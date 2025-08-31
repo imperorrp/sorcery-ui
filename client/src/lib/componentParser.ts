@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import type { SerializableElement } from '@/store/componentStore';
 
 // We use a simple counter to ensure unique IDs for each element during a serialization session.
-let idCounter = 0;
+export let idCounter = 0;
 
 /**
  * Traverses a React Element tree and converts it into our serializable JSON AST.
@@ -20,8 +21,36 @@ export function serializeComponent(element: React.ReactNode): SerializableElemen
   const type: string | React.ComponentType<any> = typeof reactElement.type === 'string'
     ? reactElement.type
     : (reactElement.type as React.ComponentType<any>);
-
-  const serializedChildren = React.Children.map((reactElement.props as { children?: React.ReactNode }).children, serializeComponent);
+  // Default: serialize explicit children passed to this element
+  let serializedChildren = React.Children.map((reactElement.props as { children?: React.ReactNode }).children, serializeComponent);
+  // Enhancement: if this is a function component, try to resolve its rendered output
+  // so the tree contains its internal structure for the Navigator.
+  if (typeof type === 'function' && (!serializedChildren || serializedChildren.length === 0)) {
+    try {
+      // Try to expand function components by calling them.
+      // Note: This may throw for hook-using components; we'll catch and ignore.
+      let rendered: React.ReactNode | null = null;
+      const anyType = type as any;
+      if (anyType.prototype && (anyType.prototype.isReactComponent || typeof anyType.prototype.render === 'function')) {
+        // Class component: instantiate and call render()
+        const instance = new anyType(reactElement.props);
+        rendered = instance.render?.();
+      } else {
+        // Function component
+        rendered = anyType(reactElement.props);
+      }
+      if (rendered) {
+        const resolved = serializeComponent(rendered);
+        if (Array.isArray(resolved)) {
+          serializedChildren = resolved as (SerializableElement | string)[];
+        } else if (resolved) {
+          serializedChildren = [resolved as SerializableElement | string];
+        }
+      }
+    } catch {
+      // Ignore expansion failures (likely due to hooks); leave children as-is.
+    }
+  }
 
   const serializedElement: SerializableElement = {
     id: `node-${idCounter++}`,
@@ -40,7 +69,8 @@ export function serializeComponent(element: React.ReactNode): SerializableElemen
  */
 export function renderFromAst(
   astNode: SerializableElement | string | null,
-  handleSelect: (nodeId: string) => void
+  handleSelect?: (nodeId: string) => void,
+  injectHandlers = true
 ): React.ReactNode {
   if (typeof astNode === 'string' || astNode === null) {
     return astNode;
@@ -48,29 +78,35 @@ export function renderFromAst(
 
   const { id, type, props } = astNode;
 
-  const children = props.children?.map(child => renderFromAst(child, handleSelect));
+  const children = props?.children?.map(child => renderFromAst(child, handleSelect, injectHandlers));
 
-  // We inject special props into every rendered element:
-  // - A data attribute for identification (`data-node-id`).
-  // - An onClick handler to enable selection.
-  const injectedProps = {
-    ...props,
+  // Guard props in case it's null/undefined, then build base props with data attribute for identification
+  const baseProps = props || {};
+  const finalProps: Record<string, any> = {
+    ...baseProps,
     'data-node-id': id,
-    onClick: (e: React.MouseEvent) => {
-      e.stopPropagation(); // Prevent parent handlers from firing
-      handleSelect(id);
-    },
+    key: id,
   };
 
-  // If `type` is a component function/class, use it directly. If it's a string
-  // (native element) then React.createElement will render it as such.
-  const elementType = typeof type === 'string' ? type : type;
+  // Only inject onClick handler if we're in selection mode and handleSelect is provided
+  if (injectHandlers && handleSelect) {
+    finalProps.onClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      handleSelect(id);
+    };
+  }
 
-  return React.createElement(elementType as any, { ...injectedProps, key: id }, children);
+  const elementType = typeof type === 'string' ? type : type;
+  return React.createElement(elementType as any, finalProps, children);
 }
 
 // Helper to reset the counter before serializing a new component
 export function createAst(rootElement: React.ReactElement): SerializableElement {
     idCounter = 0;
     return serializeComponent(rootElement) as SerializableElement;
+}
+
+// Helper to reset the counter
+export function resetIdCounter(): void {
+    idCounter = 0;
 }

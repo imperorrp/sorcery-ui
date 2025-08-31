@@ -1,6 +1,5 @@
 import React from 'react';
 import { create } from 'zustand';
-import { produce } from 'immer';
 
 // Define the structure of our serializable element AST
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -18,99 +17,169 @@ export interface SerializableElement {
 // Define the state of our application
 interface ComponentState {
   componentAst: SerializableElement | null;
+  componentPreviewAst: SerializableElement | null;
   selectedNodeId: string | null;
   history: (SerializableElement | null)[];
   historyIndex: number;
+  propsJson: string;
+  selectionMode: 'interact' | 'select';
+  dependencies: string[]; // Add this
+  wrapperCode: string;   // Add this
 }
 
 // Define the actions that can be performed on the state
 interface ComponentActions {
   setAst: (ast: SerializableElement | null) => void;
+  setAstWithPreview: (ast: SerializableElement | null, preview: SerializableElement | null) => void;
   setSelectedNodeId: (nodeId: string | null) => void;
-  updateNodeStyle: (nodeId: string, style: React.CSSProperties) => void;
+  updateNodeStyle: (nodeId: string, newStyle: React.CSSProperties) => void;
   undo: () => void;
   redo: () => void;
+  setPropsJson: (json: string) => void;
+  setSelectionMode: (mode: 'interact' | 'select') => void;
+  addDependency: (url: string) => void;     // Add this
+  removeDependency: (url: string) => void; // Add this
+  setWrapperCode: (code: string) => void;  // Add this
 }
 
 // Helper function to recursively find and update a node in the AST
-const findAndUpdateNode = (
+// This is a pure function that returns a new AST
+const findAndCloneUpdateNode = (
   node: SerializableElement,
   nodeId: string,
-  style: React.CSSProperties
+  updateFn: (node: SerializableElement) => SerializableElement
 ): SerializableElement => {
-  if (node.id === nodeId) {
-    node.props.style = { ...node.props.style, ...style };
-    return node;
+  const newNode = node.id === nodeId ? updateFn(node) : { ...node };
+
+  if (newNode.props.children) {
+    newNode.props = {
+      ...newNode.props,
+      children: newNode.props.children.map((child) => {
+        if (typeof child !== 'string') {
+          return findAndCloneUpdateNode(child, nodeId, updateFn);
+        }
+        return child;
+      }),
+    };
   }
-  if (node.props.children) {
-    node.props.children = node.props.children.map((child) => {
-      if (typeof child !== 'string') {
-        return findAndUpdateNode(child, nodeId, style);
-      }
-      return child;
-    });
-  }
-  return node;
+  return newNode;
 };
 
-export const useComponentStore = create<ComponentState & ComponentActions>((set) => ({
+const initialWrapperCode = `// Wrap your component here
+// e.g., <MyTheme><{children} /></MyTheme>
+// Use {children} as a placeholder.
+
+function Wrapper({ children }) {
+  return (
+    <div>
+      {children}
+    </div>
+  );
+}
+
+export default Wrapper;
+`;
+
+export const useComponentStore = create<ComponentState & ComponentActions>((set, get) => ({
   // Initial State
   componentAst: null,
+  componentPreviewAst: null,
   selectedNodeId: null,
   history: [null],
   historyIndex: 0,
+  propsJson: '{}',
+  selectionMode: 'interact',
+  dependencies: [],
+  wrapperCode: initialWrapperCode,
 
   // Actions
   setAst: (ast) =>
     set({
       componentAst: ast,
+      componentPreviewAst: null,
       selectedNodeId: null, // Reset selection on new component
+      history: [ast],
+      historyIndex: 0,
+    }),
+
+  setAstWithPreview: (ast, preview) =>
+    set({
+      componentAst: ast,
+      componentPreviewAst: preview,
+      selectedNodeId: null,
       history: [ast],
       historyIndex: 0,
     }),
 
   setSelectedNodeId: (nodeId) => set({ selectedNodeId: nodeId }),
 
-  updateNodeStyle: (nodeId, style) =>
-    set(
-      produce((draft: ComponentState) => {
-        if (draft.componentAst) {
-          const newAst = findAndUpdateNode(draft.componentAst, nodeId, style);
+  updateNodeStyle: (nodeId, newStyle) => {
+    const { componentAst, componentPreviewAst, history, historyIndex } = get();
 
-          // Manage history
-          const newHistory = draft.history.slice(0, draft.historyIndex + 1);
-          newHistory.push(newAst);
+    const updateFn = (node: SerializableElement) => ({
+      ...node,
+      props: {
+        ...node.props,
+        style: { ...node.props.style, ...newStyle },
+      },
+    });
 
-          draft.componentAst = newAst;
-          draft.history = newHistory;
-          draft.historyIndex = newHistory.length - 1;
-        }
-      })
-    ),
+    let newComponentAst = componentAst;
+    if (componentAst) {
+      newComponentAst = findAndCloneUpdateNode(componentAst, nodeId, updateFn);
+    }
 
-  undo: () =>
-    set((state) => {
-      if (state.historyIndex > 0) {
-        const newIndex = state.historyIndex - 1;
-        return {
-          historyIndex: newIndex,
-          componentAst: state.history[newIndex],
-          selectedNodeId: null, // Deselect on undo/redo
-        };
-      }
-      return {};
-    }),
+    let newComponentPreviewAst = componentPreviewAst;
+    if (componentPreviewAst) {
+      newComponentPreviewAst = findAndCloneUpdateNode(
+        componentPreviewAst,
+        nodeId,
+        updateFn
+      );
+    }
 
-  redo: () =>
-    set((state) => {
-      if (state.historyIndex < state.history.length - 1) {
-        const newIndex = state.historyIndex + 1;
-        return {
-          historyIndex: newIndex,
-          componentAst: state.history[newIndex],
-          selectedNodeId: null,
-        };
-      }
-      return {};
-    }),
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(newComponentAst);
+
+    set({
+      componentAst: newComponentAst,
+      componentPreviewAst: newComponentPreviewAst,
+      history: newHistory,
+      historyIndex: newHistory.length - 1,
+    });
+  },
+
+  undo: () => {
+    const { history, historyIndex } = get();
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      const newAst = history[newIndex];
+      set({
+        historyIndex: newIndex,
+        componentAst: newAst,
+        componentPreviewAst: newAst, // The history is the source of truth
+        selectedNodeId: null,
+      });
+    }
+  },
+
+  redo: () => {
+    const { history, historyIndex } = get();
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      const newAst = history[newIndex];
+      set({
+        historyIndex: newIndex,
+        componentAst: newAst,
+        componentPreviewAst: newAst, // The history is the source of truth
+        selectedNodeId: null,
+      });
+    }
+  },
+
+  setPropsJson: (json: string) => set({ propsJson: json }),
+  setSelectionMode: (mode) => set({ selectionMode: mode }),
+  addDependency: (url) => set((state) => ({ dependencies: [...state.dependencies, url] })),
+  removeDependency: (url) => set((state) => ({ dependencies: state.dependencies.filter(d => d !== url) })),
+  setWrapperCode: (code) => set({ wrapperCode: code }),
 }));

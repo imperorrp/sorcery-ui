@@ -162,3 +162,22 @@ DELETE /api/components/:id    // Delete component
 - **Plugin System:** Future plugin architecture for third-party extensions
 - **Code Splitting:** Dynamic imports for better initial load performance
 - **Caching Strategy:** Intelligent caching of components and dependencies
+
+## Selection Highlight Contrast Strategy (future)
+
+Problem
+- Selection/highlight outlines can become invisible when the selected element uses the same color or very similar contrast as the accent outline.
+
+Recommended approach
+- Use a contrast-aware, double-ring highlight: an inner accent ring (accent color, e.g. blue) plus an outer contrast ring chosen per-element (black or white with slight opacity) based on computed luminance of the element's background.
+- Compute effective background by sampling getComputedStyle and walking up until a non-transparent background is found.
+- Compute luminance and choose contrastColor = black/white depending on threshold. Render box-shadow or stacked outlines: `0 0 0 2px accent, 0 0 0 5px contrastColor`.
+
+Why this is robust
+- The outer contrast ring guarantees visibility regardless of the element's fill color without reserving or hard-coding a special highlight color.
+- Works for most solid-color and image-backed backgrounds; for extremely complex cases we can fallback to a small floating badge (id/type) rendered with the same contrastColor.
+
+Implementation notes / backlog
+- Small, self-contained change: update `SelectionHighlighter` to sample computed style and set box-shadow accordingly.
+- Add an optional small label (element tag / id) positioned near the outline when element size allows.
+- Priority: low — UX polish to schedule in Phase 3 or as part of a later polish pass.
