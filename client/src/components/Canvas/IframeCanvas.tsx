@@ -6,8 +6,12 @@ import type { SerializableElement } from '@/store/componentStore';
 
 export const IframeCanvas: React.FC = () => {
   const { componentAst, componentPreviewAst, selectionMode, setSelectedNodeId, dependencies } = useComponentStore();
+  // Pull snapshot history to recover preview if current state lost it
+  const history = useComponentStore((s) => s.history);
+  const historyIndex = useComponentStore((s) => s.historyIndex);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeBody, setIframeBody] = useState<HTMLBodyElement | null>(null);
+  const [depTick, setDepTick] = useState(0);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -25,6 +29,7 @@ export const IframeCanvas: React.FC = () => {
         `;
         doc.head.appendChild(styleEl);
         setIframeBody(doc.body as HTMLBodyElement);
+        console.log('Iframe body set');
       }
     };
 
@@ -48,6 +53,8 @@ export const IframeCanvas: React.FC = () => {
     const head = iframe.contentDocument.head;
     // Clear existing scripts to avoid duplicates on re-render
     head.querySelectorAll('script[data-dependency]').forEach(el => el.remove());
+  // Also clear mirrored scripts from parent (if any)
+  document.head.querySelectorAll('script[data-dependency-mirror]').forEach(el => el.remove());
 
     // Add new scripts
     dependencies.forEach(url => {
@@ -55,7 +62,16 @@ export const IframeCanvas: React.FC = () => {
       script.src = url;
       script.async = true;
       script.setAttribute('data-dependency', 'true');
+  script.onload = () => setDepTick((t) => t + 1);
       head.appendChild(script);
+
+      // Mirror into parent document so globals (like lodash on window._) are visible
+      const mirror = document.createElement('script');
+      mirror.src = url;
+      mirror.async = true;
+      mirror.setAttribute('data-dependency-mirror', 'true');
+      mirror.onload = () => setDepTick((t) => t + 1);
+      document.head.appendChild(mirror);
     });
 
   }, [dependencies, iframeBody]); // Re-run whenever the dependencies array or iframe body changes
@@ -73,11 +89,31 @@ export const IframeCanvas: React.FC = () => {
   // No DOM snapshot needed; navigator uses fully resolved AST
 
   // Choose AST based on mode (previewAst for selection so nested nodes exist)
-  const chosenAst = selectionMode === 'select' ? componentPreviewAst : componentAst;
+  const latestPreview = componentPreviewAst ?? history?.[historyIndex]?.preview ?? null;
+  const chosenAst = selectionMode === 'select' ? latestPreview : componentAst;
+  console.log('IframeCanvas - chosenAst:', chosenAst, 'selectionMode:', selectionMode);
   // Force full re-render when chosen AST or selection mode changes to refresh handlers inside iframe
   const astKey = chosenAst ? JSON.stringify(chosenAst).length : 0;
   const modeKey = selectionMode;
-  const combinedKey = `${astKey}-${modeKey}`;
+  const combinedKey = `${astKey}-${modeKey}-${depTick}`;
+
+  // Diagnostics: after render, inspect iframe DOM to verify nodes are present
+  useEffect(() => {
+    if (!iframeBody) return;
+    const doc = iframeBody.ownerDocument;
+    if (!doc) return;
+    // Defer to next tick to allow portal to commit
+    const t = setTimeout(() => {
+      try {
+        const count = doc.querySelectorAll('[data-node-id]').length;
+        const len = doc.body?.innerHTML?.length ?? 0;
+        console.log('IframeCanvas - after render: node count =', count, 'body HTML length =', len);
+      } catch (e) {
+        console.warn('IframeCanvas - post-render inspection failed', e);
+      }
+    }, 0);
+    return () => clearTimeout(t);
+  }, [combinedKey, iframeBody]);
 
   // Hover highlight and context selection wiring when in selection mode
   useEffect(() => {
@@ -131,6 +167,7 @@ export const IframeCanvas: React.FC = () => {
       {iframeBody && createPortal(
         <div key={combinedKey} style={{ minHeight: '100%', padding: '1rem' }}>
           {(() => {
+            console.log('About to render chosenAst:', chosenAst);
             if (!chosenAst) return null;
 
             // Deep-clone and ensure props/children exist to avoid runtime errors

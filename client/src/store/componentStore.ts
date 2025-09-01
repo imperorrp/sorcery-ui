@@ -15,11 +15,15 @@ export interface SerializableElement {
 }
 
 // Define the state of our application
+interface HistorySnapshot {
+  ast: SerializableElement | null;
+  preview: SerializableElement | null;
+}
 interface ComponentState {
   componentAst: SerializableElement | null;
   componentPreviewAst: SerializableElement | null;
   selectedNodeId: string | null;
-  history: (SerializableElement | null)[];
+  history: HistorySnapshot[];
   historyIndex: number;
   propsJson: string;
   selectionMode: 'interact' | 'select';
@@ -39,6 +43,7 @@ interface ComponentActions {
   setSelectionMode: (mode: 'interact' | 'select') => void;
   addDependency: (url: string) => void;     // Add this
   removeDependency: (url: string) => void; // Add this
+  setDependencies: (urls: string[]) => void; // Add this
   setWrapperCode: (code: string) => void;  // Add this
 }
 
@@ -85,7 +90,7 @@ export const useComponentStore = create<ComponentState & ComponentActions>((set,
   componentAst: null,
   componentPreviewAst: null,
   selectedNodeId: null,
-  history: [null],
+  history: [{ ast: null, preview: null }],
   historyIndex: 0,
   propsJson: '{}',
   selectionMode: 'interact',
@@ -98,20 +103,20 @@ export const useComponentStore = create<ComponentState & ComponentActions>((set,
       componentAst: ast,
       componentPreviewAst: null,
       selectedNodeId: null, // Reset selection on new component
-      history: [ast],
+  history: [{ ast: ast, preview: null }],
       historyIndex: 0,
     }),
 
-  setAstWithPreview: (ast, preview) =>
+  setAstWithPreview: (ast, preview) => {
+    console.log('setAstWithPreview called with ast:', ast, 'preview:', preview);
     set({
       componentAst: ast,
       componentPreviewAst: preview,
       selectedNodeId: null,
-      history: [ast],
+      history: [{ ast, preview }],
       historyIndex: 0,
-    }),
-
-  setSelectedNodeId: (nodeId) => set({ selectedNodeId: nodeId }),
+    });
+  },  setSelectedNodeId: (nodeId) => set({ selectedNodeId: nodeId }),
 
   updateNodeStyle: (nodeId, newStyle) => {
     const { componentAst, componentPreviewAst, history, historyIndex } = get();
@@ -138,8 +143,8 @@ export const useComponentStore = create<ComponentState & ComponentActions>((set,
       );
     }
 
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(newComponentAst);
+  const newHistory = history.slice(0, historyIndex + 1);
+  newHistory.push({ ast: newComponentAst, preview: newComponentPreviewAst });
 
     set({
       componentAst: newComponentAst,
@@ -153,11 +158,11 @@ export const useComponentStore = create<ComponentState & ComponentActions>((set,
     const { history, historyIndex } = get();
     if (historyIndex > 0) {
       const newIndex = historyIndex - 1;
-      const newAst = history[newIndex];
+      const entry = history[newIndex];
       set({
         historyIndex: newIndex,
-        componentAst: newAst,
-        componentPreviewAst: newAst, // The history is the source of truth
+        componentAst: entry.ast,
+        componentPreviewAst: entry.preview,
         selectedNodeId: null,
       });
     }
@@ -167,11 +172,11 @@ export const useComponentStore = create<ComponentState & ComponentActions>((set,
     const { history, historyIndex } = get();
     if (historyIndex < history.length - 1) {
       const newIndex = historyIndex + 1;
-      const newAst = history[newIndex];
+      const entry = history[newIndex];
       set({
         historyIndex: newIndex,
-        componentAst: newAst,
-        componentPreviewAst: newAst, // The history is the source of truth
+        componentAst: entry.ast,
+        componentPreviewAst: entry.preview,
         selectedNodeId: null,
       });
     }
@@ -181,5 +186,6 @@ export const useComponentStore = create<ComponentState & ComponentActions>((set,
   setSelectionMode: (mode) => set({ selectionMode: mode }),
   addDependency: (url) => set((state) => ({ dependencies: [...state.dependencies, url] })),
   removeDependency: (url) => set((state) => ({ dependencies: state.dependencies.filter(d => d !== url) })),
+  setDependencies: (urls) => set({ dependencies: urls }),
   setWrapperCode: (code) => set({ wrapperCode: code }),
 }));

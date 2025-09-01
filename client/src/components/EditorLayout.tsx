@@ -217,10 +217,7 @@ export const EditorLayout: React.FC = () => {
                 Code Editor
               </h3>
               <Button onClick={() => {
-                const code = monacoEditorRef.current?.getCode();
-                if (code) {
-                  handleRender(code);
-                }
+                handleRender();
               }} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs">
                 Render
               </Button>
@@ -318,10 +315,9 @@ export const EditorLayout: React.FC = () => {
 
         {/* Inspector wrapper: header stays inside and moves to bottom when minimized. */}
         <div
-          className={`border-t relative flex-shrink-0 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+          className={`border-t relative flex-shrink-0 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} ${isResizingInspector ? '' : 'transition-all'}`}
           style={{
-            maxHeight: isInspectorMinimized ? '48px' : `${inspectorHeight}px`,
-            transition: 'max-height 320ms cubic-bezier(.22,.9,.28,1)',
+            height: isInspectorMinimized ? '48px' : `${inspectorHeight}px`,
             overflow: 'hidden',
           }}
         >
@@ -362,6 +358,7 @@ export const EditorLayout: React.FC = () => {
               height: `${inspectorHeight - HEADER_HEIGHT}px`,
               overflow: 'auto',
               pointerEvents: isInspectorMinimized ? 'none' : 'auto',
+              transition: isResizingInspector ? 'none' : 'height 320ms cubic-bezier(.22,.9,.28,1)',
             }}
           >
             <InspectorPanel />

@@ -10,6 +10,7 @@ export let idCounter = 0;
  * This is the "serialization" step.
  */
 export function serializeComponent(element: React.ReactNode): SerializableElement | string | null {
+  console.log('serializeComponent called with element:', element);
   if (typeof element !== 'object' || element === null) {
     return typeof element === 'number' ? String(element) : (element as string | null);
   }
@@ -72,6 +73,7 @@ export function renderFromAst(
   handleSelect?: (nodeId: string) => void,
   injectHandlers = true
 ): React.ReactNode {
+  console.log('renderFromAst called with astNode:', astNode, 'injectHandlers:', injectHandlers);
   if (typeof astNode === 'string' || astNode === null) {
     return astNode;
   }

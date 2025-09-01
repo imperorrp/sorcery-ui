@@ -5,7 +5,10 @@ import { IframeCanvas } from './IframeCanvas';
 
 export const ComponentCanvas = () => {
   const { componentAst, componentPreviewAst, selectionMode, selectedNodeId } = useComponentStore();
-  const chosenAst = selectionMode === 'select' ? componentPreviewAst : componentAst;
+  const history = useComponentStore((s) => s.history);
+  const historyIndex = useComponentStore((s) => s.historyIndex);
+  const latestPreview = componentPreviewAst ?? history?.[historyIndex]?.preview ?? null;
+  const chosenAst = selectionMode === 'select' ? latestPreview : componentAst;
   return (
     <div className="relative w-full h-full" data-canvas-overlay-container>
       <IframeCanvas />

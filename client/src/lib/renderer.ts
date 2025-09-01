@@ -13,9 +13,10 @@ import { useComponentStore } from '@/store/componentStore';
 export function renderCodeToAst(code: string): { runtimeAst: SerializableElement; previewAst: SerializableElement } {
   // Access props JSON from store if available
   let parsedProps: Record<string, unknown> = {};
+  let wrapperSourceFromStore = '';
   try {
     // This is safe at call time from React runtime; avoid using hooks here.
-    const store = (useComponentStore as unknown as { getState: () => { propsJson: string } }).getState();
+    const store = (useComponentStore as unknown as { getState: () => { propsJson: string; wrapperCode: string } }).getState();
     if (store && typeof store.propsJson === 'string') {
       try {
         parsedProps = JSON.parse(store.propsJson || '{}');
@@ -23,11 +24,15 @@ export function renderCodeToAst(code: string): { runtimeAst: SerializableElement
         parsedProps = {};
       }
     }
+    if (store && typeof store.wrapperCode === 'string') {
+      wrapperSourceFromStore = store.wrapperCode;
+    }
   } catch {
     parsedProps = {};
   }
   // 1. Clean up any previous component from the global scope to prevent stale references.
   (globalThis as any).USER_COMPONENT = undefined;
+  (globalThis as any).WRAPPER_COMPONENT = undefined;
 
   // 2. Prepare source for transpilation:
   // - Attach named function/class declarations to globalThis so revive can
@@ -49,6 +54,26 @@ export function renderCodeToAst(code: string): { runtimeAst: SerializableElement
   const transpiledCode = result?.code;
   if (!transpiledCode) {
     throw new Error('Babel transpilation failed.');
+  }
+
+  // 3b. Transpile wrapper source if provided. Default to a pass-through wrapper if missing/invalid.
+  let wrapperTranspiledCode = '';
+  try {
+    let wrapperSource = wrapperSourceFromStore || '';
+    if (!wrapperSource.trim()) {
+      wrapperSource = `function Wrapper({ children }) { return children; }\nexport default Wrapper;`;
+    }
+    // Replace export default and attach named declarations similarly
+    let wrapperSourceForTranspile = wrapperSource.replace(/export\s+default\s+/, 'globalThis.WRAPPER_COMPONENT = ');
+    wrapperSourceForTranspile = wrapperSourceForTranspile.replace(/function\s+([A-Z][A-Za-z0-9_]*)\s*\(/g, 'globalThis.$1 = function $1(');
+    wrapperSourceForTranspile = wrapperSourceForTranspile.replace(/class\s+([A-Z][A-Za-z0-9_]*)\s*/g, 'globalThis.$1 = class $1 ');
+    const wrapperResult = Babel.transform(wrapperSourceForTranspile, {
+      presets: ['react', 'typescript'],
+      filename: 'WrapperComponent.tsx',
+    });
+    wrapperTranspiledCode = wrapperResult?.code || '';
+  } catch {
+    wrapperTranspiledCode = `globalThis.WRAPPER_COMPONENT = function Wrapper({ children }) { return children; };`;
   }
 
   // 4. Execute the plain JavaScript with a hooks-friendly React shim so executing
@@ -74,13 +99,17 @@ export function renderCodeToAst(code: string): { runtimeAst: SerializableElement
 
   // First pass: evaluate with ReactShim to safely resolve a fully expanded preview tree.
   (globalThis as any).USER_COMPONENT = undefined;
+  (globalThis as any).WRAPPER_COMPONENT = undefined;
   new Function('React', transpiledCode)(ReactShim);
+  if (wrapperTranspiledCode) new Function('React', wrapperTranspiledCode)(ReactShim);
 
   // 5. Retrieve the shim-executed component from the global scope (for preview resolution only).
   const UserComponentForPreview = (globalThis as any).USER_COMPONENT;
+  const WrapperComponentForPreview = (globalThis as any).WRAPPER_COMPONENT;
 
   // 6. Clean up the global variable immediately after retrieval.
   (globalThis as any).USER_COMPONENT = undefined;
+  (globalThis as any).WRAPPER_COMPONENT = undefined;
 
   if (typeof UserComponentForPreview !== 'function') {
     throw new Error('The code must have a default export that is a React component.');
@@ -96,10 +125,11 @@ export function renderCodeToAst(code: string): { runtimeAst: SerializableElement
       const el = node as React.ReactElement<any>;
       const t = el.type as any;
       const props = { ...(el.props || {}) } as Record<string, any>;
-      const rawChildren = props.children;
-      delete props.children;
 
       if (typeof t === 'string') {
+        const rawChildren = props.children;
+        // Remove children from props when constructing host elements; they'll be provided as variadic args
+        delete (props as any).children;
         const children = Array.isArray(rawChildren)
           ? rawChildren.map(resolveNode)
           : rawChildren != null
@@ -114,6 +144,7 @@ export function renderCodeToAst(code: string): { runtimeAst: SerializableElement
           const inst = new t(props);
           rendered = inst.render?.();
         } else {
+          // For function components, pass props WITH children so wrappers can forward children correctly
           rendered = t(props);
         }
         return resolveNode(rendered);
@@ -148,9 +179,13 @@ export function renderCodeToAst(code: string): { runtimeAst: SerializableElement
   // Second pass: evaluate with REAL React so runtime components use real hooks/state.
   // This ensures interaction mode behaves correctly (e.g., setState increments).
   (globalThis as any).USER_COMPONENT = undefined;
+  (globalThis as any).WRAPPER_COMPONENT = undefined;
   new Function('React', transpiledCode)(React);
+  if (wrapperTranspiledCode) new Function('React', wrapperTranspiledCode)(React);
   const UserComponentForRuntime = (globalThis as any).USER_COMPONENT;
+  const WrapperComponentForRuntime = (globalThis as any).WRAPPER_COMPONENT;
   (globalThis as any).USER_COMPONENT = undefined;
+  (globalThis as any).WRAPPER_COMPONENT = undefined;
 
   if (typeof UserComponentForRuntime !== 'function') {
     throw new Error('The code must have a default export that is a React component.');
@@ -160,15 +195,48 @@ export function renderCodeToAst(code: string): { runtimeAst: SerializableElement
   resetIdCounter();
 
   // Create runtime AST first (with real React for interactivity)
-  const runtimeElement = React.createElement(UserComponentForRuntime, parsedProps);
+  const childRuntime = React.createElement(UserComponentForRuntime, parsedProps);
+  const runtimeElement = WrapperComponentForRuntime
+    ? React.createElement(WrapperComponentForRuntime, null, childRuntime)
+    : childRuntime;
   const runtimeAst = serializeComponent(runtimeElement) as SerializableElement;
 
   // Then create preview AST (with resolved components for navigator)
-  const resolvedTree = resolveNode(React.createElement(UserComponentForPreview, parsedProps));
+  const childPreview = React.createElement(UserComponentForPreview, parsedProps);
+  const previewWrapped = WrapperComponentForPreview
+    ? React.createElement(WrapperComponentForPreview, null, childPreview)
+    : childPreview;
+  const resolvedTree = resolveNode(previewWrapped);
+  try {
+    console.log('renderer - resolvedTree isValidElement:', React.isValidElement(resolvedTree), 'isArray:', Array.isArray(resolvedTree as any));
+    if (React.isValidElement(resolvedTree)) {
+      const rt: any = resolvedTree;
+      const len = Array.isArray(rt.props?.children) ? rt.props.children.length : (rt.props?.children ? 1 : 0);
+      console.log('renderer - resolvedTree type:', rt.type, 'children length:', len);
+    }
+  } catch {
+    // ignore diagnostic logging errors
+  }
   const rootElement = React.isValidElement(resolvedTree)
     ? (resolvedTree as React.ReactElement)
     : React.createElement('div', null, resolvedTree);
+  try {
+    const re: any = rootElement;
+    const len = Array.isArray(re.props?.children) ? re.props.children.length : (re.props?.children ? 1 : 0);
+    console.log('renderer - rootElement type:', re.type, 'children length:', len);
+  } catch {
+    // ignore diagnostic logging errors
+  }
   const previewAst = serializeComponent(rootElement) as SerializableElement;
+
+  console.log('renderCodeToAst - runtimeAst:', runtimeAst);
+  console.log('renderCodeToAst - runtimeAst children length:', Array.isArray((runtimeAst as any)?.props?.children) ? (runtimeAst as any).props.children.length : ((runtimeAst as any)?.props?.children ? 1 : 0));
+  console.log('renderCodeToAst - previewAst:', previewAst);
+  console.log('renderCodeToAst - previewAst children length:', Array.isArray((previewAst as any)?.props?.children) ? (previewAst as any).props.children.length : ((previewAst as any)?.props?.children ? 1 : 0));
+  if (((previewAst as any)?.props?.children == null || (Array.isArray((previewAst as any).props.children) && (previewAst as any).props.children.length === 0)) &&
+      ((runtimeAst as any)?.props?.children != null && (!Array.isArray((runtimeAst as any).props.children) || (runtimeAst as any).props.children.length > 0))) {
+    console.warn('renderCodeToAst - previewAst has no children but runtimeAst does. Your wrapper may be swallowing children. Ensure it returns {children}.');
+  }
 
   reviveTypes(runtimeAst);
   return { runtimeAst, previewAst };
