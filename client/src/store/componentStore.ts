@@ -1,7 +1,7 @@
 import React from 'react';
 import { create } from 'zustand';
-// Use static import for code generation; astToCode imports types-only from this file so no runtime cycle
-import { updateCodeWithStyles } from '@/lib/codeUpdater';
+// Use the new surgical style updater that preserves component logic
+import { updateStylesInCode } from '@/lib/styleUpdater';
 
 /**
  * Component Store - Central State Management for Component Editing
@@ -60,6 +60,7 @@ interface ComponentState {
   originalCode: string | null;
   jsxLocation: JsxLocation | null;
   isDirty: boolean;
+  isCodeHighlighted: boolean; // Add this for persistent highlighting
 }
 
 // Define the actions that can be performed on the state
@@ -97,14 +98,14 @@ interface ComponentActions {
   /**
    * Applies accumulated AST changes back to the original source code.
    *
-   * This function uses the surgical string replacement approach to update the code
-   * with style changes from the preview AST. It preserves the original formatting
-   * and only modifies the style attributes that have changed.
+   * This function uses the new AST-to-code generation approach to create clean,
+   * formatted JSX from the preview AST and replaces the JSX block in the original code.
    *
    * @returns A promise that resolves to the updated code string, or null if update fails
    */
-  applyAstChangesToCode: () => Promise<string | null> | null;
+  applyAstChangesToCode: () => Promise<string | null>;
   setDirty: (dirty: boolean) => void;
+  clearCodeHighlight: () => void; // Add this for clearing persistent highlighting
 }
 
 // Helper function to recursively find and update a node in the AST
@@ -159,6 +160,7 @@ export const useComponentStore = create<ComponentState & ComponentActions>((set,
   originalCode: null,
   jsxLocation: null,
   isDirty: false,
+  isCodeHighlighted: false, // Add initial value for persistent highlighting
 
   // Actions
   setAst: (ast) =>
@@ -258,6 +260,7 @@ export const useComponentStore = create<ComponentState & ComponentActions>((set,
       originalCode: code,
       jsxLocation,
       isDirty: false,
+      isCodeHighlighted: false, // Clear highlight when rendering new code
       componentAst: runtimeAst,
       componentPreviewAst: previewAst,
       selectedNodeId: null,
@@ -268,17 +271,25 @@ export const useComponentStore = create<ComponentState & ComponentActions>((set,
     };
   }),
   setDirty: (dirty: boolean) => set({ isDirty: dirty }),
-  applyAstChangesToCode: () => {
+  clearCodeHighlight: () => set({ isCodeHighlighted: false }), // Add clearCodeHighlight action
+  applyAstChangesToCode: async (): Promise<string | null> => {
     const { originalCode, componentPreviewAst } = get();
-    if (!originalCode || !componentPreviewAst) return null;
-    return updateCodeWithStyles(originalCode, componentPreviewAst)
-      .then((newCode) => {
-        if (newCode) set({ originalCode: newCode, isDirty: false });
-        return newCode;
-      })
-      .catch((e) => {
-        console.error('applyAstChangesToCode failed:', e);
-        return null;
-      });
+
+    if (!originalCode || !componentPreviewAst) {
+      console.error('Apply Changes Aborted: Missing original code or preview AST.');
+      return null;
+    }
+
+    try {
+      // Call our new, logic-preserving updater
+      const newCode = await updateStylesInCode(originalCode, componentPreviewAst);
+
+      set({ originalCode: newCode, isDirty: false, isCodeHighlighted: true });
+      return newCode;
+
+    } catch (error) {
+      console.error('Failed to apply style changes to code:', error);
+      return null;
+    }
   },
 }));

@@ -30,8 +30,19 @@ export const EditorLayout: React.FC = () => {
     handleNavResizeStart,
     HEADER_HEIGHT,
   } = useResizableLayout();
-  const { selectionMode, setSelectionMode, setRenderOutput, applyAstChangesToCode, setDirty } = useComponentStore();
+  const { selectionMode, setSelectionMode, setRenderOutput, applyAstChangesToCode, isCodeHighlighted, jsxLocation, clearCodeHighlight } = useComponentStore();
   const monacoEditorRef = useRef<MonacoEditorRef>(null);
+
+  // Persistent highlighting effect
+  React.useEffect(() => {
+    if (isCodeHighlighted && jsxLocation && monacoEditorRef.current?.highlightRange) {
+      try {
+        monacoEditorRef.current.highlightRange(jsxLocation);
+      } catch (e) {
+        console.error("Could not highlight changes:", e);
+      }
+    }
+  }, [isCodeHighlighted, jsxLocation]);
 
   const handleRender = async () => {
     if (!monacoEditorRef.current) return;
@@ -48,23 +59,20 @@ export const EditorLayout: React.FC = () => {
   };
 
   const handleApplyChanges = async () => {
-    const maybePromise = applyAstChangesToCode?.();
-    if (!maybePromise) return;
-    const newCode = await maybePromise;
-    if (newCode && monacoEditorRef.current) {
-      monacoEditorRef.current.setCode(newCode);
-      setDirty(false);
-      
-      // Highlight the updated JSX region using stored jsxLocation
-      const { jsxLocation } = useComponentStore.getState();
-      if (jsxLocation && monacoEditorRef.current.highlightRange) {
-        try {
-          // The ref now exposes the highlightRange function directly
-          // and it handles the model logic internally.
-          monacoEditorRef.current.highlightRange(jsxLocation);
-        } catch (e) {
-          console.error("Could not highlight changes:", e);
-        }
+    const newCode = await applyAstChangesToCode();
+
+    if (newCode) { // This block only runs on success
+      if (monacoEditorRef.current) {
+        monacoEditorRef.current.setCode(newCode);
+        // Highlighting is now handled by useEffect based on isCodeHighlighted state
+      }
+    } else { // This block now runs on failure
+      // Let's check the store to give a specific reason
+      const { originalCode, jsxLocation } = useComponentStore.getState();
+      if (!originalCode || !jsxLocation) {
+        alert('Cannot apply changes yet. Click "Render" first to parse the component, then try again.');
+      } else {
+        alert('Failed to apply changes. Check the console for errors.');
       }
     }
   };
@@ -149,7 +157,17 @@ export const EditorLayout: React.FC = () => {
         </div>
 
         {/* Monaco Editor */}
-        {!isLeftPanelMinimized && <MonacoEditor ref={monacoEditorRef} />}
+        {!isLeftPanelMinimized && (
+          <MonacoEditor
+            ref={monacoEditorRef}
+            onChange={() => {
+              // If the user types, clear the highlight
+              if (isCodeHighlighted) {
+                clearCodeHighlight();
+              }
+            }}
+          />
+        )}
         {isLeftPanelMinimized && (
           <div className="flex items-center justify-center h-full w-full">
             {(() => {

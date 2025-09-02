@@ -4,6 +4,10 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useComponentStore } from '@/store/componentStore';
 import type { JsxLocation } from '@/store/componentStore';
 
+export interface MonacoEditorProps {
+  onChange?: (value: string) => void;
+}
+
 export interface MonacoEditorRef {
   getCode: () => string;
   setCode: (code: string) => void;
@@ -51,7 +55,7 @@ function MyComponent() {
 export default MyComponent;
 `;
 
-export const MonacoEditor = forwardRef<MonacoEditorRef>((_, ref) => {
+export const MonacoEditor = forwardRef<MonacoEditorRef, MonacoEditorProps>(({ onChange }, ref) => {
   const [code, setCode] = useState(initialCode);
   const { theme } = useTheme();
   const { setPropsJson, setDependencies } = useComponentStore();
@@ -190,7 +194,11 @@ export default function SumList() {
           language="typescript"
           theme={theme === 'dark' ? 'vs-dark' : 'light'}
           value={code}
-          onChange={(value) => setCode(value || '')}
+          onChange={(value) => {
+            const code = value || '';
+            setCode(code);
+            onChange?.(code); // Call the onChange prop when user types
+          }}
           options={{
             minimap: { enabled: false },
             fontSize: 14,

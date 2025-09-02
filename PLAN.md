@@ -5,20 +5,24 @@
 
 This document provides a deep dive into the architecture, feature specifications, and development roadmap for the Live-Component-Editor project.
 
-## 1. Core Architecture: Virtual DOM Serialization & Decoupled Rendering
+## 1. Core Architecture: A Hybrid AST Model
 
-The application is architected around a **Virtual DOM Serialization** model. This approach is chosen for its robustness, scalability, and adherence to React best practices, avoiding direct DOM manipulation.
+The application's architecture is a sophisticated hybrid model designed to provide a fluid visual editing experience while ensuring the user's component logic is never destroyed. It operates on a core principle: **The User's Source Code is the Single Source of Truth for Logic.**
 
-**The process is as follows:**
-1.  User's JSX code is captured from the Monaco Editor.
-2.  A dedicated `renderer` module (`/lib/renderer.ts`) is responsible for the entire transpilation and execution pipeline.
-3.  The renderer transpiles the code in-browser via Babel into a React element tree.
-4.  A custom `serialize` function recursively traverses this tree to create a pure, serializable JSON Abstract Syntax Tree (AST). This AST is our "source of truth."
-5.  This AST is stored in a central Zustand store.
-6.  A custom `render` function reads the AST from the store and generates interactive React elements, injecting `data-node-id` attributes for selection.
-7.  All user interactions (selecting, editing) modify the AST in the Zustand store. React's declarative rendering handles the UI updates efficiently.
+The system utilizes three distinct Abstract Syntax Trees (ASTs) to achieve this:
 
-This decoupled model ensures a unidirectional data flow, separates concerns effectively, and allows for easy state persistence, undo/redo, and collaboration features.
+1.  **Visual ASTs (`SerializableElement`):** When a user renders their code, we generate two versions of a lightweight, serializable AST from their component's Virtual DOM.
+    *   The **`componentAst` (Live AST)** is created with the real React library and is used for the fully interactive preview.
+    *   The **`componentPreviewAst` (Preview AST)** is created with a shimmed version of React and serves as a static "map" for the UI, driving the Navigator panel and acting as a blueprint for style edits.
+    *   Both are stored in our central Zustand state.
+
+2.  **Source AST (Babel AST):** This is a temporary, high-fidelity AST created on-demand by the Babel parser.
+    *   When a user clicks "Apply Changes," we do **not** generate new code from our visual ASTs.
+    *   Instead, we parse the user's original source code into a temporary Source AST that understands all its logic, hooks, and event handlers.
+    *   Our `styleUpdater.ts` utility then uses the `componentPreviewAst` as a map to find the corresponding nodes in the Source AST and surgically modifies **only their `style` attributes.**
+    *   Finally, `@babel/generator` converts this modified Source AST back into a well-formatted code string, preserving all original logic.
+
+This hybrid, non-destructive approach allows the application to robustly handle complex, real-world components, making it a true "Live Component Editor."
 
 ## 2. Detailed Feature Specifications
 
@@ -65,16 +69,16 @@ This decoupled model ensures a unidirectional data flow, separates concerns effe
 - [x] Wire up `onSave` to the backend `PUT` endpoint.
 
 ### Phase 2: Robustness & Environment Simulation (2 Days)
-- [ ] **Refactor:** Move the rendering canvas into a sandboxed `<iframe>`.
-- [ ] **Feature:** Implement the Undo/Redo history stack in the Zustand store.
-- [ ] **Feature:** Build the "Mock Props" panel in the UI.
-- [ ] **Feature:** Implement the "Dependency Management" UI to inject external scripts into the `<iframe>`.
-- [ ] **Feature:** Implement the "Context Wrapper" editor to wrap the user's component in providers.
+- [X] **Refactor:** Move the rendering canvas into a sandboxed `<iframe>`.
+- [X] **Feature:** Implement the Undo/Redo history stack in the Zustand store.
+- [X] **Feature:** Build the "Mock Props" panel in the UI.
+- [X] **Feature:** Implement the "Dependency Management" UI to inject external scripts into the `<iframe>`.
+- [X] **Feature:** Implement the "Context Wrapper" editor to wrap the user's component in providers.
 
 ### Phase 3: Multi-Component Workflow & Polish (2 Days)
 - [ ] **Feature:** Implement the "Component Library" UI, allowing users to add and switch between multiple components.
 - [ ] **Architecture:** Enhance the `render` function to handle placeholder mocking for unknown child components.
-- [ ] **UI/UX:** Build the collapsible Component Tree navigator.
+- [X] **UI/UX:** Build the collapsible Component Tree navigator.
 - [ ] **UI/UX:** Implement the "Drill-Down" click for overlapping elements.
 
 ### Phase 4: AI & Advanced Features (1-2 Days)
@@ -105,6 +109,7 @@ This decoupled model ensures a unidirectional data flow, separates concerns effe
 - ✅ InspectorPanel with style controls
 - ✅ EditorLayout integrating all components
 - ✅ TypeScript JSX configuration fixed
+- ✅ Implement robust, logic-preserving "Apply Changes" workflow using a **Babel AST-based surgical update strategy**
 - 🔄 Backend API integration (ready for Phase 2)
 
 ## 5. API Schema & Architectural Concerns

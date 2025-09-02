@@ -6,6 +6,9 @@ declare global {
   }
 }
 
+// Import polyfills FIRST before any other imports
+import './polyfills/processShim';
+
 // Allow a minimal process shim for browser runtime. This intentionally uses a narrow any-cast.
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 if ((globalThis as any).process === undefined) {

@@ -22,7 +22,19 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({ onApplyChanges }
         <div className="flex space-x-2 mt-2">
           <Button onClick={undo} disabled={!canUndo} variant="outline">Undo</Button>
           <Button onClick={redo} disabled={!canRedo} variant="outline">Redo</Button>
-          <Button onClick={() => void onApplyChanges()} disabled={!isDirty} className="ml-auto" title={isDirty ? 'Apply inspector changes into the code editor' : 'No changes to apply'}>
+          <Button
+            onClick={() => {
+              console.log('Apply Changes clicked, isDirty:', isDirty);
+              void onApplyChanges();
+            }}
+            disabled={!isDirty}
+            className={`ml-auto px-4 py-2 rounded-md font-medium transition-colors ${
+              isDirty
+                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+            title={isDirty ? 'Apply inspector changes into the code editor' : 'No changes to apply'}
+          >
             Apply Changes
           </Button>
         </div>

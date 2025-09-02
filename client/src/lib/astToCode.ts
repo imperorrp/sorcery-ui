@@ -1,5 +1,8 @@
 import type React from 'react';
 import type { SerializableElement } from '@/store/componentStore';
+import { format } from 'prettier/standalone';
+import babel from 'prettier/plugins/babel';
+import estree from 'prettier/plugins/estree';
 
 // Helper to convert a CSSProperties object back into a JSX-compatible object string
 const styleObjectToJsxString = (style: React.CSSProperties): string => {
@@ -9,7 +12,7 @@ const styleObjectToJsxString = (style: React.CSSProperties): string => {
 };
 
 // Main function to convert a serializable AST node to a JSX string
-export const astToCode = (node: SerializableElement | string, indentLevel = 0): string => {
+const astToCodeRecursive = (node: SerializableElement | string, indentLevel = 0): string => {
   const indent = ' '.repeat(indentLevel * 2);
 
   // Handle string children (like text nodes)
@@ -38,18 +41,34 @@ export const astToCode = (node: SerializableElement | string, indentLevel = 0): 
         if (key === 'style' && typeof value === 'object' && value !== null && Object.keys(value as object).length > 0) {
           return `style={${styleObjectToJsxString(value as React.CSSProperties)}}`;
         }
-        // Handle other prop types
+        // Handle boolean props - only include if true
+        if (typeof value === 'boolean') {
+          return value ? key : null; // e.g., disabled, checked
+        }
+        // Handle string props
         if (typeof value === 'string') {
           return `${key}="${value}"`;
         }
-        if (typeof value === 'boolean' && value) {
-          return key; // For boolean props like `disabled`
-        }
+        // Handle number props - wrap in curly braces
         if (typeof value === 'number') {
           return `${key}={${value}}`;
         }
-        // Omit complex props like functions (e.g., onClick) which we can't reconstruct
-        return null;
+        // Handle object props (excluding style which is handled above)
+        if (typeof value === 'object' && value !== null && key !== 'style') {
+          return `${key}={${JSON.stringify(value)}}`;
+        }
+        // Handle undefined/null - omit these props
+        if (value == null) {
+          return null;
+        }
+        // For any other type, try to stringify
+        try {
+          return `${key}={${JSON.stringify(value)}}`;
+        } catch {
+          // If we can't stringify, omit the prop
+          console.warn(`Could not serialize prop ${key} with value:`, value);
+          return null;
+        }
       })
       .filter(Boolean) as string[];
 
@@ -65,9 +84,62 @@ export const astToCode = (node: SerializableElement | string, indentLevel = 0): 
   }
 
   const childrenString = children
-    .map((child) => astToCode(child, indentLevel + 1))
+    .map((child) => astToCodeRecursive(child, indentLevel + 1))
     .filter(Boolean) // Filter out any empty strings from corrupted children
     .join('\n');
 
   return `${indent}<${tagName}${propsString}>\n${childrenString}\n${indent}</${tagName}>`;
 };
+
+// Export the main function for backward compatibility
+export const astToCode = (node: SerializableElement | string, indentLevel = 0): string => {
+  return astToCodeRecursive(node, indentLevel);
+};
+
+/**
+ * Takes a serializable AST node and generates a clean, formatted JSX string.
+ * This is the final, robust version that correctly handles all Prettier edge cases.
+ * @param node The SerializableElement to convert into code.
+ * @returns A promise that resolves to a formatted JSX string.
+ */
+export async function generateAndFormatJsx(node: SerializableElement): Promise<string> {
+  // 1. Generate the raw, unformatted JSX string from the AST.
+  const rawCode = astToCodeRecursive(node);
+
+  try {
+    // 2. Create a full, valid JavaScript statement. By wrapping our JSX in
+    //    `const temp = (...)`, we give Prettier the full context it needs.
+    //    It will no longer add a defensive leading semicolon.
+    const wrappedCode = `const temp = (${rawCode});`;
+
+    // 3. Format the entire, valid statement.
+    const formattedStatement = await format(wrappedCode, {
+      parser: 'babel',
+      plugins: [babel, estree],
+      semi: true, // We can safely use standard prettier options now.
+      singleQuote: true,
+      jsxSingleQuote: true,
+    });
+
+    // 4. Instead of brittle slicing, we reliably find the first parenthesis
+    //    and the last parenthesis to extract the pure, formatted JSX.
+    const firstParenIndex = formattedStatement.indexOf('(');
+    const lastParenIndex = formattedStatement.lastIndexOf(')');
+
+    if (firstParenIndex !== -1 && lastParenIndex > firstParenIndex) {
+      const extractedJsx = formattedStatement.substring(
+        firstParenIndex + 1,
+        lastParenIndex
+      );
+      // Return the final, clean, trimmed result.
+      return extractedJsx.trim();
+    }
+
+    // This is a fallback in the unlikely case the extraction fails.
+    return rawCode;
+
+  } catch (error) {
+    console.error("Code formatting with Prettier failed:", error);
+    return rawCode; // Fallback to the unformatted code on error.
+  }
+}

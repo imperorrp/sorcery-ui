@@ -3,8 +3,6 @@ import React from 'react';
 import { serializeComponent, resetIdCounter } from '@/lib/componentParser';
 import type { SerializableElement, JsxLocation, ElementLocationMap } from '@/store/componentStore';
 import { useComponentStore } from '@/store/componentStore';
-import type { NodePath } from '@babel/traverse';
-import type { JSXOpeningElement, JSXAttribute, JSXIdentifier, JSXExpressionContainer } from '@babel/types';
 
 /**
  * Renderer Library - Dual-AST Strategy for Interactive Component Editing
@@ -56,73 +54,48 @@ const analyzeCode = async (code: string): Promise<{ jsxLocation: JsxLocation | n
       plugins: ['jsx', 'typescript'],
     });
 
-    let returnStatementPath: any = null;
-
+    // The corrected logic: We use a single, top-level traversal.
     traverse(ast, {
-      ExportDefaultDeclaration(path: NodePath) {
-        const declaration = path.node.declaration;
-        let functionBody;
+      // Find the main return statement of the default exported function.
+      ReturnStatement(path) {
+        // We only care about returns that are inside a Function scope,
+        // and are returning JSX.
+        if (
+          path.getFunctionParent() &&
+          (path.node.argument?.type === 'JSXElement' || path.node.argument?.type === 'JSXFragment')
+        ) {
+          const argument = path.node.argument;
+          if (argument && argument.start != null && argument.end != null) {
+            // Success! We found the location.
+            jsxLocation = { start: argument.start, end: argument.end };
 
-        if (declaration.type === 'FunctionDeclaration') {
-          // Handles: export default function MyComponent() { ... }
-          functionBody = declaration.body;
-        } else if (declaration.type === 'Identifier') {
-          // Handles: function MyComponent() { ... }; export default MyComponent;
-          const componentName = declaration.name;
-          const binding = path.scope.getBinding(componentName);
-          if (binding && binding.path.isFunctionDeclaration()) {
-            functionBody = binding.path.node.body;
+            // Now, traverse just this JSX fragment to map element locations.
+            path.traverse({
+              JSXOpeningElement(elPath) {
+                const nodeId = `node-${idCounter++}`;
+                const styleAttr = elPath.node.attributes.find(
+                  (attr: any) => attr.type === 'JSXAttribute' && attr.name.name === 'style'
+                );
+                
+                // Only add to map if positions are available
+                if (elPath.node.start != null && elPath.node.end != null) {
+                  elementLocationMap.set(nodeId, {
+                    start: elPath.node.start,
+                    end: elPath.node.end,
+                    style: styleAttr && styleAttr.start != null && styleAttr.end != null 
+                      ? { start: styleAttr.start, end: styleAttr.end } 
+                      : undefined,
+                  });
+                }
+              },
+            });
+
+            // Stop the entire traversal since we've found what we need.
+            path.stop();
           }
         }
-
-        if (functionBody) {
-          traverse(functionBody, {
-            ReturnStatement(returnPath: NodePath) {
-              if (returnPath.node.argument?.type === 'JSXElement' || returnPath.node.argument?.type === 'JSXFragment') {
-                returnStatementPath = returnPath;
-                // Stop traversing the inner part once we find the return
-                returnPath.stop();
-              }
-            },
-            // Do not traverse into nested functions
-            Function(innerPath: NodePath) {
-              innerPath.skip();
-            }
-          });
-        }
-        // Stop the main traversal once we've processed the export default
-        path.stop();
-      }
+      },
     });
-
-    if (returnStatementPath) {
-      const argument = returnStatementPath.node.argument;
-      if (argument && argument.start != null && argument.end != null) {
-        jsxLocation = { start: argument.start, end: argument.end };
-
-        // Create a minimal AST to traverse the JSX argument
-        const jsxAst = { ...argument, type: 'Program', body: [argument] };
-        traverse(jsxAst, {
-          JSXOpeningElement(elPath: NodePath<JSXOpeningElement>) {
-            const nodeId = `node-${idCounter++}`;
-            const styleAttr = elPath.node.attributes.find(
-              (attr): attr is JSXAttribute => attr.type === 'JSXAttribute' && 
-                attr.name.type === 'JSXIdentifier' && 
-                attr.name.name === 'style'
-            );
-            
-            elementLocationMap.set(nodeId, {
-              start: elPath.node.start!,
-              end: elPath.node.end!,
-              style: styleAttr ? { 
-                start: styleAttr.start!, 
-                end: styleAttr.end! 
-              } : undefined,
-            });
-          },
-        });
-      }
-    }
 
   } catch (error) {
     console.error("Babel parsing error for location mapping:", error);

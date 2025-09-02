@@ -4,18 +4,26 @@ This document provides a summary of the "Live Component Editor" codebase, outlin
 
 ## Overall Architecture
 
-The application is a monorepo containing a React client and a Node.js/Express server. The core of the application lies in its client-side architecture, which can be described as a Virtual DOM Serialization model.
+The application is a monorepo containing a React client and a Node.js/Express server. The core of the application lies in its client-side architecture, which is a sophisticated hybrid model. It uses **Visual ASTs** (serialized from the Virtual DOM) for real-time rendering and interaction, and a **Source Code AST** (parsed by Babel) for non-destructive, logic-preserving code updates.
 
 ### Primary Workflow
 
-- **Code Input**: A developer pastes React component code (TSX/JSX) into the Monaco Editor.
-- **Transpilation & Execution**: The raw code string is transpiled in the browser using `@babel/standalone`.
-- **AST Generation**: The transpiled code is executed to create a React Element tree. A custom `serializeComponent` function then traverses this tree to create a serializable JSON-like Abstract Syntax Tree (AST). This AST is the application's single source of truth.
-- **State Management**: The generated AST is stored in a global Zustand store.[1] All user actions, such as selecting an element or modifying a style, are dispatched as actions that update this AST in the store.
-- **Sandboxed Rendering**: A custom `renderFromAst` function reads the AST from the Zustand store and renders it as actual React components inside a sandboxed `<iframe>`.[2][3] This isolates the component's styles and scripts from the main application.[4]
-- **UI Updates**: React's declarative nature ensures that any changes to the AST in the Zustand store automatically trigger a re-render of the component inside the iframe.
+The application operates on a sophisticated Three-AST system to ensure both a fluid visual editing experience and a non-destructive code update process that preserves component logic.
 
-This architecture creates a robust, unidirectional data flow, separating the user's code from the live, interactive preview.
+- **Code Input**: A developer pastes React component code (TSX/JSX) into the Monaco Editor.
+- **Dual Visual AST Generation**: When "Render" is clicked, the renderer.ts utility transpiles and executes the code twice:
+  - `componentPreviewAst`: Created using a shimmed version of React, this is a complete, structurally-sound "map" of the component. It is used to render the read-only Navigator tree and acts as the blueprint for applying style changes.
+  - `componentAst`: Created using the real React library, this is the "live" version of the component that can manage its own state and interactivity. It is rendered in the iframe's "Interaction Mode".
+  - Both of these visual ASTs are stored in the central Zustand store.
+- **Visual Editing Loop**: When the user modifies a style in the Inspector, the updateNodeStyle action creates new, updated copies of both visual ASTs in the store. This change is instantly reflected in the sandboxed <iframe>.
+- **Reconciliation via a Temporary Source AST**: When "Apply Changes" is clicked, the application's core architectural principle is revealed:
+  - The styleUpdater.ts utility takes the originalCode string and creates a temporary, highly-detailed Babel AST. This Source AST understands all component logic, including event handlers and hooks.
+  - It then traverses this temporary Babel AST and the componentPreviewAst in parallel, matching elements by their structure.
+  - It surgically modifies only the style attribute of the corresponding nodes within the Babel AST, leaving all other code and logic untouched.
+  - @babel/generator converts this modified Babel AST back into a clean code string.
+  - This new string replaces the originalCode in the store, completing the cycle non-destructively.
+
+This architecture treats the user's Source Code as the ultimate source of truth for logic, while using the Visual ASTs as the source of truth for UI state and interaction.
 
 ## Directory and File Breakdown
 
@@ -37,23 +45,37 @@ This directory contains the entire frontend React application, built with Vite. 
 #### `store/`
 
 - `componentStore.ts`: This is the most critical state management file. It uses Zustand to create a global store that holds:
-  - `componentAst`: The AST for the interactive component (preserves hooks and state).
-  - `componentPreviewAst`: A fully-resolved AST used for the navigator tree.
+  - `componentAst`: The "Live AST" created with the real React library. It is rendered in "Interaction Mode" and allows the component to be fully stateful.
+  - `componentPreviewAst`: The "Preview AST" created with a shimmed React. This is a structurally complete map of the component used for the Navigator and as the blueprint for style updates.
   - `selectedNodeId`: The ID of the currently selected element.
+  - `originalCode`: The user's source code string, which is treated as the source of truth for all component logic.
+  - `jsxLocation`: The character start/end position of the JSX block within the originalCode.
+  - `isDirty`: A flag indicating that visual changes have been made but not yet applied to the source code.
+  - `isCodeHighlighted`: A flag to control the persistent highlighting in the code editor after changes are applied.
   - `history`: An array of AST snapshots for undo/redo functionality.
-  - State for mock props, dependencies, context wrappers, and UI modes (`selectionMode`).
+  - State for mock props (`propsJson`), dependencies, and context wrappers (`wrapperCode`).
+  - Key methods: `setRenderOutput` (initializes both ASTs after rendering), `updateNodeStyle` (applies style changes), `applyAstChangesToCode` (surgical code updates), `undo`/`redo` (history management).
 
 #### `lib/`
 
-- `renderer.ts`: Contains the core logic for processing user code.
-  - `renderCodeToAst(code)`: The main function that orchestrates the entire rendering pipeline. It transpiles the code with Babel, executes it to get a React component, and then calls `serializeComponent` to generate two versions of the AST (`runtimeAst` and `previewAst`). It cleverly uses a "shimmed" React to resolve the preview AST without triggering hook errors.
-- `componentParser.ts`: Handles the conversion between React Elements and the serializable AST.
-  - `serializeComponent(element)`: Recursively traverses a React Element tree and converts it into the `SerializableElement` AST format, assigning unique IDs.
-  - `renderFromAst(astNode)`: Takes the AST and recursively builds a React Element tree from it using `React.createElement`.
-- `utils.ts`: Contains utility functions, notably `cn` for merging Tailwind CSS classes.
+- `renderer.ts`: Contains the crucial `renderCodeToAst` function. This orchestrates the initial code processing pipeline by transpiling the user's code and calling the parser to generate the two distinct visual ASTs (`componentAst` and `componentPreviewAst`).
+- `componentParser.ts`: Handles the serialization from React Elements into our custom `SerializableElement` AST format (`serializeComponent`), and the deserialization from our AST back into renderable React Elements (`renderFromAst`).
+- `styleUpdater.ts`: (Critical Architectural File) Implements the "Apply Changes" logic. It takes the user's original source code and the `componentPreviewAst`, parses the code into a temporary Babel AST, and surgically modifies only the style attributes of the corresponding nodes. This non-destructive approach is the key to preserving all component logic like onClick handlers and state.
+- `astToCode.ts`: Utility for converting `SerializableElement` AST nodes back into formatted JSX code strings. Includes Prettier integration for clean code generation. Used for code generation workflows.
+- `utils.ts`: Contains shared utility functions, such as `cn` for merging Tailwind CSS classes.
+
+#### `hooks/`
+
+- `useDebounce.ts`: Custom hook for debouncing user input to prevent excessive re-renders and API calls.
+- `useResizableLayout.ts`: Custom hook that manages the resizable layout state for the editor panels, including panel sizes, minimization states, and resize handlers.
+
+#### `polyfills/`
+
+- `processShim.ts`: Browser polyfill for Node.js `process` global object, required for Babel packages to work in the browser environment.
 
 #### `components/`
 
+- `Navbar.tsx`: Navigation bar component with theme toggle functionality and app branding.
 - `EditorLayout.tsx`: The main UI component that assembles the different panels (Navigator, Code Editor, Canvas, Inspector). It manages the resizing and collapsing state for these panels. It also triggers the rendering process by calling `renderCodeToAst`.
 
 ##### `Canvas/`
@@ -68,10 +90,10 @@ This directory contains the entire frontend React application, built with Vite. 
 
 ##### `Inspector/`
 
-- `InspectorPanel.tsx`: The right-hand panel that contains tabs for editing. It also includes the Undo/Redo buttons that interact with the Zustand store's history.
+- `InspectorPanel.tsx`: The right-hand panel that contains tabs for editing. It includes the Undo/Redo buttons and the master "Apply Changes" button.
 - `StyleEditor.tsx`: Displays input fields (e.g., color pickers, text inputs) to modify the CSS properties of the selected element. Changes are propagated to the Zustand store via the `updateNodeStyle` action.
-- `PropsEditor.tsx`: A simple textarea where the user can input a JSON object to be used as props for the root component.
-- `SetupEditor.tsx`: Allows the user to add external CDN dependencies and provide a custom wrapper component (e.g., for theme providers or Redux providers).
+- `PropsEditor.tsx`: Provides a textarea for the user to input a JSON object, which is then used as props for the root component during rendering.
+- `SetupEditor.tsx`: Allows the user to add external CDN dependency URLs, which are injected as <script> tags into the sandboxed <iframe>. It also provides a code editor for defining a custom wrapper component (e.g., for theme or Redux providers).
 
 ##### `Navigator/`
 
@@ -79,7 +101,18 @@ This directory contains the entire frontend React application, built with Vite. 
 
 ##### `ui/`
 
-Contains reusable UI components like Button, Input, Tabs, etc., built using shadcn/ui principles and Tailwind CSS.
+Contains reusable UI components built using shadcn/ui principles and Tailwind CSS:
+- `button.tsx`: Button component with various variants and sizes
+- `dropdown-menu.tsx`: Dropdown menu component
+- `input.tsx`: Input field component
+- `label.tsx`: Label component for form elements
+- `Panel.tsx`: Panel container component
+- `tabs.tsx`: Tab navigation component
+- `textarea.tsx`: Textarea component
+
+##### `Layouts/`
+
+- `EditorLayout.tsx`: Alternative layout implementation (currently unused - main layout is in components/EditorLayout.tsx).
 
 ##### `contexts/`
 
@@ -88,6 +121,8 @@ Contains reusable UI components like Button, Input, Tabs, etc., built using shad
 - `vite.config.ts`: Configuration for the Vite build tool, including aliases and plugins for Tailwind CSS and Monaco Editor.
 - `tailwind.config.js`, `postcss.config.js`: Configuration for Tailwind CSS.
 - `tsconfig.*.json`: TypeScript configuration files.
+- `test-analyze.js`: Development test file for testing the `analyzeCode` function and JSX location detection.
+- `TestAstToCode.tsx`: Development test component for testing the AST-to-Code generation functionality.
 
 ### `server/`
 
