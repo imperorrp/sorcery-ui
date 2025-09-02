@@ -73,7 +73,6 @@ export function renderFromAst(
   handleSelect?: (nodeId: string) => void,
   injectHandlers = true
 ): React.ReactNode {
-  console.log('renderFromAst called with astNode:', astNode, 'injectHandlers:', injectHandlers);
   if (typeof astNode === 'string' || astNode === null) {
     return astNode;
   }
@@ -86,9 +85,13 @@ export function renderFromAst(
   const baseProps = props || {};
   const finalProps: Record<string, any> = {
     ...baseProps,
-    'data-node-id': id,
     key: id,
   };
+  
+  // Only add data-node-id attribute for DOM elements (string types), not function components
+  if (typeof type === 'string') {
+    finalProps['data-node-id'] = id;
+  }
 
   // Only inject onClick handler if we're in selection mode and handleSelect is provided
   if (injectHandlers && handleSelect) {

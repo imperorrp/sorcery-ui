@@ -14,10 +14,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/babel__traverse": "^7.28.0",
     "concurrently": "^8.2.2"
   },
   "dependencies": {
+    "@babel/parser": "^7.28.3",
     "@babel/standalone": "^7.28.3",
+    "@babel/traverse": "^7.28.3",
     "@radix-ui/react-slot": "^1.2.3",
     "lucide-react": "^0.542.0"
   }

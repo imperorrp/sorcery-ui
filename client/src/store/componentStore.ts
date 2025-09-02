@@ -1,5 +1,7 @@
 import React from 'react';
 import { create } from 'zustand';
+// Use static import for code generation; astToCode imports types-only from this file so no runtime cycle
+import { updateCodeWithStyles } from '@/lib/codeUpdater';
 
 // Define the structure of our serializable element AST
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -13,6 +15,16 @@ export interface SerializableElement {
     style?: React.CSSProperties;
   };
 }
+
+// Location of the returned JSX within source code
+export type JsxLocation = { start: number; end: number };
+
+// Map of element IDs to their locations in source code
+export type ElementLocationMap = Map<string, {
+  start: number;
+  end: number;
+  style?: { start: number; end: number };
+}>;
 
 // Define the state of our application
 interface HistorySnapshot {
@@ -29,6 +41,10 @@ interface ComponentState {
   selectionMode: 'interact' | 'select';
   dependencies: string[]; // Add this
   wrapperCode: string;   // Add this
+  // Source-of-truth code tracking
+  originalCode: string | null;
+  jsxLocation: JsxLocation | null;
+  isDirty: boolean;
 }
 
 // Define the actions that can be performed on the state
@@ -45,6 +61,15 @@ interface ComponentActions {
   removeDependency: (url: string) => void; // Add this
   setDependencies: (urls: string[]) => void; // Add this
   setWrapperCode: (code: string) => void;  // Add this
+  // Source-of-truth code actions
+  setRenderOutput: (
+    code: string,
+    runtimeAst: SerializableElement | null,
+    previewAst: SerializableElement | null,
+    jsxLocation: JsxLocation | null
+  ) => void;
+  setDirty: (dirty: boolean) => void;
+  applyAstChangesToCode: () => Promise<string | null> | null;
 }
 
 // Helper function to recursively find and update a node in the AST
@@ -96,6 +121,9 @@ export const useComponentStore = create<ComponentState & ComponentActions>((set,
   selectionMode: 'interact',
   dependencies: [],
   wrapperCode: initialWrapperCode,
+  originalCode: null,
+  jsxLocation: null,
+  isDirty: false,
 
   // Actions
   setAst: (ast) =>
@@ -151,6 +179,7 @@ export const useComponentStore = create<ComponentState & ComponentActions>((set,
       componentPreviewAst: newComponentPreviewAst,
       history: newHistory,
       historyIndex: newHistory.length - 1,
+      isDirty: true,
     });
   },
 
@@ -188,4 +217,33 @@ export const useComponentStore = create<ComponentState & ComponentActions>((set,
   removeDependency: (url) => set((state) => ({ dependencies: state.dependencies.filter(d => d !== url) })),
   setDependencies: (urls) => set({ dependencies: urls }),
   setWrapperCode: (code) => set({ wrapperCode: code }),
+  setRenderOutput: (code, runtimeAst, previewAst, jsxLocation) => set((state) => {
+    const newHistory = [{ ast: runtimeAst, preview: previewAst }];
+    return {
+      originalCode: code,
+      jsxLocation,
+      isDirty: false,
+      componentAst: runtimeAst,
+      componentPreviewAst: previewAst,
+      selectedNodeId: null,
+      history: newHistory,
+      historyIndex: 0,
+      dependencies: state.dependencies,
+      wrapperCode: state.wrapperCode,
+    };
+  }),
+  setDirty: (dirty: boolean) => set({ isDirty: dirty }),
+  applyAstChangesToCode: () => {
+    const { originalCode, componentPreviewAst } = get();
+    if (!originalCode || !componentPreviewAst) return null;
+    return updateCodeWithStyles(originalCode, componentPreviewAst)
+      .then((newCode) => {
+        if (newCode) set({ originalCode: newCode, isDirty: false });
+        return newCode;
+      })
+      .catch((e) => {
+        console.error('applyAstChangesToCode failed:', e);
+        return null;
+      });
+  },
 }));

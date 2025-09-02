@@ -6,8 +6,12 @@ import { StyleEditor } from './StyleEditor';
 import { PropsEditor } from './PropsEditor';
 import { SetupEditor } from './SetupEditor';
 
-export const InspectorPanel: React.FC = () => {
-  const { undo, redo, historyIndex, history } = useComponentStore();
+export interface InspectorPanelProps {
+  onApplyChanges: () => void | Promise<void>;
+}
+
+export const InspectorPanel: React.FC<InspectorPanelProps> = ({ onApplyChanges }) => {
+  const { undo, redo, historyIndex, history, isDirty } = useComponentStore();
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
 
@@ -18,6 +22,9 @@ export const InspectorPanel: React.FC = () => {
         <div className="flex space-x-2 mt-2">
           <Button onClick={undo} disabled={!canUndo} variant="outline">Undo</Button>
           <Button onClick={redo} disabled={!canRedo} variant="outline">Redo</Button>
+          <Button onClick={() => void onApplyChanges()} disabled={!isDirty} className="ml-auto" title={isDirty ? 'Apply inspector changes into the code editor' : 'No changes to apply'}>
+            Apply Changes
+          </Button>
         </div>
       </div>
 

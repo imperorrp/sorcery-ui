@@ -10,7 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@babel/generator": "^7.28.3",
+    "@babel/parser": "^7.28.3",
     "@babel/standalone": "^7.28.3",
+    "@babel/traverse": "^7.28.3",
     "@monaco-editor/react": "^4.6.0",
     "@radix-ui/react-label": "^2.1.0",
     "autoprefixer": "^10.4.21",
@@ -18,11 +21,11 @@
     "clsx": "^2.1.1",
     "dompurify": "^3.2.6",
     "immer": "^10.1.1",
+    "lucide-react": "^0.542.0",
     "monaco-editor": "^0.52.2",
     "postcss": "^8.5.6",
     "react": "^19.1.1",
-  "react-dom": "^19.1.1",
-  "lucide-react": "^0.542.0",
+    "react-dom": "^19.1.1",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^4.1.12",
     "zustand": "^5.0.8"
@@ -30,7 +33,9 @@
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "@tailwindcss/vite": "^4.1.12",
+    "@types/babel__generator": "^7.27.0",
     "@types/babel__standalone": "^7.1.9",
+    "@types/babel__traverse": "^7.28.0",
     "@types/dompurify": "^3.0.5",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",

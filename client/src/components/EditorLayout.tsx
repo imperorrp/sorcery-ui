@@ -24,16 +24,17 @@ export const EditorLayout: React.FC = () => {
   const [isResizingLeft, setIsResizingLeft] = useState(false);
   const [isResizingInspector, setIsResizingInspector] = useState(false);
   const [isResizingNav, setIsResizingNav] = useState(false);
-  const { setAstWithPreview, selectionMode, setSelectionMode } = useComponentStore();
+  const { selectionMode, setSelectionMode, setRenderOutput, applyAstChangesToCode, setDirty } = useComponentStore();
   const monacoEditorRef = useRef<MonacoEditorRef>(null);
   // previous height ref removed (not needed)
 
-  const handleRender = () => {
+  const handleRender = async () => {
     if (!monacoEditorRef.current) return;
     const code = monacoEditorRef.current.getCode();
     try {
-      const { runtimeAst, previewAst } = renderCodeToAst(code);
-      setAstWithPreview(runtimeAst, previewAst);
+      const { runtimeAst, previewAst, jsxLocation } = await renderCodeToAst(code);
+      // Update both the ASTs and code/loc snapshot in one call
+      setRenderOutput(code, runtimeAst, previewAst, jsxLocation);
     } catch (error: unknown) {
       console.error('Error rendering component:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -154,6 +155,28 @@ export const EditorLayout: React.FC = () => {
       }
     }
   }, [inspectorHeight, isInspectorMinimized]);
+
+  const handleApplyChanges = async () => {
+    const maybePromise = applyAstChangesToCode?.();
+    if (!maybePromise) return;
+    const newCode = await maybePromise;
+    if (newCode && monacoEditorRef.current) {
+      monacoEditorRef.current.setCode(newCode);
+      setDirty(false);
+      
+      // Highlight the updated JSX region using stored jsxLocation
+      const { jsxLocation } = useComponentStore.getState();
+      if (jsxLocation && monacoEditorRef.current.highlightRange) {
+        try {
+          // The ref now exposes the highlightRange function directly
+          // and it handles the model logic internally.
+          monacoEditorRef.current.highlightRange(jsxLocation);
+        } catch (e) {
+          console.error("Could not highlight changes:", e);
+        }
+      }
+    }
+  };
 
   return (
     <div className={`h-full flex ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`} data-layout-container>
@@ -361,7 +384,7 @@ export const EditorLayout: React.FC = () => {
               transition: isResizingInspector ? 'none' : 'height 320ms cubic-bezier(.22,.9,.28,1)',
             }}
           >
-            <InspectorPanel />
+            <InspectorPanel onApplyChanges={handleApplyChanges} />
           </div>
         </div>
       </div>

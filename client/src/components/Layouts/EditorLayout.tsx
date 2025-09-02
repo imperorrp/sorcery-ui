@@ -22,7 +22,7 @@ export const EditorLayout = () => {
         </div>
       </main>
       <aside className="w-96 bg-gray-950 p-0 border-l border-gray-800">
-        <InspectorPanel />
+        <InspectorPanel onApplyChanges={() => { /* legacy layout noop */ }} />
       </aside>
     </div>
   );

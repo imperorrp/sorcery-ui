@@ -91,7 +91,6 @@ export const IframeCanvas: React.FC = () => {
   // Choose AST based on mode (previewAst for selection so nested nodes exist)
   const latestPreview = componentPreviewAst ?? history?.[historyIndex]?.preview ?? null;
   const chosenAst = selectionMode === 'select' ? latestPreview : componentAst;
-  console.log('IframeCanvas - chosenAst:', chosenAst, 'selectionMode:', selectionMode);
   // Force full re-render when chosen AST or selection mode changes to refresh handlers inside iframe
   const astKey = chosenAst ? JSON.stringify(chosenAst).length : 0;
   const modeKey = selectionMode;
@@ -141,6 +140,7 @@ export const IframeCanvas: React.FC = () => {
       if (selectionMode !== 'select') return;
       const target = e.target as HTMLElement | null;
       if (!target) return;
+      
       const el = target.closest('[data-node-id]') as HTMLElement | null;
       if (el) {
         const id = el.getAttribute('data-node-id');
@@ -167,8 +167,17 @@ export const IframeCanvas: React.FC = () => {
       {iframeBody && createPortal(
         <div key={combinedKey} style={{ minHeight: '100%', padding: '1rem' }}>
           {(() => {
-            console.log('About to render chosenAst:', chosenAst);
             if (!chosenAst) return null;
+
+            // Special handling for selection mode: if the root is a function component,
+            // render its children directly to preserve data-node-id attributes
+            let renderTarget: SerializableElement | string | null = chosenAst;
+            if (selectionMode === 'select' && typeof (chosenAst as SerializableElement).type === 'function') {
+              const children = (chosenAst as SerializableElement).props?.children;
+              if (Array.isArray(children) && children.length === 1 && typeof children[0] !== 'string') {
+                renderTarget = children[0]; // Render the div directly instead of the function component
+              }
+            }
 
             // Deep-clone and ensure props/children exist to avoid runtime errors
             const cloneAndSanitize = (
@@ -186,10 +195,10 @@ export const IframeCanvas: React.FC = () => {
 
             let safeAst: SerializableElement | string | null;
             try {
-              safeAst = cloneAndSanitize(chosenAst as SerializableElement);
+              safeAst = cloneAndSanitize(renderTarget as SerializableElement);
             } catch (err) {
-              console.error('Failed to sanitize AST for rendering', err, chosenAst);
-              safeAst = chosenAst;
+              console.error('Failed to sanitize AST for rendering', err, renderTarget);
+              safeAst = renderTarget;
             }
 
             try {
