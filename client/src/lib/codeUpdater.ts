@@ -1,6 +1,31 @@
 // client/src/lib/codeUpdater.ts
-// Surgical string replacement approach that preserves component logic
+/**
+ * Code Updater Library - Surgical String Replacement Approach
+ *
+ * This module implements a "Surgical String Replacement" strategy for updating component code
+ * based on AST changes. Instead of regenerating the entire code from scratch, it makes precise
+ * modifications to the original source string by:
+ *
+ * 1. Parsing the original code with Babel to understand its structure
+ * 2. Identifying the exact locations of style attributes in JSX elements
+ * 3. Applying targeted string replacements to update only the changed styles
+ * 4. Preserving all other code formatting, comments, and structure
+ *
+ * FRAGILITY WARNING:
+ * This approach relies on Babel's ability to parse and traverse the original code accurately.
+ * It can be sensitive to:
+ * - Complex formatting or unusual whitespace patterns
+ * - Conditional logic within JSX (ternaries, logical operators)
+ * - Dynamic style objects or complex expressions
+ * - Nested component structures with similar element patterns
+ *
+ * Future developers should be aware that this method may require updates if the codebase
+ * introduces more complex JSX patterns or if Babel parsing becomes unreliable.
+ */
+
 import type { SerializableElement } from '@/store/componentStore';
+import type { NodePath } from '@babel/traverse';
+import type { JSXOpeningElement, JSXAttribute, JSXIdentifier } from '@babel/types';
 
 interface Change {
   start: number;
@@ -15,7 +40,22 @@ const styleObjectToString = (style: React.CSSProperties): string => {
   return styleString.replace(/"([^"]+)":/g, '$1:');
 };
 
-// Main function to update the code
+/**
+ * Updates the original code string with style changes from the preview AST.
+ *
+ * This function performs surgical updates to the source code by:
+ * 1. Parsing the original code with Babel to recreate the AST structure
+ * 2. Traversing the JSX elements and matching them with nodes in the preview AST
+ * 3. Collecting precise string replacement operations for style changes
+ * 4. Applying all changes in reverse order to maintain character indices
+ *
+ * The process ensures that only style attributes are modified while preserving
+ * all other code structure, formatting, and logic.
+ *
+ * @param originalCode The original source code string from the editor
+ * @param previewAst The preview AST containing updated style information
+ * @returns The updated code string with applied style changes, or null if update fails
+ */
 export const updateCodeWithStyles = async (
   originalCode: string,
   previewAst: SerializableElement
@@ -68,14 +108,16 @@ export const updateCodeWithStyles = async (
     
     try {
       traverseFn(babelAst, {
-        JSXOpeningElement(path) {
+        JSXOpeningElement(path: NodePath<JSXOpeningElement>) {
           // This is how we ensure the ID matches the one in our previewAst
           const nodeId = `node-${idCounter++}`;
           const newStyle = styleMap.get(nodeId);
 
           if (newStyle) {
             const styleAttr = path.node.attributes.find(
-              attr => attr.type === 'JSXAttribute' && attr.name.type === 'JSXIdentifier' && attr.name.name === 'style'
+              (attr): attr is JSXAttribute => attr.type === 'JSXAttribute' && 
+                attr.name.type === 'JSXIdentifier' && 
+                (attr.name as JSXIdentifier).name === 'style'
             );
 
             const newStyleString = `style={${styleObjectToString(newStyle)}}`;
@@ -89,7 +131,7 @@ export const updateCodeWithStyles = async (
               });
             } else if (path.node.start != null) {
               // If style prop does not exist, add it before the closing ">"
-              const tagName = path.node.name.type === 'JSXIdentifier' ? path.node.name.name : 'unknown';
+              const tagName = path.node.name.type === 'JSXIdentifier' ? (path.node.name as JSXIdentifier).name : 'unknown';
               const insertPos = path.node.selfClosing
                 ? path.node.start + tagName.length + 1
                 : (path.node.end ?? path.node.start + tagName.length + 1) - 1;

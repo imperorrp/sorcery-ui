@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { MonacoEditor } from './CodeEditor/MonacoEditor';
 import type { MonacoEditorRef } from './CodeEditor/MonacoEditor';
 import { ComponentCanvas } from './Canvas/ComponentCanvas';
@@ -9,24 +9,29 @@ import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { useComponentStore } from '@/store/componentStore';
 import { renderCodeToAst } from '@/lib/renderer';
+import { useResizableLayout } from '@/hooks/useResizableLayout';
 
 export const EditorLayout: React.FC = () => {
   const { theme } = useTheme();
-  // Editor (code) panel width in pixels for stable, smooth dragging
-  const [leftPanelWidthPx, setLeftPanelWidthPx] = useState<number | null>(null);
-  const [navWidth, setNavWidth] = useState<number>(240); // px
-  const HEADER_HEIGHT = 48;
-  const INSPECTOR_KEY = 'inspectorHeight';
-  const [inspectorHeight, setInspectorHeight] = useState<number>(384); // pixels
-  const [isLeftPanelMinimized, setIsLeftPanelMinimized] = useState(false);
-  const [isInspectorMinimized, setIsInspectorMinimized] = useState(false);
-  const [isNavMinimized, setIsNavMinimized] = useState(false);
-  const [isResizingLeft, setIsResizingLeft] = useState(false);
-  const [isResizingInspector, setIsResizingInspector] = useState(false);
-  const [isResizingNav, setIsResizingNav] = useState(false);
+  const {
+    leftPanelWidthPx,
+    navWidth,
+    inspectorHeight,
+    isLeftPanelMinimized,
+    isInspectorMinimized,
+    isNavMinimized,
+    isResizingLeft,
+    isResizingInspector,
+    setIsLeftPanelMinimized,
+    setIsInspectorMinimized,
+    setIsNavMinimized,
+    handleLeftResizeStart,
+    handleInspectorResizeStart,
+    handleNavResizeStart,
+    HEADER_HEIGHT,
+  } = useResizableLayout();
   const { selectionMode, setSelectionMode, setRenderOutput, applyAstChangesToCode, setDirty } = useComponentStore();
   const monacoEditorRef = useRef<MonacoEditorRef>(null);
-  // previous height ref removed (not needed)
 
   const handleRender = async () => {
     if (!monacoEditorRef.current) return;
@@ -41,120 +46,6 @@ export const EditorLayout: React.FC = () => {
       alert(`Error: ${errorMessage}\n\nCheck the console for more details.`);
     }
   };
-
-  const handleLeftResizeStart = (e: React.MouseEvent) => {
-    setIsResizingLeft(true);
-    e.preventDefault();
-  };
-
-  const handleInspectorResizeStart = (e: React.MouseEvent) => {
-    setIsResizingInspector(true);
-    e.preventDefault();
-  };
-
-  const handleNavResizeStart = (e: React.MouseEvent) => {
-    setIsResizingNav(true);
-    e.preventDefault();
-  };
-
-  React.useEffect(() => {
-    // Initialize editor width to 50% of available space on first mount
-  if (leftPanelWidthPx === null) {
-      const container = document.querySelector('[data-layout-container]');
-      if (container) {
-        const rect = (container as HTMLElement).getBoundingClientRect();
-    const navResizerW = 4; // tailwind w-1 = 4px
-    const leftResizerW = 4;
-    const effectiveNav = (isNavMinimized ? 40 : navWidth);
-    const available = rect.width - effectiveNav - navResizerW - leftResizerW;
-        const initial = Math.max(240, Math.floor(available * 0.5));
-        setLeftPanelWidthPx(initial);
-      }
-    }
-
-    // Load persisted inspector height on mount
-    try {
-      const stored = localStorage.getItem(INSPECTOR_KEY);
-      if (stored) {
-        const parsed = Number(stored);
-        if (!Number.isNaN(parsed)) {
-          setInspectorHeight(Math.max(100, Math.min(600, parsed)));
-        }
-      }
-    } catch {
-      // ignore
-    }
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isResizingLeft) {
-        const container = document.querySelector('[data-layout-container]');
-        if (container) {
-          const rect = container.getBoundingClientRect();
-          // Compute pixel width relative to the available space to the right of the navigator
-          const navResizerW = 4; // tailwind w-1
-          const leftResizerW = 4;
-          const effectiveNav = (isNavMinimized ? 40 : navWidth);
-          const leftEdge = rect.left + effectiveNav + navResizerW;
-          const available = rect.width - effectiveNav - navResizerW - leftResizerW;
-          const raw = e.clientX - leftEdge;
-          const minPx = 200; // minimum editor width
-          const maxPx = Math.max(minPx, available - 300); // keep at least 300px for the canvas
-          const clamped = Math.max(minPx, Math.min(maxPx, raw));
-          setLeftPanelWidthPx(Math.floor(clamped));
-        }
-      } else if (isResizingInspector) {
-        const container = document.querySelector('[data-inspector-container]');
-        if (container) {
-          const rect = container.getBoundingClientRect();
-          const newHeight = rect.bottom - e.clientY;
-          const clamped = Math.max(100, Math.min(600, newHeight));
-          setInspectorHeight(clamped);
-          // persist while resizing
-          try {
-            localStorage.setItem(INSPECTOR_KEY, String(clamped));
-          } catch {
-            // ignore
-          }
-        }
-      } else if (isResizingNav) {
-        const container = document.querySelector('[data-layout-container]');
-        if (container) {
-          const rect = container.getBoundingClientRect();
-          const min = 160;
-          const max = Math.min(480, rect.width * 0.4);
-          const newWidth = Math.max(min, Math.min(max, e.clientX - rect.left));
-          setNavWidth(newWidth);
-        }
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsResizingLeft(false);
-      setIsResizingInspector(false);
-      setIsResizingNav(false);
-    };
-
-    if (isResizingLeft || isResizingInspector || isResizingNav) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isResizingLeft, isResizingInspector, isResizingNav, isNavMinimized, navWidth, leftPanelWidthPx]);
-
-  // Persist inspectorHeight when it changes (and not minimized)
-  React.useEffect(() => {
-    if (!isInspectorMinimized) {
-      try {
-        localStorage.setItem(INSPECTOR_KEY, String(inspectorHeight));
-      } catch {
-        // ignore
-      }
-    }
-  }, [inspectorHeight, isInspectorMinimized]);
 
   const handleApplyChanges = async () => {
     const maybePromise = applyAstChangesToCode?.();

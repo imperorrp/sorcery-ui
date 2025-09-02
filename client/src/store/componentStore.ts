@@ -3,14 +3,29 @@ import { create } from 'zustand';
 // Use static import for code generation; astToCode imports types-only from this file so no runtime cycle
 import { updateCodeWithStyles } from '@/lib/codeUpdater';
 
+/**
+ * Component Store - Central State Management for Component Editing
+ *
+ * This Zustand store manages the application's state for interactive component editing.
+ * It maintains multiple representations of the component to enable different editing modes:
+ *
+ * Key State Properties:
+ * - componentAst: The runtime AST created with real React, used for live interaction in the iframe
+ * - componentPreviewAst: The preview AST created with shimmed React, used for safe style editing and navigation
+ * - originalCode: The source-of-truth code string from the Monaco editor, preserved for surgical updates
+ * - isDirty: Flag indicating whether the AST has changes that haven't been applied back to the code
+ * - jsxLocation: Location of the main JSX block in the source code for highlighting
+ * - selectedNodeId: Currently selected element in the component tree for editing
+ * - history: Undo/redo stack of AST states for non-destructive editing
+ */
+
 // Define the structure of our serializable element AST
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface SerializableElement {
   id: string;
   // type can be a native element string (e.g. 'div') or a React component (function/class)
-  type: string | React.ComponentType<any>;
+  type: string | React.ComponentType<unknown>;
   props: {
-    [key: string]: any;
+    [key: string]: unknown; // Use `unknown` instead of `any` to force type checks
     children?: (SerializableElement | string)[];
     style?: React.CSSProperties;
   };
@@ -61,15 +76,35 @@ interface ComponentActions {
   removeDependency: (url: string) => void; // Add this
   setDependencies: (urls: string[]) => void; // Add this
   setWrapperCode: (code: string) => void;  // Add this
-  // Source-of-truth code actions
+  /**
+   * Sets the render output after transpiling and executing component code.
+   *
+   * This is called after renderCodeToAst successfully processes the code.
+   * It updates the source-of-truth code, both ASTs, and resets the dirty flag.
+   * Also initializes the history stack with the new state.
+   *
+   * @param code The original source code string
+   * @param runtimeAst The interactive AST created with real React
+   * @param previewAst The safe AST created with shimmed React
+   * @param jsxLocation Location of the main JSX block for highlighting
+   */
   setRenderOutput: (
     code: string,
     runtimeAst: SerializableElement | null,
     previewAst: SerializableElement | null,
     jsxLocation: JsxLocation | null
   ) => void;
-  setDirty: (dirty: boolean) => void;
+  /**
+   * Applies accumulated AST changes back to the original source code.
+   *
+   * This function uses the surgical string replacement approach to update the code
+   * with style changes from the preview AST. It preserves the original formatting
+   * and only modifies the style attributes that have changed.
+   *
+   * @returns A promise that resolves to the updated code string, or null if update fails
+   */
   applyAstChangesToCode: () => Promise<string | null> | null;
+  setDirty: (dirty: boolean) => void;
 }
 
 // Helper function to recursively find and update a node in the AST

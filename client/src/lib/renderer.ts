@@ -3,16 +3,41 @@ import React from 'react';
 import { serializeComponent, resetIdCounter } from '@/lib/componentParser';
 import type { SerializableElement, JsxLocation, ElementLocationMap } from '@/store/componentStore';
 import { useComponentStore } from '@/store/componentStore';
+import type { NodePath } from '@babel/traverse';
+import type { JSXOpeningElement, JSXAttribute, JSXIdentifier, JSXExpressionContainer } from '@babel/types';
 
 /**
- * THIS IS THE CORRECTED LOGIC.
- * It robustly finds the default exported component and its return statement.
- * Uses dynamic imports to avoid process reference before shim loads.
- * 
- * NOTE: This function analyzes the code STRUCTURE for locations but doesn't generate
- * the actual node IDs that will be used in the AST. The actual node IDs are generated
- * during AST creation in componentParser.ts, so this elementLocationMap is mainly
- * for surgical code updates, not for selection mapping.
+ * Renderer Library - Dual-AST Strategy for Interactive Component Editing
+ *
+ * This module implements a "Dual-AST" approach to enable live, interactive editing of React components:
+ *
+ * 1. **Runtime AST (componentAst)**: Created with the real React library, allowing full interactivity,
+ *    state management, and side effects. This is rendered in the iframe for live interaction.
+ *
+ * 2. **Preview AST (componentPreviewAst)**: Created with a "shimmed" React that replaces stateful hooks
+ *    (useState, useEffect) with no-op functions. This generates a complete, serializable tree of the
+ *    component's potential output without executing stateful logic, enabling safe style editing and
+ *    component tree navigation.
+ *
+ * The dual approach ensures that:
+ * - Users can interact with their components in real-time (runtime AST)
+ * - Style changes can be applied safely without triggering stateful code (preview AST)
+ * - The component tree can be analyzed for navigation and selection (preview AST)
+ *
+ * Both ASTs are generated from the same source code but with different React contexts to achieve
+ * this separation of concerns.
+ */
+
+/**
+ * Analyzes the provided code string to locate JSX elements and their positions.
+ *
+ * This function parses the code using Babel to find the main JSX return statement
+ * and creates a mapping of element locations for surgical code updates. It identifies
+ * the default exported component's return statement and traverses its JSX structure
+ * to build an element location map.
+ *
+ * @param code The raw TSX/JSX code string from the editor
+ * @returns A promise resolving to an object containing the JSX location and element location map
  */
 const analyzeCode = async (code: string): Promise<{ jsxLocation: JsxLocation | null; elementLocationMap: ElementLocationMap }> => {
   const elementLocationMap: ElementLocationMap = new Map();
@@ -34,7 +59,7 @@ const analyzeCode = async (code: string): Promise<{ jsxLocation: JsxLocation | n
     let returnStatementPath: any = null;
 
     traverse(ast, {
-      ExportDefaultDeclaration(path: any) {
+      ExportDefaultDeclaration(path: NodePath) {
         const declaration = path.node.declaration;
         let functionBody;
 
@@ -52,7 +77,7 @@ const analyzeCode = async (code: string): Promise<{ jsxLocation: JsxLocation | n
 
         if (functionBody) {
           traverse(functionBody, {
-            ReturnStatement(returnPath: any) {
+            ReturnStatement(returnPath: NodePath) {
               if (returnPath.node.argument?.type === 'JSXElement' || returnPath.node.argument?.type === 'JSXFragment') {
                 returnStatementPath = returnPath;
                 // Stop traversing the inner part once we find the return
@@ -60,7 +85,7 @@ const analyzeCode = async (code: string): Promise<{ jsxLocation: JsxLocation | n
               }
             },
             // Do not traverse into nested functions
-            Function(innerPath: any) {
+            Function(innerPath: NodePath) {
               innerPath.skip();
             }
           });
@@ -78,18 +103,20 @@ const analyzeCode = async (code: string): Promise<{ jsxLocation: JsxLocation | n
         // Create a minimal AST to traverse the JSX argument
         const jsxAst = { ...argument, type: 'Program', body: [argument] };
         traverse(jsxAst, {
-          JSXOpeningElement(elPath: any) {
+          JSXOpeningElement(elPath: NodePath<JSXOpeningElement>) {
             const nodeId = `node-${idCounter++}`;
             const styleAttr = elPath.node.attributes.find(
-              (attr: any) => attr.type === 'JSXAttribute' && attr.name.name === 'style'
+              (attr): attr is JSXAttribute => attr.type === 'JSXAttribute' && 
+                attr.name.type === 'JSXIdentifier' && 
+                attr.name.name === 'style'
             );
             
             elementLocationMap.set(nodeId, {
-              start: elPath.node.start,
-              end: elPath.node.end,
+              start: elPath.node.start!,
+              end: elPath.node.end!,
               style: styleAttr ? { 
-                start: styleAttr.start, 
-                end: styleAttr.end 
+                start: styleAttr.start!, 
+                end: styleAttr.end! 
               } : undefined,
             });
           },
@@ -107,6 +134,18 @@ const analyzeCode = async (code: string): Promise<{ jsxLocation: JsxLocation | n
 
 /**
  * Transpile, execute and return an AST for a user-provided component source string.
+ *
+ * This is the main entry point for converting raw code into interactive and previewable ASTs.
+ * The process involves:
+ * 1. Analyzing the code to find JSX locations and element mappings
+ * 2. Transpiling the code using Babel with React and TypeScript presets
+ * 3. Executing the transpiled code twice with different React contexts:
+ *    - Once with shimmed React to create a preview AST (safe for style editing)
+ *    - Once with real React to create a runtime AST (interactive and stateful)
+ * 4. Serializing both executions into SerializableElement trees
+ *
+ * @param code The raw TSX/JSX code string from the Monaco editor
+ * @returns A promise that resolves to an object containing both ASTs and location data
  */
 export async function renderCodeToAst(code: string): Promise<{
   runtimeAst: SerializableElement;

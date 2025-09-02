@@ -19,9 +19,9 @@ export function serializeComponent(element: React.ReactNode): SerializableElemen
 
   // Preserve the actual component function for custom components so we can
   // re-create them during deserialization instead of turning them into tag names.
-  const type: string | React.ComponentType<any> = typeof reactElement.type === 'string'
+  const type: string | React.ComponentType<unknown> = typeof reactElement.type === 'string'
     ? reactElement.type
-    : (reactElement.type as React.ComponentType<any>);
+    : (reactElement.type as React.ComponentType<unknown>);
   // Default: serialize explicit children passed to this element
   let serializedChildren = React.Children.map((reactElement.props as { children?: React.ReactNode }).children, serializeComponent);
   // Enhancement: if this is a function component, try to resolve its rendered output
@@ -31,14 +31,15 @@ export function serializeComponent(element: React.ReactNode): SerializableElemen
       // Try to expand function components by calling them.
       // Note: This may throw for hook-using components; we'll catch and ignore.
       let rendered: React.ReactNode | null = null;
-      const anyType = type as any;
-      if (anyType.prototype && (anyType.prototype.isReactComponent || typeof anyType.prototype.render === 'function')) {
+      const componentType = type as React.ComponentType<unknown>;
+      if (componentType.prototype && (componentType.prototype.isReactComponent || typeof componentType.prototype.render === 'function')) {
         // Class component: instantiate and call render()
-        const instance = new anyType(reactElement.props);
+        const instance = new (componentType as React.ComponentClass<unknown>)(reactElement.props);
         rendered = instance.render?.();
       } else {
-        // Function component
-        rendered = anyType(reactElement.props);
+        // Function component - handle both sync and async components (React 19)
+        const result = (componentType as React.FunctionComponent<unknown>)(reactElement.props);
+        rendered = result instanceof Promise ? null : result; // Skip async components for now
       }
       if (rendered) {
         const resolved = serializeComponent(rendered);
@@ -83,7 +84,7 @@ export function renderFromAst(
 
   // Guard props in case it's null/undefined, then build base props with data attribute for identification
   const baseProps = props || {};
-  const finalProps: Record<string, any> = {
+  const finalProps: Record<string, unknown> = {
     ...baseProps,
     key: id,
   };
