@@ -5,7 +5,7 @@ import { ComponentCanvas } from './Canvas/ComponentCanvas';
 import { InspectorPanel } from './Inspector/InspectorPanel';
 import { ComponentTree } from '@/components/Navigator/ComponentTree';
 import { useTheme } from '@/contexts/ThemeContext';
-import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Undo2, Redo2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useComponentStore } from '@/store/componentStore';
 import { renderCodeToAst } from '@/lib/renderer';
@@ -30,8 +30,10 @@ export const EditorLayout: React.FC = () => {
     handleNavResizeStart,
     HEADER_HEIGHT,
   } = useResizableLayout();
-  const { selectionMode, setSelectionMode, setRenderOutput, applyAstChangesToCode, isCodeHighlighted, jsxLocation, clearCodeHighlight } = useComponentStore();
+  const { selectionMode, setSelectionMode, setRenderOutput, applyAstChangesToCode, isCodeHighlighted, jsxLocation, clearCodeHighlight, undo, redo, historyIndex, history, isDirty } = useComponentStore();
   const monacoEditorRef = useRef<MonacoEditorRef>(null);
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < history.length - 1;
 
   // Persistent highlighting effect
   React.useEffect(() => {
@@ -272,15 +274,50 @@ export const EditorLayout: React.FC = () => {
             <div className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
               Inspector
             </div>
-            <button
-              onClick={() => setIsInspectorMinimized(!isInspectorMinimized)}
-              title={isInspectorMinimized ? 'Restore inspector' : 'Minimize inspector'}
-              className={`flex items-center justify-center h-8 w-8 rounded-md border transition-colors cursor-pointer ${
-                theme === 'dark' ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'
-              }`}
-            >
-              {isInspectorMinimized ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={undo}
+                disabled={!canUndo}
+                size="sm"
+                variant="outline"
+                className={`h-8 px-2 ${theme === 'dark' ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'}`}
+                title="Undo last change"
+              >
+                <Undo2 className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={redo}
+                disabled={!canRedo}
+                size="sm"
+                variant="outline"
+                className={`h-8 px-2 ${theme === 'dark' ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'}`}
+                title="Redo last change"
+              >
+                <Redo2 className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => {
+                  console.log('Apply Changes clicked, isDirty:', isDirty);
+                  void handleApplyChanges();
+                }}
+                disabled={!isDirty}
+                size="sm"
+                className={`h-8 px-3 ${isDirty ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                title={isDirty ? 'Apply inspector changes into the code editor' : 'No changes to apply'}
+              >
+                <Check className="h-4 w-4 mr-1" />
+                Apply Changes
+              </Button>
+              <button
+                onClick={() => setIsInspectorMinimized(!isInspectorMinimized)}
+                title={isInspectorMinimized ? 'Restore inspector' : 'Minimize inspector'}
+                className={`flex items-center justify-center h-8 w-8 rounded-md border transition-colors cursor-pointer ${
+                  theme === 'dark' ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'
+                }`}
+              >
+                {isInspectorMinimized ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
 
           {/* Inspector content area sits below header; keep height constant and let wrapper clip for smooth animation */}
@@ -293,7 +330,7 @@ export const EditorLayout: React.FC = () => {
               transition: isResizingInspector ? 'none' : 'height 320ms cubic-bezier(.22,.9,.28,1)',
             }}
           >
-            <InspectorPanel onApplyChanges={handleApplyChanges} />
+            <InspectorPanel />
           </div>
         </div>
       </div>

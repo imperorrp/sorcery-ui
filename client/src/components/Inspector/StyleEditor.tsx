@@ -44,34 +44,83 @@ export const StyleEditor: React.FC = () => {
   const currentFontSize = parseInt(String(selectedNode.props.style?.fontSize || '16'));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <p className="text-sm text-gray-400">Selected: &lt;{typeof selectedNode.type === 'string' ? selectedNode.type : 'Component'}&gt;</p>
-      <div>
-        <Label htmlFor="color">Color</Label>
-        <Input
-          id="color"
-          type="color"
-          value={currentColor}
-          onChange={(e) => handleStyleChange('color', e.target.value)}
-        />
+
+      {/* Color and Background Color in a compact grid */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="color" className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+            Text Color
+          </Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="color"
+              type="color"
+              value={currentColor}
+              onChange={(e) => handleStyleChange('color', e.target.value)}
+              className="w-12 h-8 p-1 border rounded cursor-pointer"
+            />
+            <Input
+              type="text"
+              value={currentColor}
+              onChange={(e) => handleStyleChange('color', e.target.value)}
+              className="flex-1 text-xs font-mono"
+              placeholder="#000000"
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="backgroundColor" className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+            Background
+          </Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="backgroundColor"
+              type="color"
+              value={currentBgColor}
+              onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
+              className="w-12 h-8 p-1 border rounded cursor-pointer"
+            />
+            <Input
+              type="text"
+              value={currentBgColor}
+              onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
+              className="flex-1 text-xs font-mono"
+              placeholder="#ffffff"
+            />
+          </div>
+        </div>
       </div>
+
+      {/* Font Size with a more compact layout */}
       <div>
-        <Label htmlFor="backgroundColor">Background Color</Label>
-        <Input
-          id="backgroundColor"
-          type="color"
-          value={currentBgColor}
-          onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
-        />
+        <Label htmlFor="fontSize" className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+          Font Size
+        </Label>
+        <div className="flex items-center gap-2">
+          <Input
+            id="fontSize"
+            type="number"
+            value={currentFontSize}
+            onChange={(e) => handleStyleChange('fontSize', `${e.target.value}px`)}
+            className="w-20 text-sm"
+            min="8"
+            max="72"
+          />
+          <span className="text-xs text-gray-500">px</span>
+          <div className="flex-1 text-xs text-gray-400">
+            Current: {currentFontSize}px
+          </div>
+        </div>
       </div>
-      <div>
-        <Label htmlFor="fontSize">Font Size (px)</Label>
-        <Input
-          id="fontSize"
-          type="number"
-          value={currentFontSize}
-          onChange={(e) => handleStyleChange('fontSize', `${e.target.value}px`)}
-        />
+
+      {/* Additional styling controls can be added here */}
+      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+        <p className="text-xs text-gray-500 mb-3">
+          💡 Tip: Select elements in the canvas to style them individually, or use the component props for dynamic styling.
+        </p>
       </div>
     </div>
   );

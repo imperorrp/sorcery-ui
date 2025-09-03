@@ -3,6 +3,15 @@ import Editor, { type OnMount } from '@monaco-editor/react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useComponentStore } from '@/store/componentStore';
 import type { JsxLocation } from '@/store/componentStore';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { BookOpenCheck, Check } from 'lucide-react';
+import { examples } from '@/examples/examples';
 
 export interface MonacoEditorProps {
   onChange?: (value: string) => void;
@@ -14,90 +23,15 @@ export interface MonacoEditorRef {
   highlightRange: (location: JsxLocation) => void;
 }
 
-// The initialCode with useState is a great test case.
-const initialCode = `
-// Paste your React component here
-// Make sure it's a single default export
-
-function MyComponent() {
-  const [count, setCount] = React.useState(0);
-
-  return (
-    <div style={{
-      padding: '2rem',
-      backgroundColor: '#f0f0f0',
-      borderRadius: '8px',
-      textAlign: 'center'
-    }}>
-      <h1 style={{ fontSize: '24px', color: '#333', marginBottom: '1rem' }}>
-        Hello World!
-      </h1>
-      <p style={{ marginBottom: '1rem' }}>
-        This is your component. Click 'Render' to see it above.
-      </p>
-      <button
-        onClick={() => setCount(count + 1)}
-        style={{
-          padding: '0.5rem 1rem',
-          backgroundColor: '#007bff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-      >
-        Count: {count}
-      </button>
-    </div>
-  );
-}
-
-export default MyComponent;
-`;
-
 export const MonacoEditor = forwardRef<MonacoEditorRef, MonacoEditorProps>(({ onChange }, ref) => {
-  const [code, setCode] = useState(initialCode);
+  const [code, setCode] = useState(examples['Default'].code);
   const { theme } = useTheme();
   const { setPropsJson, setDependencies } = useComponentStore();
   const editorRef = useRef<import('monaco-editor').editor.IStandaloneCodeEditor | null>(null);
   const decorationsRef = useRef<string[]>([]);
 
   // Example presets for quick testing
-  const examples: Record<string, { code: string; props?: object; dependency?: string }> = {
-    BasicCounter: { code: initialCode },
-    UsesProps: {
-      code: `
-export default function Greeter(props) {
-  return (
-    <div style={{ padding: 20 }}>
-      <h2>Hello, {props.name || 'stranger'}!</h2>
-      <p>Age: {props.age ?? 'unknown'}</p>
-    </div>
-  );
-}
-`,
-      props: { name: 'Ada', age: 28 },
-    },
-    LodashSum: {
-      code: `// @ts-nocheck
-// Requires lodash (UMD) - window._ becomes available after script loads
-export default function SumList() {
-  const nums = [1,2,3,4,5];
-  const total = (typeof window !== 'undefined' && window._) ? window._.sum(nums) : '_.sum not loaded yet';
-  return (
-    <div style={{ padding: 20 }}>
-      <h2>Lodash Sum</h2>
-      <p>Numbers: {JSON.stringify(nums)}</p>
-      <p>Total: {String(total)}</p>
-    </div>
-  );
-}
-`,
-      dependency: 'https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js',
-    },
-  };
-
-  const [selectedExample, setSelectedExample] = useState<keyof typeof examples>('BasicCounter');
+  const [selectedExample, setSelectedExample] = useState<keyof typeof examples>('Default');
 
   const handleSelectExample = (key: keyof typeof examples) => {
     setSelectedExample(key);
@@ -176,17 +110,37 @@ export default function SumList() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 px-2 py-1 border-b">
-        <label className="text-xs text-gray-500">Examples:</label>
-        <select
-          className="text-sm border rounded px-2 py-1 bg-white dark:bg-gray-800"
-          value={selectedExample}
-          onChange={(e) => handleSelectExample(e.target.value as keyof typeof examples)}
-        >
-          {Object.keys(examples).map((k) => (
-            <option key={k} value={k}>{k}</option>
-          ))}
-        </select>
+      <div className='flex items-center justify-between px-2 py-1 border-b'>
+        <span className='text-sm text-gray-600 dark:text-gray-400'>TSX Editor</span>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant='outline' size='sm' className='flex items-center gap-2'>
+              <BookOpenCheck className='h-4 w-4' />
+              <span>Load an example</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="bg-white dark:bg-gray-800 border shadow-lg">
+            {Object.keys(examples).map((key) => {
+              const example = examples[key as keyof typeof examples];
+              const isSelected = selectedExample === key;
+              return (
+                <DropdownMenuItem 
+                  key={key} 
+                  onSelect={() => handleSelectExample(key as keyof typeof examples)}
+                  className={isSelected ? 'bg-accent' : ''}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span>{key}</span>
+                    <span className="text-xs text-muted-foreground ml-2">
+                      ({example.description})
+                    </span>
+                  </div>
+                  {isSelected && <Check className="h-4 w-4 ml-2" />}
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       <div className="flex-grow overflow-hidden">
         <Editor

@@ -1,8 +1,7 @@
-import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useComponentStore } from "@/store/componentStore"
-import { X } from "lucide-react"
+import { X, Plus, Package, Code2 } from "lucide-react"
 import Editor from '@monaco-editor/react';
 import React from "react"
 import { useTheme } from "@/contexts/ThemeContext";
@@ -21,35 +20,84 @@ export function SetupEditor() {
 
   return (
     <div className="space-y-6">
+      {/* Context Wrapper Section */}
       <div>
-        <Label>Context Wrapper</Label>
-        <p className="text-xs text-gray-500 mb-2">Define a component to wrap your main component. Use `__{'{children}'}__` as the placeholder.</p>
-        <div className="border border-gray-300 dark:border-gray-700 rounded-md h-48">
+        <div className="flex items-center gap-2 mb-3">
+          <Code2 className="h-4 w-4 text-green-500" />
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Context Wrapper</span>
+        </div>
+        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+          Define a React component to wrap your main component. Use <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">{'{children}'}</code> as placeholder for your component.
+        </p>
+        <div className="border border-gray-300 dark:border-gray-700 rounded-md h-48 overflow-hidden">
            <Editor
               height="100%"
               language="typescript"
               theme={theme === 'dark' ? 'vs-dark' : 'light'}
               value={wrapperCode}
               onChange={(value) => setWrapperCode(value || '')}
-              options={{ minimap: { enabled: false }, fontSize: 12 }}
+              options={{
+                minimap: { enabled: false },
+                fontSize: 12,
+                lineNumbers: 'off',
+                scrollBeyondLastLine: false,
+                wordWrap: 'on'
+              }}
             />
         </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Example: <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">{'<ThemeProvider theme="dark">{children}</ThemeProvider>'}</code>
+        </p>
       </div>
+
+      {/* Dependencies Section */}
       <div>
-        <Label htmlFor="deps-input">Dependencies (CDN URLs)</Label>
-        <div className="flex space-x-2 mt-2">
-          <Input id="deps-input" placeholder="https://cdn.skypack.dev/framer-motion" value={newDep} onChange={e => setNewDep(e.target.value)} />
-          <Button onClick={handleAddDep}>Add</Button>
+        <div className="flex items-center gap-2 mb-3">
+          <Package className="h-4 w-4 text-purple-500" />
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">External Dependencies</span>
         </div>
-        <div className="space-y-2 mt-4">
-          {dependencies.map(dep => (
-            <div key={dep} className="flex items-center justify-between bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs">
-              <span className="truncate">{dep}</span>
-              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeDependency(dep)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
+        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+          Add CDN URLs for external libraries your component needs. These will be loaded in the preview iframe.
+        </p>
+
+        <div className="flex gap-2 mb-4">
+          <Input
+            id="deps-input"
+            placeholder="https://cdn.skypack.dev/framer-motion"
+            value={newDep}
+            onChange={e => setNewDep(e.target.value)}
+            className="flex-1 text-sm"
+            onKeyPress={(e) => e.key === 'Enter' && handleAddDep()}
+          />
+          <Button onClick={handleAddDep} size="sm" className="px-3">
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="space-y-2 max-h-32 overflow-y-auto">
+          {dependencies.length === 0 ? (
+            <p className="text-xs text-gray-500 italic">No dependencies added yet</p>
+          ) : (
+            dependencies.map(dep => (
+              <div key={dep} className="flex items-center justify-between bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs group hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <span className="truncate font-mono text-xs">{dep}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => removeDependency(dep)}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="bg-purple-50 dark:bg-purple-950/20 p-3 rounded-md border border-purple-200 dark:border-purple-800 mt-4">
+          <p className="text-xs text-purple-700 dark:text-purple-300">
+            💡 <strong>Popular CDNs:</strong> Skypack, UNPKG, jsDelivr, or CDNJS for reliable package hosting.
+          </p>
         </div>
       </div>
     </div>

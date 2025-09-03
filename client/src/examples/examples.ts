@@ -1,0 +1,218 @@
+export interface Example {
+  code: string;
+  props?: object;
+  dependency?: string;
+  description: string;
+}
+
+// Default minimal template
+export const defaultExample: Example = {
+  code: `
+// Paste your React component here
+// Make sure it's a single default export
+
+function MyComponent(props) {
+  return (
+    <div style={{ padding: '2rem', border: '2px dashed #ccc' }}>
+      <h1>Hello, {props.name || 'Component'}!</h1>
+      <p>Start editing to see your changes.</p>
+    </div>
+  );
+}
+
+export default MyComponent;
+`,
+  props: { name: 'World' },
+  description: 'minimal template'
+};
+
+// Interactive counter example
+export const interactiveCounterExample: Example = {
+  code: `
+// Paste your React component here
+// Make sure it's a single default export
+
+function MyComponent() {
+  const [count, setCount] = React.useState(0);
+
+  return (
+    <div style={{
+      padding: '2rem',
+      backgroundColor: '#f0f0f0',
+      borderRadius: '8px',
+      textAlign: 'center'
+    }}>
+      <h1 style={{ fontSize: '24px', color: '#333', marginBottom: '1rem' }}>
+        Hello World!
+      </h1>
+      <p style={{ marginBottom: '1rem' }}>
+        This is your component. Click 'Render' to see it above.
+      </p>
+      <button
+        onClick={() => setCount(count + 1)}
+        style={{
+          padding: '0.5rem 1rem',
+          backgroundColor: '#007bff',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        Count: {count}
+      </button>
+    </div>
+  );
+}
+
+export default MyComponent;
+`,
+  description: 'uses state'
+};
+
+// User profile card example
+export const userProfileCardExample: Example = {
+  code: `
+// Paste your React component here
+// Make sure it's a single default export
+
+function UserProfile(props) {
+  const { name, age, email } = props;
+
+  return (
+    <div style={{
+      maxWidth: '300px',
+      margin: '20px auto',
+      padding: '20px',
+      border: '1px solid #e1e5e9',
+      borderRadius: '12px',
+      backgroundColor: '#ffffff',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    }}>
+      <div style={{
+        width: '80px',
+        height: '80px',
+        borderRadius: '50%',
+        backgroundColor: '#3b82f6',
+        margin: '0 auto 16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontSize: '32px',
+        fontWeight: 'bold'
+      }}>
+        {(name || 'U').charAt(0).toUpperCase()}
+      </div>
+      <h2 style={{
+        margin: '0 0 8px 0',
+        color: '#1f2937',
+        fontSize: '20px',
+        fontWeight: '600',
+        textAlign: 'center'
+      }}>
+        {name || 'Anonymous User'}
+      </h2>
+      {age && (
+        <p style={{
+          margin: '0 0 4px 0',
+          color: '#6b7280',
+          fontSize: '14px',
+          textAlign: 'center'
+        }}>
+          Age: {age}
+        </p>
+      )}
+      {email && (
+        <p style={{
+          margin: '0 0 16px 0',
+          color: '#6b7280',
+          fontSize: '14px',
+          textAlign: 'center'
+        }}>
+          {email}
+        </p>
+      )}
+      <button style={{
+        width: '100%',
+        padding: '8px 16px',
+        backgroundColor: '#3b82f6',
+        color: 'white',
+        border: 'none',
+        borderRadius: '6px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s'
+      }}>
+        View Profile
+      </button>
+    </div>
+  );
+}
+
+export default UserProfile;
+`,
+  props: {
+    name: 'Sarah Johnson',
+    age: 28,
+    email: 'sarah.johnson@example.com'
+  },
+  description: 'uses props'
+};
+
+// Data visualization example
+export const dataVisualizationExample: Example = {
+  code: `// @ts-nocheck
+// Requires lodash (UMD) - window._ becomes available after script loads
+export default function DataChart() {
+  const data = [
+    { label: 'Jan', value: 65 },
+    { label: 'Feb', value: 78 },
+    { label: 'Mar', value: 90 },
+    { label: 'Apr', value: 81 },
+    { label: 'May', value: 95 }
+  ];
+
+  const maxValue = Math.max(...data.map(d => d.value));
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>Monthly Performance</h2>
+      <div style={{ display: 'flex', alignItems: 'end', gap: '8px', height: '200px', borderBottom: '1px solid #e5e7eb' }}>
+        {data.map((item, index) => (
+          <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '40px',
+                height: \`\${(item.value / maxValue) * 180}px\`,
+                backgroundColor: '#3b82f6',
+                borderRadius: '4px 4px 0 0',
+                transition: 'all 0.3s ease'
+              }}
+            />
+            <span style={{ marginTop: '8px', fontSize: '12px', color: '#6b7280' }}>{item.label}</span>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#1f2937' }}>{item.value}</span>
+          </div>
+        ))}
+      </div>
+      <p style={{ marginTop: '16px', fontSize: '14px', color: '#6b7280', textAlign: 'center' }}>
+        Data visualization with {typeof window !== 'undefined' && window._ ? 'lodash' : 'native JS'}
+      </p>
+    </div>
+  );
+}
+`,
+  dependency: 'https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js',
+  description: 'uses dependencies'
+};
+
+// All examples collection
+export const examples: Record<string, Example> = {
+  'Default': defaultExample,
+  'Interactive Counter': interactiveCounterExample,
+  'User Profile Card': userProfileCardExample,
+  'Data Visualization': dataVisualizationExample,
+};
