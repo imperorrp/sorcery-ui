@@ -6,7 +6,10 @@ import { Code, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const PropsEditor: React.FC = () => {
-  const { propsJson, setPropsJson } = useComponentStore();
+  // Use active component selectors for proper data access
+  const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
+  const propsJson = activeComponent?.propsJson ?? '{}';
+  const setPropsJson = useComponentStore((s) => s.setPropsJson);
 
   return (
     <div className="space-y-4">

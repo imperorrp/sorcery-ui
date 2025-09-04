@@ -4,9 +4,14 @@ import type { SerializableElement } from '@/store/componentStore';
 import { IframeCanvas } from './IframeCanvas';
 
 export const ComponentCanvas = () => {
-  const { componentAst, componentPreviewAst, selectionMode, selectedNodeId } = useComponentStore();
-  const history = useComponentStore((s) => s.history);
-  const historyIndex = useComponentStore((s) => s.historyIndex);
+  // Use active component selectors for proper data access
+  const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
+  const componentAst = activeComponent?.componentAst ?? null;
+  const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
+  const selectionMode = useComponentStore((s) => s.selectionMode);
+  const selectedNodeId = useComponentStore((s) => s.selectedNodeId);
+  const history = activeComponent?.history ?? [];
+  const historyIndex = activeComponent?.historyIndex ?? 0;
   const latestPreview = componentPreviewAst ?? history?.[historyIndex]?.preview ?? null;
   const chosenAst = selectionMode === 'select' ? latestPreview : componentAst;
   return (

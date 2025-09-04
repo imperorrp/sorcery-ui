@@ -2,21 +2,20 @@ import React from 'react';
 import { create } from 'zustand';
 // Use the new surgical style updater that preserves component logic
 import { updateStylesInCode } from '@/lib/styleUpdater';
+import { defaultExample } from '@/examples/examples';
 
 /**
- * Component Store - Central State Management for Component Editing
+ * Component Store - Central State Management for Component Library Editing
  *
  * This Zustand store manages the application's state for interactive component editing.
- * It maintains multiple representations of the component to enable different editing modes:
+ * It now supports managing multiple components in a library, with one being "active" at any time.
+ * Each component maintains multiple representations to enable different editing modes:
  *
  * Key State Properties:
- * - componentAst: The runtime AST created with real React, used for live interaction in the iframe
- * - componentPreviewAst: The preview AST created with shimmed React, used for safe style editing and navigation
- * - originalCode: The source-of-truth code string from the Monaco editor, preserved for surgical updates
- * - isDirty: Flag indicating whether the AST has changes that haven't been applied back to the code
- * - jsxLocation: Location of the main JSX block in the source code for highlighting
- * - selectedNodeId: Currently selected element in the component tree for editing
- * - history: Undo/redo stack of AST states for non-destructive editing
+ * - components: A map of component IDs to their data
+ * - activeComponentId: The ID of the component currently being edited
+ * - selectedNodeId: Currently selected element in the active component tree for editing
+ * - isDirty: Flag indicating whether the active component has changes that haven't been applied back to the code
  */
 
 // Define the structure of our serializable element AST
@@ -46,25 +45,47 @@ interface HistorySnapshot {
   ast: SerializableElement | null;
   preview: SerializableElement | null;
 }
-interface ComponentState {
+
+// At the top of the file, above the ComponentState interface
+export interface ComponentData {
+  id: string; // A unique identifier
+  name: string;
+  code: string;
   componentAst: SerializableElement | null;
   componentPreviewAst: SerializableElement | null;
-  selectedNodeId: string | null;
+  jsxLocation: JsxLocation | null;
+  propsJson: string;
+  dependencies: string[];
+  wrapperCode: string;
   history: HistorySnapshot[];
   historyIndex: number;
-  propsJson: string;
+}
+
+// Find and REPLACE the ComponentState interface with this
+interface ComponentState {
+  components: Record<string, ComponentData>; // A map of component IDs to their data
+  activeComponentId: string | null; // The ID of the component currently being edited
+
+  // Global state that remains outside:
+  selectedNodeId: string | null;
   selectionMode: 'interact' | 'select';
-  dependencies: string[]; // Add this
-  wrapperCode: string;   // Add this
-  // Source-of-truth code tracking
-  originalCode: string | null;
-  jsxLocation: JsxLocation | null;
-  isDirty: boolean;
-  isCodeHighlighted: boolean; // Add this for persistent highlighting
+  isDirty: boolean; // isDirty now refers to the active component
+  isCodeHighlighted: boolean;
 }
 
 // Define the actions that can be performed on the state
 interface ComponentActions {
+  // Component Library Management
+  addComponent: () => void;
+  setActiveComponent: (componentId: string) => void;
+  updateComponentName: (componentId: string, newName: string) => void;
+  updateComponentCode: (code: string) => void;
+  updateActiveComponentCode: (newCode: string) => void;
+  deleteComponent: (componentId: string) => void;
+  saveActiveCodeAsNewComponent: (newName: string) => void;
+  loadExampleSet: (components: ComponentData[], activeId: string) => void;
+  
+  // Legacy actions for backward compatibility (now operate on active component)
   setAst: (ast: SerializableElement | null) => void;
   setAstWithPreview: (ast: SerializableElement | null, preview: SerializableElement | null) => void;
   setSelectedNodeId: (nodeId: string | null) => void;
@@ -108,6 +129,20 @@ interface ComponentActions {
   clearCodeHighlight: () => void; // Add this for clearing persistent highlighting
 }
 
+// Computed state properties for backward compatibility
+interface ComputedState {
+  // Legacy getters that derive from the active component
+  componentAst: SerializableElement | null;
+  componentPreviewAst: SerializableElement | null;
+  history: HistorySnapshot[];
+  historyIndex: number;
+  propsJson: string;
+  dependencies: string[];
+  wrapperCode: string;
+  originalCode: string | null;
+  jsxLocation: JsxLocation | null;
+}
+
 // Helper function to recursively find and update a node in the AST
 // This is a pure function that returns a new AST
 const findAndCloneUpdateNode = (
@@ -146,150 +181,540 @@ function Wrapper({ children }) {
 export default Wrapper;
 `;
 
-export const useComponentStore = create<ComponentState & ComponentActions>((set, get) => ({
-  // Initial State
-  componentAst: null,
-  componentPreviewAst: null,
-  selectedNodeId: null,
-  history: [{ ast: null, preview: null }],
-  historyIndex: 0,
-  propsJson: '{}',
-  selectionMode: 'interact',
-  dependencies: [],
-  wrapperCode: initialWrapperCode,
-  originalCode: null,
-  jsxLocation: null,
-  isDirty: false,
-  isCodeHighlighted: false, // Add initial value for persistent highlighting
+export const useComponentStore = create<ComponentState & ComponentActions & ComputedState>((set, get) => {
+  // In the create() call, update the initial state object
+  const defaultComponentId = 'default-1';
+  const defaultComponent: ComponentData = {
+    id: defaultComponentId,
+    name: 'Untitled Component',
+    code: defaultExample.code, // Use the blank slate code from examples
+    componentAst: null,
+    componentPreviewAst: null,
+    jsxLocation: null,
+    propsJson: JSON.stringify(defaultExample.props || {}, null, 2),
+    dependencies: defaultExample.dependency ? [defaultExample.dependency] : [],
+    wrapperCode: initialWrapperCode, // Use the wrapper code from your store
+    history: [{ ast: null, preview: null }],
+    historyIndex: 0,
+  };
 
-  // Actions
-  setAst: (ast) =>
-    set({
-      componentAst: ast,
-      componentPreviewAst: null,
-      selectedNodeId: null, // Reset selection on new component
-  history: [{ ast: ast, preview: null }],
-      historyIndex: 0,
+  return {
+    // Initial State
+    components: {
+      [defaultComponentId]: defaultComponent,
+    },
+    activeComponentId: defaultComponentId,
+    selectedNodeId: null,
+    selectionMode: 'interact',
+    isDirty: false,
+    isCodeHighlighted: false,
+
+    // Computed properties for backward compatibility
+    get componentAst() {
+      const state = get();
+      const activeComponent = state.activeComponentId ? state.components[state.activeComponentId] : null;
+      return activeComponent?.componentAst || null;
+    },
+    get componentPreviewAst() {
+      const state = get();
+      const activeComponent = state.activeComponentId ? state.components[state.activeComponentId] : null;
+      return activeComponent?.componentPreviewAst || null;
+    },
+    get history() {
+      const state = get();
+      const activeComponent = state.activeComponentId ? state.components[state.activeComponentId] : null;
+      return activeComponent?.history || [{ ast: null, preview: null }];
+    },
+    get historyIndex() {
+      const state = get();
+      const activeComponent = state.activeComponentId ? state.components[state.activeComponentId] : null;
+      return activeComponent?.historyIndex || 0;
+    },
+    get propsJson() {
+      const state = get();
+      const activeComponent = state.activeComponentId ? state.components[state.activeComponentId] : null;
+      return activeComponent?.propsJson || '{}';
+    },
+    get dependencies() {
+      const state = get();
+      const activeComponent = state.activeComponentId ? state.components[state.activeComponentId] : null;
+      return activeComponent?.dependencies || [];
+    },
+    get wrapperCode() {
+      const state = get();
+      const activeComponent = state.activeComponentId ? state.components[state.activeComponentId] : null;
+      return activeComponent?.wrapperCode || initialWrapperCode;
+    },
+    get originalCode() {
+      const state = get();
+      const activeComponent = state.activeComponentId ? state.components[state.activeComponentId] : null;
+      return activeComponent?.code || null;
+    },
+    get jsxLocation() {
+      const state = get();
+      const activeComponent = state.activeComponentId ? state.components[state.activeComponentId] : null;
+      return activeComponent?.jsxLocation || null;
+    },
+
+    // Actions
+    // Component Library Management
+    addComponent: () => {
+      const newId = `component-${Date.now()}`;
+      const newComponent: ComponentData = {
+        id: newId,
+        name: `Component ${Object.keys(get().components).length + 1}`,
+        code: defaultExample.code,
+        componentAst: null,
+        componentPreviewAst: null,
+        jsxLocation: null,
+        propsJson: JSON.stringify(defaultExample.props || {}, null, 2),
+        dependencies: defaultExample.dependency ? [defaultExample.dependency] : [],
+        wrapperCode: initialWrapperCode,
+        history: [{ ast: null, preview: null }],
+        historyIndex: 0,
+      };
+      set((state) => ({
+        components: {
+          ...state.components,
+          [newId]: newComponent,
+        },
+        activeComponentId: newId, // Automatically make the new component active
+        selectedNodeId: null,
+        isDirty: false,
+        isCodeHighlighted: false,
+      }));
+    },
+
+    setActiveComponent: (componentId) => set({ 
+      activeComponentId: componentId, 
+      selectedNodeId: null, 
+      isDirty: false,
+      isCodeHighlighted: false,
     }),
 
-  setAstWithPreview: (ast, preview) => {
-    console.log('setAstWithPreview called with ast:', ast, 'preview:', preview);
-    set({
-      componentAst: ast,
-      componentPreviewAst: preview,
-      selectedNodeId: null,
-      history: [{ ast, preview }],
-      historyIndex: 0,
-    });
-  },  setSelectedNodeId: (nodeId) => set({ selectedNodeId: nodeId }),
+    updateComponentName: (componentId, newName) => {
+      set((state) => ({
+        components: {
+          ...state.components,
+          [componentId]: {
+            ...state.components[componentId],
+            name: newName,
+          },
+        },
+      }));
+    },
 
-  updateNodeStyle: (nodeId, newStyle) => {
-    const { componentAst, componentPreviewAst, history, historyIndex } = get();
+    updateComponentCode: (code) => {
+      const { activeComponentId } = get();
+      if (!activeComponentId) return;
+      
+      set((state) => ({
+        components: {
+          ...state.components,
+          [activeComponentId]: {
+            ...state.components[activeComponentId],
+            code: code,
+          },
+        },
+      }));
+    },
 
-    const updateFn = (node: SerializableElement) => ({
-      ...node,
-      props: {
-        ...node.props,
-        style: { ...node.props.style, ...newStyle },
-      },
-    });
+    updateActiveComponentCode: (newCode: string) => {
+      const { activeComponentId } = get();
+      if (!activeComponentId) return;
 
-    let newComponentAst = componentAst;
-    if (componentAst) {
-      newComponentAst = findAndCloneUpdateNode(componentAst, nodeId, updateFn);
-    }
+      set(state => ({
+        components: {
+          ...state.components,
+          [activeComponentId]: {
+            ...state.components[activeComponentId],
+            code: newCode,
+          },
+        },
+      }));
+    },
 
-    let newComponentPreviewAst = componentPreviewAst;
-    if (componentPreviewAst) {
-      newComponentPreviewAst = findAndCloneUpdateNode(
-        componentPreviewAst,
-        nodeId,
-        updateFn
-      );
-    }
-
-  const newHistory = history.slice(0, historyIndex + 1);
-  newHistory.push({ ast: newComponentAst, preview: newComponentPreviewAst });
-
-    set({
-      componentAst: newComponentAst,
-      componentPreviewAst: newComponentPreviewAst,
-      history: newHistory,
-      historyIndex: newHistory.length - 1,
-      isDirty: true,
-    });
-  },
-
-  undo: () => {
-    const { history, historyIndex } = get();
-    if (historyIndex > 0) {
-      const newIndex = historyIndex - 1;
-      const entry = history[newIndex];
-      set({
-        historyIndex: newIndex,
-        componentAst: entry.ast,
-        componentPreviewAst: entry.preview,
-        selectedNodeId: null,
+    deleteComponent: (componentId) => {
+      set((state) => {
+        const newComponents = { ...state.components };
+        delete newComponents[componentId];
+        
+        // Don't leave the app in a state with no active component
+        const newActiveId = state.activeComponentId === componentId
+          ? Object.keys(newComponents)[0] || null
+          : state.activeComponentId;
+          
+        return { 
+          components: newComponents, 
+          activeComponentId: newActiveId,
+          selectedNodeId: null,
+          isDirty: false,
+          isCodeHighlighted: false,
+        };
       });
-    }
-  },
+    },
 
-  redo: () => {
-    const { history, historyIndex } = get();
-    if (historyIndex < history.length - 1) {
-      const newIndex = historyIndex + 1;
-      const entry = history[newIndex];
-      set({
-        historyIndex: newIndex,
-        componentAst: entry.ast,
-        componentPreviewAst: entry.preview,
+    saveActiveCodeAsNewComponent: (newName) => {
+      const { activeComponentId, components } = get();
+      if (!activeComponentId) return;
+
+      const activeComponent = components[activeComponentId];
+      const newId = `component-${Date.now()}`;
+      const newComponent: ComponentData = {
+        ...activeComponent, // Inherit everything from the active component
+        id: newId,
+        name: newName,
+        // Reset ASTs and history, as this is a new "saved" version
+        componentAst: null,
+        componentPreviewAst: null,
+        jsxLocation: null,
+        history: [{ ast: null, preview: null }],
+        historyIndex: 0,
+      };
+      
+      set((state) => ({
+        components: { 
+          ...state.components, 
+          [newId]: newComponent 
+        },
+        activeComponentId: newId, // Switch to the newly saved component
         selectedNodeId: null,
+        isDirty: false,
+        isCodeHighlighted: false,
+      }));
+    },
+
+    loadExampleSet: (exampleComponents, activeId) => {
+      const componentsMap: Record<string, ComponentData> = {};
+      exampleComponents.forEach(comp => {
+        componentsMap[comp.id] = comp;
       });
-    }
-  },
+      
+      set({
+        components: componentsMap,
+        activeComponentId: activeId,
+        selectedNodeId: null,
+        isDirty: false,
+        isCodeHighlighted: false,
+      });
+    },
 
-  setPropsJson: (json: string) => set({ propsJson: json }),
-  setSelectionMode: (mode) => set({ selectionMode: mode }),
-  addDependency: (url) => set((state) => ({ dependencies: [...state.dependencies, url] })),
-  removeDependency: (url) => set((state) => ({ dependencies: state.dependencies.filter(d => d !== url) })),
-  setDependencies: (urls) => set({ dependencies: urls }),
-  setWrapperCode: (code) => set({ wrapperCode: code }),
-  setRenderOutput: (code, runtimeAst, previewAst, jsxLocation) => set((state) => {
-    const newHistory = [{ ast: runtimeAst, preview: previewAst }];
-    return {
-      originalCode: code,
-      jsxLocation,
-      isDirty: false,
-      isCodeHighlighted: false, // Clear highlight when rendering new code
-      componentAst: runtimeAst,
-      componentPreviewAst: previewAst,
-      selectedNodeId: null,
-      history: newHistory,
-      historyIndex: 0,
-      dependencies: state.dependencies,
-      wrapperCode: state.wrapperCode,
-    };
-  }),
-  setDirty: (dirty: boolean) => set({ isDirty: dirty }),
-  clearCodeHighlight: () => set({ isCodeHighlighted: false }), // Add clearCodeHighlight action
-  applyAstChangesToCode: async (): Promise<string | null> => {
-    const { originalCode, componentPreviewAst } = get();
+    // Legacy actions for backward compatibility (now operate on active component)
+    setAst: (ast) => {
+      const { activeComponentId, components } = get();
+      if (!activeComponentId) return;
+      
+      const activeComponent = components[activeComponentId];
+      const updatedComponent = {
+        ...activeComponent,
+        componentAst: ast,
+        componentPreviewAst: null,
+        history: [{ ast: ast, preview: null }],
+        historyIndex: 0,
+      };
 
-    if (!originalCode || !componentPreviewAst) {
-      console.error('Apply Changes Aborted: Missing original code or preview AST.');
-      return null;
-    }
+      set((state) => ({
+        components: {
+          ...state.components,
+          [activeComponentId]: updatedComponent,
+        },
+        selectedNodeId: null,
+      }));
+    },
 
-    try {
-      // Call our new, logic-preserving updater
-      const newCode = await updateStylesInCode(originalCode, componentPreviewAst);
+    setAstWithPreview: (ast, preview) => {
+      const { activeComponentId, components } = get();
+      if (!activeComponentId) return;
+      
+      console.log('setAstWithPreview called with ast:', ast, 'preview:', preview);
+      const activeComponent = components[activeComponentId];
+      const updatedComponent = {
+        ...activeComponent,
+        componentAst: ast,
+        componentPreviewAst: preview,
+        history: [{ ast, preview }],
+        historyIndex: 0,
+      };
 
-      set({ originalCode: newCode, isDirty: false, isCodeHighlighted: true });
-      return newCode;
+      set((state) => ({
+        components: {
+          ...state.components,
+          [activeComponentId]: updatedComponent,
+        },
+        selectedNodeId: null,
+      }));
+    },
 
-    } catch (error) {
-      console.error('Failed to apply style changes to code:', error);
-      return null;
-    }
-  },
-}));
+    setSelectedNodeId: (nodeId) => set({ selectedNodeId: nodeId }),
+
+    updateNodeStyle: (nodeId, newStyle) => {
+      const { activeComponentId, components } = get();
+      if (!activeComponentId) return;
+
+      const activeComponent = components[activeComponentId];
+      const { componentAst, componentPreviewAst, history, historyIndex } = activeComponent;
+
+      const updateFn = (node: SerializableElement) => ({
+        ...node,
+        props: {
+          ...node.props,
+          style: { ...node.props.style, ...newStyle },
+        },
+      });
+
+      let newComponentAst = componentAst;
+      if (componentAst) {
+        newComponentAst = findAndCloneUpdateNode(componentAst, nodeId, updateFn);
+      }
+
+      let newComponentPreviewAst = componentPreviewAst;
+      if (componentPreviewAst) {
+        newComponentPreviewAst = findAndCloneUpdateNode(
+          componentPreviewAst,
+          nodeId,
+          updateFn
+        );
+      }
+
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push({ ast: newComponentAst, preview: newComponentPreviewAst });
+
+      const updatedComponent = {
+        ...activeComponent,
+        componentAst: newComponentAst,
+        componentPreviewAst: newComponentPreviewAst,
+        history: newHistory,
+        historyIndex: newHistory.length - 1,
+      };
+
+      set((state) => ({
+        components: {
+          ...state.components,
+          [activeComponentId]: updatedComponent,
+        },
+        isDirty: true,
+      }));
+    },
+
+    undo: () => {
+      const { activeComponentId, components } = get();
+      if (!activeComponentId) return;
+
+      const activeComponent = components[activeComponentId];
+      const { history, historyIndex } = activeComponent;
+      
+      if (historyIndex > 0) {
+        const newIndex = historyIndex - 1;
+        const entry = history[newIndex];
+        const updatedComponent = {
+          ...activeComponent,
+          historyIndex: newIndex,
+          componentAst: entry.ast,
+          componentPreviewAst: entry.preview,
+        };
+
+        set((state) => ({
+          components: {
+            ...state.components,
+            [activeComponentId]: updatedComponent,
+          },
+          selectedNodeId: null, // Clear selection when time-traveling
+          isDirty: true, // Undoing a change makes the code dirty relative to the last save
+        }));
+      }
+    },
+
+    redo: () => {
+      const { activeComponentId, components } = get();
+      if (!activeComponentId) return;
+
+      const activeComponent = components[activeComponentId];
+      const { history, historyIndex } = activeComponent;
+      
+      if (historyIndex < history.length - 1) {
+        const newIndex = historyIndex + 1;
+        const entry = history[newIndex];
+        const updatedComponent = {
+          ...activeComponent,
+          historyIndex: newIndex,
+          componentAst: entry.ast,
+          componentPreviewAst: entry.preview,
+        };
+
+        set((state) => ({
+          components: {
+            ...state.components,
+            [activeComponentId]: updatedComponent,
+          },
+          selectedNodeId: null, // Clear selection when time-traveling
+          isDirty: true, // Redoing a change makes the code dirty relative to the last save
+        }));
+      }
+    },
+
+    setPropsJson: (json: string) => {
+      const { activeComponentId, components } = get();
+      if (!activeComponentId) return;
+
+      const activeComponent = components[activeComponentId];
+      const updatedComponent = {
+        ...activeComponent,
+        propsJson: json,
+      };
+
+      set((state) => ({
+        components: {
+          ...state.components,
+          [activeComponentId]: updatedComponent,
+        },
+      }));
+    },
+
+    setSelectionMode: (mode) => set({ selectionMode: mode }),
+
+    addDependency: (url) => {
+      const { activeComponentId, components } = get();
+      if (!activeComponentId) return;
+
+      const activeComponent = components[activeComponentId];
+      const updatedComponent = {
+        ...activeComponent,
+        dependencies: [...activeComponent.dependencies, url],
+      };
+
+      set((state) => ({
+        components: {
+          ...state.components,
+          [activeComponentId]: updatedComponent,
+        },
+      }));
+    },
+
+    removeDependency: (url) => {
+      const { activeComponentId, components } = get();
+      if (!activeComponentId) return;
+
+      const activeComponent = components[activeComponentId];
+      const updatedComponent = {
+        ...activeComponent,
+        dependencies: activeComponent.dependencies.filter(d => d !== url),
+      };
+
+      set((state) => ({
+        components: {
+          ...state.components,
+          [activeComponentId]: updatedComponent,
+        },
+      }));
+    },
+
+    setDependencies: (urls) => {
+      const { activeComponentId, components } = get();
+      if (!activeComponentId) return;
+
+      const activeComponent = components[activeComponentId];
+      const updatedComponent = {
+        ...activeComponent,
+        dependencies: urls,
+      };
+
+      set((state) => ({
+        components: {
+          ...state.components,
+          [activeComponentId]: updatedComponent,
+        },
+      }));
+    },
+
+    setWrapperCode: (code) => {
+      const { activeComponentId, components } = get();
+      if (!activeComponentId) return;
+
+      const activeComponent = components[activeComponentId];
+      const updatedComponent = {
+        ...activeComponent,
+        wrapperCode: code,
+      };
+
+      set((state) => ({
+        components: {
+          ...state.components,
+          [activeComponentId]: updatedComponent,
+        },
+      }));
+    },
+
+    setRenderOutput: (code, runtimeAst, previewAst, jsxLocation) => {
+      const { activeComponentId, components } = get();
+      if (!activeComponentId) return;
+
+      const activeComponent = components[activeComponentId];
+      const { history, historyIndex } = activeComponent;
+
+      // Add the new state to history, keeping only states up to current index + 1
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push({ ast: runtimeAst, preview: previewAst });
+
+      const updatedComponent = {
+        ...activeComponent,
+        code,
+        jsxLocation,
+        componentAst: runtimeAst,
+        componentPreviewAst: previewAst,
+        history: newHistory,
+        historyIndex: newHistory.length - 1, // Point to the latest entry
+      };
+
+      set((state) => ({
+        components: {
+          ...state.components,
+          [activeComponentId]: updatedComponent,
+        },
+        isDirty: false,
+        isCodeHighlighted: false,
+        selectedNodeId: null,
+      }));
+    },
+
+    setDirty: (dirty: boolean) => set({ isDirty: dirty }),
+    clearCodeHighlight: () => set({ isCodeHighlighted: false }),
+
+    applyAstChangesToCode: async (): Promise<string | null> => {
+      const { activeComponentId, components } = get();
+      if (!activeComponentId) return null;
+
+      const activeComponent = components[activeComponentId];
+      const { code: originalCode, componentPreviewAst } = activeComponent;
+
+      if (!originalCode || !componentPreviewAst) {
+        console.error('Apply Changes Aborted: Missing original code or preview AST.');
+        return null;
+      }
+
+      try {
+        // Call our new, logic-preserving updater
+        const newCode = await updateStylesInCode(originalCode, componentPreviewAst);
+
+        const updatedComponent = {
+          ...activeComponent,
+          code: newCode,
+        };
+
+        set((state) => ({
+          components: {
+            ...state.components,
+            [activeComponentId]: updatedComponent,
+          },
+          isDirty: false,
+          isCodeHighlighted: true,
+        }));
+        
+        return newCode;
+
+      } catch (error) {
+        console.error('Failed to apply style changes to code:', error);
+        return null;
+      }
+    },
+  };
+});

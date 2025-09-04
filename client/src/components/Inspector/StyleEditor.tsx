@@ -19,7 +19,11 @@ const findNodeById = (node: SerializableElement, id: string): SerializableElemen
 };
 
 export const StyleEditor: React.FC = () => {
-  const { selectedNodeId, componentPreviewAst, updateNodeStyle } = useComponentStore();
+  // Use active component selectors for proper data access
+  const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
+  const selectedNodeId = useComponentStore((s) => s.selectedNodeId);
+  const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
+  const updateNodeStyle = useComponentStore((s) => s.updateNodeStyle);
 
   // Use the preview AST for editing to avoid side effects
   const selectedNode = React.useMemo(() => {

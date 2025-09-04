@@ -7,7 +7,13 @@ import React from "react"
 import { useTheme } from "@/contexts/ThemeContext";
 
 export function SetupEditor() {
-  const { dependencies, addDependency, removeDependency, wrapperCode, setWrapperCode } = useComponentStore();
+  // Use active component selectors for proper data access
+  const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
+  const dependencies = activeComponent?.dependencies ?? [];
+  const wrapperCode = activeComponent?.wrapperCode ?? '';
+  const addDependency = useComponentStore((s) => s.addDependency);
+  const removeDependency = useComponentStore((s) => s.removeDependency);
+  const setWrapperCode = useComponentStore((s) => s.setWrapperCode);
   const [newDep, setNewDep] = React.useState('');
   const { theme } = useTheme();
 

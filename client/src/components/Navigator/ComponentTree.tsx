@@ -5,15 +5,35 @@ import { ChevronRight, ChevronsRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const ComponentTree: React.FC = () => {
-	const { componentPreviewAst } = useComponentStore();
-
-	if (!componentPreviewAst) {
-		return <div className="text-sm text-gray-500 px-2">Render a component to see its tree.</div>;
-	}
+	// Use active component selectors for proper data access
+	const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
+	const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
+	const activeComponentId = useComponentStore((s) => s.activeComponentId);
+	const components = useComponentStore((s) => s.components);
 
 	return (
-		<div className="space-y-1">
-			<TreeNode node={componentPreviewAst} depth={0} />
+		<div className="h-full flex flex-col">
+			{/* Active Component Tree Section */}
+			<div className="flex-1 overflow-auto">
+				<div className="px-2 py-1 mb-2">
+					<h3 className="text-sm font-semibold text-gray-300">Component Structure</h3>
+					{activeComponentId && (
+						<p className="text-xs text-gray-500">
+							{components[activeComponentId]?.name || 'Unknown Component'}
+						</p>
+					)}
+				</div>
+				
+				{!componentPreviewAst ? (
+					<div className="text-sm text-gray-500 px-2">
+						Render the active component to see its tree.
+					</div>
+				) : (
+					<div className="space-y-1 px-2">
+						<TreeNode node={componentPreviewAst} depth={0} />
+					</div>
+				)}
+			</div>
 		</div>
 	);
 };
@@ -24,7 +44,8 @@ interface TreeNodeProps {
 }
 
 const TreeNode: React.FC<TreeNodeProps> = ({ node, depth }) => {
-	const { selectedNodeId, setSelectedNodeId } = useComponentStore();
+	const selectedNodeId = useComponentStore((s) => s.selectedNodeId);
+	const setSelectedNodeId = useComponentStore((s) => s.setSelectedNodeId);
 	const [expanded, setExpanded] = useState(true);
 
 	if (typeof node === 'string') {

@@ -5,10 +5,17 @@ import { renderFromAst } from '@/lib/componentParser';
 import type { SerializableElement } from '@/store/componentStore';
 
 export const IframeCanvas: React.FC = () => {
-  const { componentAst, componentPreviewAst, selectionMode, setSelectedNodeId, dependencies } = useComponentStore();
+  // Use active component selectors for proper data access
+  const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
+  const componentAst = activeComponent?.componentAst ?? null;
+  const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
+  const selectionMode = useComponentStore((s) => s.selectionMode);
+  const setSelectedNodeId = useComponentStore((s) => s.setSelectedNodeId);
+  const dependencies = activeComponent?.dependencies ?? [];
+  
   // Pull snapshot history to recover preview if current state lost it
-  const history = useComponentStore((s) => s.history);
-  const historyIndex = useComponentStore((s) => s.historyIndex);
+  const history = activeComponent?.history ?? [];
+  const historyIndex = activeComponent?.historyIndex ?? 0;
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeBody, setIframeBody] = useState<HTMLBodyElement | null>(null);
   const [depTick, setDepTick] = useState(0);

@@ -1,173 +1,108 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 /**
- * Custom hook for managing resizable layout panels in the editor.
- *
- * This hook encapsulates all the state and logic for resizing the navigator,
- * code editor, and inspector panels. It handles mouse events, boundary constraints,
- * and persistence of panel sizes to localStorage.
+ * Custom hook for managing resizable layout panels using react-resizable-panels.
+ * This replaces the previous custom resizing logic with the more robust react-resizable-panels library.
  *
  * @returns An object containing all state values and handler functions for layout management
  */
 export function useResizableLayout() {
-  // Panel size states
-  const [leftPanelWidthPx, setLeftPanelWidthPx] = useState<number | null>(null);
-  const [navWidth, setNavWidth] = useState<number>(240); // px
-  const [inspectorHeight, setInspectorHeight] = useState<number>(384); // pixels
+  // Panel size states (in percentages for react-resizable-panels)
+  const [navPanelSize, setNavPanelSize] = useState<number>(20); // Navigator panel size
+  const [editorPanelSize, setEditorPanelSize] = useState<number>(50); // Code editor panel size
+  const [inspectorPanelSize, setInspectorPanelSize] = useState<number>(30); // Inspector panel size
 
   // Minimization states
   const [isLeftPanelMinimized, setIsLeftPanelMinimized] = useState(false);
   const [isInspectorMinimized, setIsInspectorMinimized] = useState(false);
   const [isNavMinimized, setIsNavMinimized] = useState(false);
 
-  // Resizing states
-  const [isResizingLeft, setIsResizingLeft] = useState(false);
-  const [isResizingInspector, setIsResizingInspector] = useState(false);
-  const [isResizingNav, setIsResizingNav] = useState(false);
+  // Layout persistence keys
+  const NAV_LAYOUT_KEY = 'editor-nav-layout';
+  const EDITOR_LAYOUT_KEY = 'editor-main-layout';
 
-  // Constants
-  const HEADER_HEIGHT = 48;
-  const INSPECTOR_KEY = 'inspectorHeight';
-
-  // Handler functions
-  const handleLeftResizeStart = (e: React.MouseEvent) => {
-    setIsResizingLeft(true);
-    e.preventDefault();
-  };
-
-  const handleInspectorResizeStart = (e: React.MouseEvent) => {
-    setIsResizingInspector(true);
-    e.preventDefault();
-  };
-
-  const handleNavResizeStart = (e: React.MouseEvent) => {
-    setIsResizingNav(true);
-    e.preventDefault();
-  };
-
-  // Main useEffect for handling resize logic and initialization
+  // Load persisted layouts on mount
   useEffect(() => {
-    // Initialize editor width to 50% of available space on first mount
-    if (leftPanelWidthPx === null) {
-      const container = document.querySelector('[data-layout-container]');
-      if (container) {
-        const rect = (container as HTMLElement).getBoundingClientRect();
-        const navResizerW = 4; // tailwind w-1 = 4px
-        const leftResizerW = 4;
-        const effectiveNav = (isNavMinimized ? 40 : navWidth);
-        const available = rect.width - effectiveNav - navResizerW - leftResizerW;
-        const initial = Math.max(240, Math.floor(available * 0.5));
-        setLeftPanelWidthPx(initial);
-      }
-    }
-
-    // Load persisted inspector height on mount
     try {
-      const stored = localStorage.getItem(INSPECTOR_KEY);
-      if (stored) {
-        const parsed = Number(stored);
-        if (!Number.isNaN(parsed)) {
-          setInspectorHeight(Math.max(100, Math.min(600, parsed)));
+      const navLayout = localStorage.getItem(NAV_LAYOUT_KEY);
+      if (navLayout) {
+        const parsed = JSON.parse(navLayout);
+        if (Array.isArray(parsed) && parsed.length >= 1) {
+          setNavPanelSize(parsed[0]);
         }
       }
-    } catch {
-      // ignore
-    }
 
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isResizingLeft) {
-        const container = document.querySelector('[data-layout-container]');
-        if (container) {
-          const rect = container.getBoundingClientRect();
-          // Compute pixel width relative to the available space to the right of the navigator
-          const navResizerW = 4; // tailwind w-1
-          const leftResizerW = 4;
-          const effectiveNav = (isNavMinimized ? 40 : navWidth);
-          const leftEdge = rect.left + effectiveNav + navResizerW;
-          const available = rect.width - effectiveNav - navResizerW - leftResizerW;
-          const raw = e.clientX - leftEdge;
-          const minPx = 200; // minimum editor width
-          const maxPx = Math.max(minPx, available - 300); // keep at least 300px for the canvas
-          const clamped = Math.max(minPx, Math.min(maxPx, raw));
-          setLeftPanelWidthPx(Math.floor(clamped));
-        }
-      } else if (isResizingInspector) {
-        const container = document.querySelector('[data-inspector-container]');
-        if (container) {
-          const rect = container.getBoundingClientRect();
-          const newHeight = rect.bottom - e.clientY;
-          const clamped = Math.max(100, Math.min(600, newHeight));
-          setInspectorHeight(clamped);
-          // persist while resizing
-          try {
-            localStorage.setItem(INSPECTOR_KEY, String(clamped));
-          } catch {
-            // ignore
-          }
-        }
-      } else if (isResizingNav) {
-        const container = document.querySelector('[data-layout-container]');
-        if (container) {
-          const rect = container.getBoundingClientRect();
-          const min = 160;
-          const max = Math.min(480, rect.width * 0.4);
-          const newWidth = Math.max(min, Math.min(max, e.clientX - rect.left));
-          setNavWidth(newWidth);
+      const editorLayout = localStorage.getItem(EDITOR_LAYOUT_KEY);
+      if (editorLayout) {
+        const parsed = JSON.parse(editorLayout);
+        if (Array.isArray(parsed) && parsed.length >= 2) {
+          setEditorPanelSize(parsed[0]);
+          setInspectorPanelSize(parsed[1]);
         }
       }
-    };
-
-    const handleMouseUp = () => {
-      setIsResizingLeft(false);
-      setIsResizingInspector(false);
-      setIsResizingNav(false);
-    };
-
-    if (isResizingLeft || isResizingInspector || isResizingNav) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+    } catch (error) {
+      console.warn('Failed to load persisted layout:', error);
     }
+  }, []);
 
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isResizingLeft, isResizingInspector, isResizingNav, isNavMinimized, navWidth, leftPanelWidthPx]);
-
-  // Persist inspectorHeight when it changes (and not minimized)
-  useEffect(() => {
-    if (!isInspectorMinimized) {
+  // Handlers for layout changes
+  const handleNavLayoutChange = useCallback((sizes: number[]) => {
+    if (sizes.length >= 1) {
+      setNavPanelSize(sizes[0]);
       try {
-        localStorage.setItem(INSPECTOR_KEY, String(inspectorHeight));
-      } catch {
-        // ignore
+        localStorage.setItem(NAV_LAYOUT_KEY, JSON.stringify(sizes));
+      } catch (error) {
+        console.warn('Failed to persist nav layout:', error);
       }
     }
-  }, [inspectorHeight, isInspectorMinimized]);
+  }, []);
+
+  const handleMainLayoutChange = useCallback((sizes: number[]) => {
+    if (sizes.length >= 2) {
+      setEditorPanelSize(sizes[0]);
+      setInspectorPanelSize(sizes[1]);
+      try {
+        localStorage.setItem(EDITOR_LAYOUT_KEY, JSON.stringify(sizes));
+      } catch (error) {
+        console.warn('Failed to persist main layout:', error);
+      }
+    }
+  }, []);
+
+  // Toggle handlers
+  const toggleLeftPanel = useCallback(() => {
+    setIsLeftPanelMinimized(prev => !prev);
+  }, []);
+
+  const toggleInspector = useCallback(() => {
+    setIsInspectorMinimized(prev => !prev);
+  }, []);
+
+  const toggleNav = useCallback(() => {
+    setIsNavMinimized(prev => !prev);
+  }, []);
 
   return {
-    // State values
-    leftPanelWidthPx,
-    navWidth,
-    inspectorHeight,
+    // Panel sizes
+    navPanelSize,
+    editorPanelSize,
+    inspectorPanelSize,
+
+    // Minimization states
     isLeftPanelMinimized,
     isInspectorMinimized,
     isNavMinimized,
-    isResizingLeft,
-    isResizingInspector,
-    isResizingNav,
 
-    // State setters
-    setIsLeftPanelMinimized,
-    setIsInspectorMinimized,
-    setIsNavMinimized,
+    // Layout change handlers
+    handleNavLayoutChange,
+    handleMainLayoutChange,
 
-    // Handler functions
-    handleLeftResizeStart,
-    handleInspectorResizeStart,
-    handleNavResizeStart,
+    // Toggle handlers
+    toggleLeftPanel,
+    toggleInspector,
+    toggleNav,
 
-    // Constants (exposed for use in component)
-    HEADER_HEIGHT,
+    // Constants for backward compatibility
+    HEADER_HEIGHT: 48,
   };
 }

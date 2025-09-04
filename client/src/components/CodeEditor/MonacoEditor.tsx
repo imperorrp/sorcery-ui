@@ -1,57 +1,35 @@
-import React, { useState, forwardRef, useImperativeHandle, useRef } from 'react';
+// client/src/components/CodeEditor/MonacoEditor.tsx
+import { forwardRef, useImperativeHandle, useRef } from 'react';
 import Editor, { type OnMount } from '@monaco-editor/react';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useComponentStore } from '@/store/componentStore';
 import type { JsxLocation } from '@/store/componentStore';
+// Import UI components for the new header
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { BookOpenCheck, Check } from 'lucide-react';
-import { examples } from '@/examples/examples';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { BookOpenCheck } from 'lucide-react';
 
+// Define the component's props
 export interface MonacoEditorProps {
-  onChange?: (value: string) => void;
+  code: string; // The editor's content is now a prop
+  onCodeChange: (newCode: string) => void; // A callback to update the store
+  onExampleSelect: (exampleKey: string) => void;
+  examples: Record<string, { code: string; description?: string; props?: Record<string, unknown>; dependency?: string }>;
+  multiComponentExamples?: Record<string, { activeId: string; components: unknown[] }>;
 }
 
 export interface MonacoEditorRef {
   getCode: () => string;
-  setCode: (code: string) => void;
   highlightRange: (location: JsxLocation) => void;
 }
 
-export const MonacoEditor = forwardRef<MonacoEditorRef, MonacoEditorProps>(({ onChange }, ref) => {
-  const [code, setCode] = useState(examples['Default'].code);
+export const MonacoEditor = forwardRef<MonacoEditorRef, MonacoEditorProps>(
+  ({ code, onCodeChange, onExampleSelect, examples, multiComponentExamples }, ref) => {
   const { theme } = useTheme();
-  const { setPropsJson, setDependencies } = useComponentStore();
   const editorRef = useRef<import('monaco-editor').editor.IStandaloneCodeEditor | null>(null);
   const decorationsRef = useRef<string[]>([]);
 
-  // Example presets for quick testing
-  const [selectedExample, setSelectedExample] = useState<keyof typeof examples>('Default');
-
-  const handleSelectExample = (key: keyof typeof examples) => {
-    setSelectedExample(key);
-    const ex = examples[key];
-    setCode(ex.code);
-    if (ex.props) {
-      setPropsJson(JSON.stringify(ex.props, null, 2));
-    } else {
-      setPropsJson('{}');
-    }
-    if (ex.dependency) {
-      setDependencies([ex.dependency]);
-    } else {
-      setDependencies([]);
-    }
-  };
-
   useImperativeHandle(ref, () => ({
-    getCode: () => code,
-    setCode: (newCode: string) => setCode(newCode),
+    getCode: () => editorRef.current?.getValue() || '',
     highlightRange: (location: JsxLocation) => {
       const editor = editorRef.current;
       if (!editor) return;
@@ -96,63 +74,67 @@ export const MonacoEditor = forwardRef<MonacoEditorRef, MonacoEditorProps>(({ on
     });
   };
 
-  // Listen for apply-code events to update editor content
-  React.useEffect(() => {
-    const handler = (e: Event) => {
-      const ce = e as CustomEvent<{ code: string }>;
-      if (ce.detail && typeof ce.detail.code === 'string') {
-        setCode(ce.detail.code);
-      }
-    };
-    window.addEventListener('apply-code', handler as EventListener);
-    return () => window.removeEventListener('apply-code', handler as EventListener);
-  }, []);
-
   return (
     <div className="flex flex-col h-full">
+      {/* The new stateless header from our previous step */}
       <div className='flex items-center justify-between px-2 py-1 border-b'>
         <span className='text-sm text-gray-600 dark:text-gray-400'>TSX Editor</span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant='outline' size='sm' className='flex items-center gap-2'>
               <BookOpenCheck className='h-4 w-4' />
-              <span>Load an example</span>
+              <span>Examples</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-white dark:bg-gray-800 border shadow-lg">
+          <DropdownMenuContent>
+            <DropdownMenuLabel>Load an Example</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {/* Regular examples */}
             {Object.keys(examples).map((key) => {
-              const example = examples[key as keyof typeof examples];
-              const isSelected = selectedExample === key;
+              const example = examples[key];
               return (
-                <DropdownMenuItem 
-                  key={key} 
-                  onSelect={() => handleSelectExample(key as keyof typeof examples)}
-                  className={isSelected ? 'bg-accent' : ''}
-                >
+                <DropdownMenuItem key={key} onSelect={() => onExampleSelect(key)}>
                   <div className="flex items-center justify-between w-full">
                     <span>{key}</span>
                     <span className="text-xs text-muted-foreground ml-2">
                       ({example.description})
                     </span>
                   </div>
-                  {isSelected && <Check className="h-4 w-4 ml-2" />}
                 </DropdownMenuItem>
               );
             })}
+
+            {/* Separator if we have multi-component examples */}
+            {multiComponentExamples && Object.keys(multiComponentExamples).length > 0 && (
+              <DropdownMenuItem disabled className="px-2 py-1">
+                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+              </DropdownMenuItem>
+            )}
+
+            {/* Multi-component examples */}
+            {multiComponentExamples && Object.keys(multiComponentExamples).map((key) => (
+              <DropdownMenuItem key={key} onSelect={() => onExampleSelect(key)} className="font-medium">
+                <div className="flex items-center justify-between w-full">
+                  <span>🚀 {key}</span>
+                  <span className="text-xs text-muted-foreground ml-2">
+                    (Multi-component)
+                  </span>
+                </div>
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
       <div className="flex-grow overflow-hidden">
         <Editor
           height="100%"
           language="typescript"
           theme={theme === 'dark' ? 'vs-dark' : 'light'}
+          // The editor is now fully controlled. `value` prop is used.
           value={code}
-          onChange={(value) => {
-            const code = value || '';
-            setCode(code);
-            onChange?.(code); // Call the onChange prop when user types
-          }}
+          // The `onChange` handler now calls the prop to update the central store.
+          onChange={(value) => onCodeChange(value || '')}
           options={{
             minimap: { enabled: false },
             fontSize: 14,
