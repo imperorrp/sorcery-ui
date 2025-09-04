@@ -64,3 +64,7 @@ This project is a monorepo managed by npm workspaces.
 ``` 
 
 ---
+
+## Note to self:
+
+This could be a nice useful MCP server for frontend dev work: a sort of human-in-the-loop editor that opens up (via an MCP tool call) to help tweak the last 10-20% of design of portions of a frontend. This can be frustrating to get AI to do perfectly, and a lot of back and forths b/w a human and AI agentic IDE can be avoided by manually tweaking some styles and so on for near-instant previews via this editor. Some no-code platforms have solutions for this already, like V0 and Runable, but IDEs proper like VSCode don't (yet) - a place where this would be useful 
