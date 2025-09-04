@@ -22,7 +22,7 @@ export const IframeCanvas: React.FC = () => {
   const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
   const selectionMode = useComponentStore((s) => s.selectionMode);
   const setSelectedNodeId = useComponentStore((s) => s.setSelectedNodeId);
-  const dependencies = activeComponent?.dependencies ?? [];
+  const dependencies = React.useMemo(() => activeComponent?.dependencies ?? [], [activeComponent?.dependencies]);
   
   // Pull snapshot history to recover preview if current state lost it
   const history = activeComponent?.history ?? [];
@@ -63,6 +63,14 @@ export const IframeCanvas: React.FC = () => {
     }
   }, []);
 
+  // ▼▼▼ DEPENDENCY STABILIZATION FIX (v1.1) ▼▼▼
+  // Convert the dependencies array to a stable string key to prevent infinite loops
+  // This fixes the issue where changing dependencies caused infinite re-renders
+  // by creating a stable dependency key that doesn't change on array reference changes
+  const dependenciesKey = dependencies.join(',');
+  const dependenciesRef = React.useRef<string[]>(dependencies);
+  // ▲▲▲ END DEPENDENCY STABILIZATION ▲▲▲
+
   // Effect to manage injected <script> tags for dependencies
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -74,8 +82,13 @@ export const IframeCanvas: React.FC = () => {
   // Also clear mirrored scripts from parent (if any)
   document.head.querySelectorAll('script[data-dependency-mirror]').forEach(el => el.remove());
 
+    // ▼▼▼ USE STABLE REF FOR DEPENDENCIES ▼▼▼
+    // Use the ref to access current dependencies without triggering re-renders
+    const currentDeps = dependenciesRef.current;
+    // ▲▲▲ END STABLE REF ▲▲▲
+
     // Add new scripts
-    dependencies.forEach(url => {
+    currentDeps.forEach(url => {
       const script = document.createElement('script');
       script.src = url;
       script.async = true;
@@ -92,7 +105,18 @@ export const IframeCanvas: React.FC = () => {
       document.head.appendChild(mirror);
     });
 
-  }, [dependencies, iframeBody]); // Re-run whenever the dependencies array or iframe body changes
+  // ▼▼▼ USE STABLE DEPENDENCY KEY ▼▼▼
+  // Now uses stable string key instead of array reference to prevent infinite loops
+  }, [dependenciesKey, iframeBody]); // Now uses stable string key instead of array reference
+  // ▲▲▲ END STABLE DEPENDENCY ▲▲▲
+
+  // ▼▼▼ UPDATE REF WHEN DEPENDENCIES CHANGE ▼▼▼
+  // Keep the ref in sync with the current dependencies
+  // This ensures the ref always has the latest dependency list
+  React.useEffect(() => {
+    dependenciesRef.current = dependencies;
+  }, [dependencies]);
+  // ▲▲▲ END REF UPDATE ▲▲▲
 
   // In case the body becomes available later (e.g., browser quirk), retry when AST changes
   useEffect(() => {

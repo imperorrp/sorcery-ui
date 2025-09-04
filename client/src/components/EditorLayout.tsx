@@ -199,10 +199,23 @@ export const EditorLayout: React.FC = () => {
       return;
     }
     try {
+      // Get the state at the moment of rendering
+      const { components, activeComponentId } = useComponentStore.getState();
+
+      if (!activeComponentId) {
+        alert("No active component selected.");
+        return;
+      }
+
+      // Get the props for the *active* component
+      const activeComponentPropsJson = components[activeComponentId]?.propsJson || '{}';
+
       // Get the full component library from the store
-      const { components } = useComponentStore.getState();
-      // Pass the entire components map into the renderer
-      const { runtimeAst, previewAst, jsxLocation } = await renderCodeToAst(code, components);
+      const { runtimeAst, previewAst, jsxLocation } = await renderCodeToAst(
+        code,
+        components,
+        activeComponentPropsJson // Pass the props string here
+      );
       // The setRenderOutput action (which we refactored) will correctly
       // place this data into the active component's state slice.
       setRenderOutput(code, runtimeAst, previewAst, jsxLocation);

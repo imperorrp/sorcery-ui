@@ -12,6 +12,8 @@ import type { JsxLocation } from '@/store/componentStore';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { BookOpenCheck } from 'lucide-react';
+import { useComponentStore } from '@/store/componentStore';
+import type { ComponentData } from '@/store/componentStore';
 
 // Define the component's props
 export interface MonacoEditorProps {
@@ -32,6 +34,15 @@ export const MonacoEditor = forwardRef<MonacoEditorRef, MonacoEditorProps>(
   const { theme } = useTheme();
   const editorRef = useRef<import('monaco-editor').editor.IStandaloneCodeEditor | null>(null);
   const decorationsRef = useRef<string[]>([]);
+
+  // Handler for loading example sets
+  const handleSelectExampleSet = (key: string) => {
+    if (multiComponentExamples && multiComponentExamples[key]) {
+      const set = multiComponentExamples[key];
+      const { loadExampleSet } = useComponentStore.getState();
+      loadExampleSet(set.components as ComponentData[], set.activeId);
+    }
+  };
 
   useImperativeHandle(ref, () => ({
     getCode: () => editorRef.current?.getValue() || '',
@@ -91,7 +102,7 @@ export const MonacoEditor = forwardRef<MonacoEditorRef, MonacoEditorProps>(
               <span>Examples</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
+          <DropdownMenuContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
             <DropdownMenuLabel>Load an Example</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {/* Regular examples */}
@@ -109,16 +120,11 @@ export const MonacoEditor = forwardRef<MonacoEditorRef, MonacoEditorProps>(
               );
             })}
 
-            {/* Separator if we have multi-component examples */}
-            {multiComponentExamples && Object.keys(multiComponentExamples).length > 0 && (
-              <DropdownMenuItem disabled className="px-2 py-1">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-              </DropdownMenuItem>
-            )}
-
-            {/* Multi-component examples */}
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Load a Set</DropdownMenuLabel>
+            <DropdownMenuSeparator />
             {multiComponentExamples && Object.keys(multiComponentExamples).map((key) => (
-              <DropdownMenuItem key={key} onSelect={() => onExampleSelect(key)} className="font-medium">
+              <DropdownMenuItem key={key} onSelect={() => handleSelectExampleSet(key)} className="font-medium">
                 <div className="flex items-center justify-between w-full">
                   <span>🚀 {key}</span>
                   <span className="text-xs text-muted-foreground ml-2">

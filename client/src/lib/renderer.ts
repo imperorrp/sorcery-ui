@@ -2,7 +2,6 @@
 import React from 'react';
 import { serializeComponent, resetIdCounter } from '@/lib/componentParser';
 import type { SerializableElement, JsxLocation, ElementLocationMap, ComponentData } from '@/store/componentStore';
-import { useComponentStore } from '@/store/componentStore';
 
 /**
  * Renderer Library - Dual-AST Strategy for Interactive Component Editing
@@ -117,6 +116,54 @@ const analyzeCode = async (code: string): Promise<{ jsxLocation: JsxLocation | n
 
 
 /**
+ * Prunes child components from the preview AST to enforce component boundaries.
+ *
+ * SMART SELECTION FIX (v1.1):
+ * This function implements "Smart Selection" by removing the deep children of any
+ * library components found in the AST. This prevents users from selecting and editing
+ * elements that belong to child components, maintaining a clear separation between
+ * components and their dependencies.
+ *
+ * The principle: "You can only edit the source code that is currently visible in the editor."
+ *
+ * @param node The SerializableElement node to process
+ * @param libraryComponentNames Array of component names from the library
+ * @param depth Current traversal depth (0 for root element)
+ * @returns A pruned copy of the node with child component children removed
+ */
+function pruneChildComponents(
+  node: SerializableElement,
+  libraryComponentNames: string[],
+  depth = 0
+): SerializableElement {
+  if (typeof node.type !== 'string') {
+    const componentName = node.type.displayName || node.type.name;
+    // If this is a library component and it's not the root element...
+    if (componentName && libraryComponentNames.includes(componentName) && depth > 0) {
+      // Return a copy of the node with its children removed.
+      return { ...node, props: { ...node.props, children: [] } };
+    }
+  }
+
+  // If it's not a library component boundary, continue traversing.
+  if (node.props.children) {
+    return {
+      ...node,
+      props: {
+        ...node.props,
+        children: node.props.children.map(child =>
+          typeof child === 'string'
+            ? child
+            : pruneChildComponents(child, libraryComponentNames, depth + 1)
+        ),
+      },
+    };
+  }
+
+  return node;
+}
+
+/**
  * Transpile, execute and return an AST for a user-provided component source string.
  *
  * This is the main entry point for converting raw code into interactive and previewable ASTs.
@@ -127,14 +174,17 @@ const analyzeCode = async (code: string): Promise<{ jsxLocation: JsxLocation | n
  *    - Once with shimmed React to create a preview AST (safe for style editing)
  *    - Once with real React to create a runtime AST (interactive and stateful)
  * 4. Serializing both executions into SerializableElement trees
+ * 5. Pruning the preview AST to enforce component boundaries for smart selection
  *
  * @param code The raw TSX/JSX code string from the Monaco editor
  * @param allComponents The complete component library for resolving local imports
+ * @param propsJson The JSON string containing props for the component
  * @returns A promise that resolves to an object containing both ASTs and location data
  */
 export async function renderCodeToAst(
   code: string,
-  allComponents: Record<string, ComponentData>
+  allComponents: Record<string, ComponentData>,
+  propsJson: string
 ): Promise<{
   runtimeAst: SerializableElement;
   previewAst: SerializableElement;
@@ -143,11 +193,14 @@ export async function renderCodeToAst(
 }> {
   const { jsxLocation, elementLocationMap } = await analyzeCode(code);
 
+  // Parse the props string that was passed into the function
   let parsedProps: Record<string, unknown> = {};
   try {
-    const store = (useComponentStore as any).getState();
-    parsedProps = JSON.parse(store.propsJson || '{}');
-  } catch { /* ignore */ }
+    parsedProps = JSON.parse(propsJson || '{}');
+  } catch (e) {
+    console.error("Failed to parse props JSON:", e);
+    // Silently fail to an empty object if JSON is invalid
+  }
 
   const sourceForTranspile = code
     .replace(/export\s+default\s+/, 'globalThis.USER_COMPONENT = ')
@@ -174,6 +227,7 @@ export async function renderCodeToAst(
               // Transpile the dependency component's code on the fly
               const result = Babel.transform(componentData.code, {
                 presets: ['react', 'typescript'],
+                filename: `${componentName}.tsx`, // e.g., 'Card.tsx'
               });
               if (result.code) {
                 // We need to get the actual exported function. We can do this with a trick.
@@ -250,6 +304,13 @@ export async function renderCodeToAst(
   resetIdCounter();
   const previewElement = React.createElement(UserComponentForPreview || UserComponentForRuntime, parsedProps);
   const previewAst = serializeComponent(previewElement) as SerializableElement;
+
+  // ▼▼▼ SMART SELECTION: Prune child components to enforce component boundaries ▼▼▼
+  // This prevents users from selecting elements inside child components
+  // and enforces the principle that you can only edit what's in your current editor
+  const libraryNames = Object.values(allComponents).map(c => c.name);
+  const prunedPreviewAst = pruneChildComponents(previewAst, libraryNames);
+  // ▲▲▲ END OF SMART SELECTION ▲▲▲
   
-  return { runtimeAst, previewAst, jsxLocation, elementLocationMap };
+  return { runtimeAst, previewAst: prunedPreviewAst, jsxLocation, elementLocationMap };
 }

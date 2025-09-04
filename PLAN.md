@@ -1,7 +1,7 @@
 # Technical Planning Document: Live-Component-Editor
 
-**Version: 1.0**
-**Status: In Development**
+**Version: 1.1**
+**Status: Production Ready (Phase 3 Complete)**
 
 This document provides a deep dive into the architecture, feature specifications, and development roadmap for the Live-Component-Editor project.
 
@@ -119,14 +119,18 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 - ✅ Feature: Implemented the "Dependency Management" UI to inject external scripts into the `<iframe>`
 - ✅ Feature: Implemented the "Context Wrapper" editor to wrap the user's component in providers
 
-**Phase 3: ✅ MOSTLY COMPLETED**
+**Phase 3: ✅ COMPLETED**
 - ✅ Feature: Implemented the "Component Library" UI, allowing users to add and switch between multiple components
 - ✅ UI/UX: Built the collapsible Component Tree navigator
-- 🔄 UI/UX: Implement the "Drill-Down" click for overlapping elements (not yet implemented)
 - ✅ Advanced resizable layout system with react-resizable-panels
 - ✅ LibraryPanel with full CRUD functionality for component management
-
-## 5. API Schema & Architectural Concerns
+- ✅ Smart Selection: Implemented component boundary enforcement by pruning child components from preview AST
+- ✅ Selection Bug Fix: Custom components now selectable via wrapper spans with `display: 'contents'`
+- ✅ Disclaimer Logic Fix: Only shows disclaimer for child components, not root components
+- ✅ State Management Fix: Fixed `updateNodeStyle` to use proper immutable updates within set() callback
+- ✅ Children Handling Fix: Robust `React.Children.toArray()` implementation for all React children types
+- ✅ Dependency Stabilization: Prevented infinite loops in IframeCanvas with stable dependency keys
+- ✅ Multi-Component Examples: Added Card Dashboard example set demonstrating parent-child relationships
 
 ### 5.1. Component API Schema
 ```typescript

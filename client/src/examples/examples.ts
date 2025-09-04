@@ -221,51 +221,33 @@ export default function DataChart() {
 };
 
 // Multi-component example (CardList + Card)
-export const multiComponentExample = {
+export const cardDashboardExample = {
   activeId: 'card-list-id',
   components: [
     {
       id: 'card-list-id',
       name: 'CardList',
-      code: `// CardList Component - Uses the Card component
+      code: `
+// This component imports and uses the 'Card' component
+// from the component library.
+import Card from './Card';
+
 export default function CardList() {
   const items = [
-    { title: 'First Card', description: 'This is the first card' },
-    { title: 'Second Card', description: 'This is the second card' },
-    { title: 'Third Card', description: 'This is the third card' }
+    { title: 'Responsive Design', description: 'Ensure the layout works on all screen sizes.' },
+    { title: 'State Simulation', description: 'Test loading, error, and empty states.' },
+    { title: 'Component Polish', description: 'Refine animations and interactions for a production-ready feel.' }
   ];
 
   return (
-    <div style={{
-      display: 'flex',
-      gap: '1rem',
-      padding: '1rem',
-      flexWrap: 'wrap'
-    }}>
-      {items.map((item, index) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', fontFamily: 'sans-serif', backgroundColor: '#f9f9f9' }}>
+      {items.map(item => (
         <Card
-          key={index}
+          key={item.title}
           title={item.title}
           description={item.description}
         />
       ))}
-    </div>
-  );
-}
-
-// Note: In a real app, you would import Card from another file
-// For this demo, we'll define it here
-function Card({ title, description }) {
-  return (
-    <div style={{
-      padding: '1rem',
-      border: '1px solid #ccc',
-      borderRadius: '8px',
-      maxWidth: '200px',
-      backgroundColor: '#f9f9f9'
-    }}>
-      <h3 style={{ margin: '0 0 0.5rem 0', color: '#333' }}>{title}</h3>
-      <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>{description}</p>
     </div>
   );
 }`,
@@ -289,42 +271,17 @@ export default Wrapper;`,
     {
       id: 'card-id',
       name: 'Card',
-      code: `// Reusable Card Component
-export default function Card({ title, description = "No description provided" }) {
+      code: `
+// This is a reusable child component.
+// Its props are passed down from CardList.
+export default function Card({ title, description }) {
   return (
-    <div style={{
-      padding: '1.5rem',
-      border: '2px solid #e2e8f0',
-      borderRadius: '12px',
-      maxWidth: '250px',
-      backgroundColor: 'white',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      transition: 'transform 0.2s, box-shadow 0.2s'
-    }}
-    onMouseEnter={(e) => {
-      e.target.style.transform = 'translateY(-2px)';
-      e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-    }}
-    onMouseLeave={(e) => {
-      e.target.style.transform = 'translateY(0)';
-      e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-    }}
-    >
-      <h3 style={{
-        margin: '0 0 0.75rem 0',
-        color: '#1a202c',
-        fontSize: '1.25rem',
-        fontWeight: 'bold'
-      }}>
-        {title}
+    <div style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+      <h3 style={{ marginTop: 0, marginBottom: '0.5rem', color: '#333' }}>
+        {title || 'No Title'}
       </h3>
-      <p style={{
-        margin: 0,
-        color: '#4a5568',
-        fontSize: '1rem',
-        lineHeight: '1.5'
-      }}>
-        {description}
+      <p style={{ margin: 0, color: '#666' }}>
+        {description || 'No description provided.'}
       </p>
     </div>
   );
@@ -332,7 +289,7 @@ export default function Card({ title, description = "No description provided" })
       componentAst: null,
       componentPreviewAst: null,
       jsxLocation: null,
-      propsJson: '{"title": "Sample Card", "description": "This is a sample card description"}',
+      propsJson: JSON.stringify({ title: "Example Title", description: "This is a sample description for the card when viewed alone." }, null, 2),
       dependencies: [],
       wrapperCode: `function Wrapper({ children }) {
   return (
@@ -358,6 +315,6 @@ export const examples: Record<string, Example> = {
 };
 
 // Multi-component examples collection (separate from regular examples)
-export const multiComponentExamples: Record<string, typeof multiComponentExample> = {
-  'Multi-Component Demo': multiComponentExample,
+export const multiComponentExamples: Record<string, typeof cardDashboardExample> = {
+  'Card Dashboard': cardDashboardExample,
 };

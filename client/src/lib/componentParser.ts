@@ -15,6 +15,13 @@
  * - Supports React 19 async components
  * - Provides unique IDs for element selection
  * - Maintains component hierarchy and props
+ * - Robust children handling with React.Children.toArray()
+ * - Custom component selection via wrapper spans with display: 'contents'
+ *
+ * RECENT IMPROVEMENTS (v1.1):
+ * - Fixed critical TypeError in serializeComponent by using React.Children.toArray()
+ * - Enhanced renderFromAst to wrap custom components in selectable spans
+ * - Added proper error handling and AST sanitization
  */
 
 import React from 'react';
@@ -40,23 +47,41 @@ export let idCounter = 0;
  * @returns A SerializableElement, string, or null representing the serialized form
  */
 export function serializeComponent(element: React.ReactNode): SerializableElement | string | null {
-  console.log('serializeComponent called with element:', element);
+  // Handle non-object types like strings, numbers, booleans, null, undefined
   if (typeof element !== 'object' || element === null) {
-    return typeof element === 'number' ? String(element) : (element as string | null);
+    // Return strings directly, convert numbers to strings, and ignore others (null/undefined/boolean)
+    if (typeof element === 'string') return element;
+    if (typeof element === 'number') return String(element);
+    return null;
   }
 
   const reactElement = element as React.ReactElement;
 
-  // Preserve the actual component function for custom components so we can
-  // re-create them during deserialization instead of turning them into tag names.
+  // If it's not a valid React element (e.g., it's an array), we need to handle it.
+  // This case shouldn't be hit if we use React.Children.toArray, but it's a good safeguard.
+  if (!reactElement.type) {
+    console.warn("serializeComponent encountered an invalid element:", reactElement);
+    return null;
+  }
+
   const type: string | React.ComponentType<unknown> = typeof reactElement.type === 'string'
     ? reactElement.type
     : (reactElement.type as React.ComponentType<unknown>);
-  // Default: serialize explicit children passed to this element
-  let serializedChildren = React.Children.map((reactElement.props as { children?: React.ReactNode }).children, serializeComponent);
+
+  // ▼▼▼ CHILDREN HANDLING FIX (v1.1) ▼▼▼
+  // Use React.Children.toArray to safely handle any type of children prop
+  // (undefined, null, string, number, array, single element).
+  // This turns props.children into a predictable, flat array that we can map over.
+  // CRITICAL FIX: Prevents TypeError when children is not an array
+  const childrenArray = React.Children.toArray((reactElement.props as { children?: React.ReactNode })?.children);
+  const serializedChildren = childrenArray
+    .map(child => serializeComponent(child)) // Recursively call serialize on each child
+    .filter(c => c !== null) as (SerializableElement | string)[]; // Filter out any null results
+  // ▲▲▲ END OF CHILDREN HANDLING FIX ▲▲▲
+
   // Enhancement: if this is a function component, try to resolve its rendered output
   // so the tree contains its internal structure for the Navigator.
-  if (typeof type === 'function' && (!serializedChildren || serializedChildren.length === 0)) {
+  if (typeof type === 'function' && serializedChildren.length === 0) {
     try {
       // Try to expand function components by calling them.
       // Note: This may throw for hook-using components; we'll catch and ignore.
@@ -74,9 +99,9 @@ export function serializeComponent(element: React.ReactNode): SerializableElemen
       if (rendered) {
         const resolved = serializeComponent(rendered);
         if (Array.isArray(resolved)) {
-          serializedChildren = resolved as (SerializableElement | string)[];
+          serializedChildren.push(...(resolved as (SerializableElement | string)[]));
         } else if (resolved) {
-          serializedChildren = [resolved as SerializableElement | string];
+          serializedChildren.push(resolved as SerializableElement | string);
         }
       }
     } catch {
@@ -89,7 +114,8 @@ export function serializeComponent(element: React.ReactNode): SerializableElemen
     type: type,
     props: {
       ...((reactElement.props as Record<string, unknown>) || {}),
-      children: serializedChildren?.filter(c => c !== null) as (SerializableElement | string)[] | undefined,
+      // We now have a clean, guaranteed array of serialized children.
+      children: serializedChildren.length > 0 ? serializedChildren : undefined,
     },
   };
 
@@ -124,7 +150,8 @@ export function renderFromAst(
 
   const { id, type, props } = astNode;
 
-  const children = props?.children?.map(child => renderFromAst(child, handleSelect, injectHandlers));
+  // This check is important - safely handle children
+  const children = props?.children ? props.children.map(child => renderFromAst(child, handleSelect, injectHandlers)) : [];
 
   // Guard props in case it's null/undefined, then build base props with data attribute for identification
   const baseProps = props || {};
@@ -132,22 +159,32 @@ export function renderFromAst(
     ...baseProps,
     key: id,
   };
-  
-  // Only add data-node-id attribute for DOM elements (string types), not function components
+
+  // ▼▼▼ CUSTOM COMPONENT SELECTION FIX (v1.1) ▼▼▼
+  // For custom React components (like <Card />), we can't pass `data-node-id` as a prop.
+  // Instead, we wrap the component in a `span` that we control.
+  // This span gets the data-node-id, making the component selectable.
+  // We use display: 'contents' to ensure this wrapper has no effect on the layout.
   if (typeof type === 'string') {
+    // For native HTML elements, add the data-node-id directly.
     finalProps['data-node-id'] = id;
+    return React.createElement(type, finalProps, ...children);
+  } else {
+    // For custom React components (like <Card />), we can't pass `data-node-id` as a prop.
+    // Instead, we wrap the component in a `span` that we control.
+    // This span gets the data-node-id, making the component selectable.
+    // We use display: 'contents' to ensure this wrapper has no effect on the layout.
+    return React.createElement(
+      'span',
+      {
+        'data-node-id': id,
+        style: { display: 'contents' },
+        key: id
+      },
+      React.createElement(type, finalProps, ...children)
+    );
   }
-
-  // Only inject onClick handler if we're in selection mode and handleSelect is provided
-  if (injectHandlers && handleSelect) {
-    finalProps.onClick = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      handleSelect(id);
-    };
-  }
-
-  const elementType = typeof type === 'string' ? type : type;
-  return React.createElement(elementType as React.ElementType, finalProps, children);
+  // ▲▲▲ END OF CUSTOM COMPONENT SELECTION FIX ▲▲▲
 }
 
 /**

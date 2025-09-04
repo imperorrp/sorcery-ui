@@ -118,7 +118,7 @@ interface ComponentActions {
   updateActiveComponentCode: (newCode: string) => void;
   deleteComponent: (componentId: string) => void;
   saveActiveCodeAsNewComponent: (newName: string) => void;
-  loadExampleSet: (components: ComponentData[], activeId: string) => void;
+  loadExampleSet: (components: Record<string, Partial<ComponentData>> | ComponentData[], activeId: string) => void;
   
   // Legacy actions for backward compatibility (now operate on active component)
   setAst: (ast: SerializableElement | null) => void;
@@ -426,14 +426,38 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
       }));
     },
 
-    loadExampleSet: (exampleComponents, activeId) => {
-      const componentsMap: Record<string, ComponentData> = {};
-      exampleComponents.forEach(comp => {
-        componentsMap[comp.id] = comp;
-      });
-      
+    loadExampleSet: (componentsToLoad, activeId) => {
+      const newComponents: Record<string, ComponentData> = {};
+
+      // Handle array format (existing multiComponentExamples)
+      if (Array.isArray(componentsToLoad)) {
+        componentsToLoad.forEach(comp => {
+          newComponents[comp.id] = comp;
+        });
+      }
+      // Handle record format (new exampleSets)
+      else {
+        for (const id in componentsToLoad) {
+          const partial = componentsToLoad[id];
+          // Merge with defaults to create a full ComponentData object
+          newComponents[id] = {
+            id: partial.id!,
+            name: partial.name!,
+            code: partial.code!,
+            propsJson: partial.propsJson || '{}',
+            componentAst: null,
+            componentPreviewAst: null,
+            jsxLocation: null,
+            dependencies: [],
+            wrapperCode: initialWrapperCode,
+            history: [{ ast: null, preview: null }],
+            historyIndex: 0,
+          };
+        }
+      }
+
       set({
-        components: componentsMap,
+        components: newComponents,
         activeComponentId: activeId,
         selectedNodeId: null,
         isDirty: false,
@@ -489,53 +513,78 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
 
     setSelectedNodeId: (nodeId) => set({ selectedNodeId: nodeId }),
 
+    /**
+     * Updates the style of a specific node in the active component's AST
+     *
+     * STATE MANAGEMENT FIX (v1.1):
+     * - Fixed race conditions by using atomic updates within set() callback
+     * - Proper immutable updates to prevent state mutation bugs
+     * - Correctly sets isDirty flag when changes are made
+     * - Maintains history stack for undo/redo functionality
+     *
+     * @param nodeId - The ID of the node to update
+     * @param newStyle - The new CSS properties to apply
+     */
     updateNodeStyle: (nodeId, newStyle) => {
-      const { activeComponentId, components } = get();
-      if (!activeComponentId) return;
+      set((state) => {
+        const { activeComponentId, components } = state;
 
-      const activeComponent = components[activeComponentId];
-      const { componentAst, componentPreviewAst, history, historyIndex } = activeComponent;
+        // 1. Guard Clause: Don't do anything if there's no active component.
+        if (!activeComponentId) {
+          return state; // Return the original state unmodified
+        }
 
-      const updateFn = (node: SerializableElement) => ({
-        ...node,
-        props: {
-          ...node.props,
-          style: { ...node.props.style, ...newStyle },
-        },
+        // 2. Get a reference to the specific component data we need to update.
+        const activeComponentData = components[activeComponentId];
+        if (!activeComponentData) {
+          return state; // Safety check
+        }
+
+        const { componentAst, componentPreviewAst, history, historyIndex } = activeComponentData;
+
+        // 3. Define the update function (this part is the same as before).
+        const updateFn = (node: SerializableElement): SerializableElement => ({
+          ...node,
+          props: {
+            ...node.props,
+            style: { ...node.props.style, ...newStyle },
+          },
+        });
+
+        // 4. Create the new, updated versions of the ASTs.
+        const newComponentAst = componentAst
+          ? findAndCloneUpdateNode(componentAst, nodeId, updateFn)
+          : null;
+        const newComponentPreviewAst = componentPreviewAst
+          ? findAndCloneUpdateNode(componentPreviewAst, nodeId, updateFn)
+          : null;
+
+        // 5. Create the new history entry for the component.
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push({ ast: newComponentAst, preview: newComponentPreviewAst });
+
+        // 6. Create the single, updated ComponentData object.
+        const updatedComponentData: ComponentData = {
+          ...activeComponentData,
+          componentAst: newComponentAst,
+          componentPreviewAst: newComponentPreviewAst,
+          history: newHistory,
+          historyIndex: newHistory.length - 1,
+        };
+
+        // 7. Create the new, top-level state object.
+        // This is the most critical step: we create a new `components` map
+        // and place our updated component data inside it.
+        const newState: Partial<ComponentState> = {
+          components: {
+            ...state.components,
+            [activeComponentId]: updatedComponentData,
+          },
+          isDirty: true, // <<< Set the dirty flag!
+        };
+
+        return newState;
       });
-
-      let newComponentAst = componentAst;
-      if (componentAst) {
-        newComponentAst = findAndCloneUpdateNode(componentAst, nodeId, updateFn);
-      }
-
-      let newComponentPreviewAst = componentPreviewAst;
-      if (componentPreviewAst) {
-        newComponentPreviewAst = findAndCloneUpdateNode(
-          componentPreviewAst,
-          nodeId,
-          updateFn
-        );
-      }
-
-      const newHistory = history.slice(0, historyIndex + 1);
-      newHistory.push({ ast: newComponentAst, preview: newComponentPreviewAst });
-
-      const updatedComponent = {
-        ...activeComponent,
-        componentAst: newComponentAst,
-        componentPreviewAst: newComponentPreviewAst,
-        history: newHistory,
-        historyIndex: newHistory.length - 1,
-      };
-
-      set((state) => ({
-        components: {
-          ...state.components,
-          [activeComponentId]: updatedComponent,
-        },
-        isDirty: true,
-      }));
     },
 
     undo: () => {

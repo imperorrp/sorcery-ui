@@ -15,6 +15,7 @@ The application operates on a sophisticated Three-AST system to ensure both a fl
   - `componentPreviewAst`: Created using a shimmed version of React, this is a complete, structurally-sound "map" of the component. It is used to render the read-only Navigator tree and acts as the blueprint for applying style changes.
   - `componentAst`: Created using the real React library, this is the "live" version of the component that can manage its own state and interactivity. It is rendered in the iframe's "Interaction Mode".
   - Both of these visual ASTs are stored in the central Zustand store.
+- **Smart Selection & Component Boundaries**: The system implements "Smart Selection" by pruning child components from the preview AST to enforce component boundaries. This prevents users from selecting and editing elements that belong to child components, maintaining clear separation between components and their dependencies.
 - **Visual Editing Loop**: When the user modifies a style in the Inspector, the updateNodeStyle action creates new, updated copies of both visual ASTs in the store. This change is instantly reflected in the sandboxed <iframe>.
 - **Reconciliation via a Temporary Source AST**: When "Apply Changes" is clicked, the application's core architectural principle is revealed:
   - The styleUpdater.ts utility takes the originalCode string and creates a temporary, highly-detailed Babel AST. This Source AST understands all component logic, including event handlers and hooks.
@@ -61,12 +62,12 @@ This directory contains the entire frontend React application, built with Vite. 
     - `wrapperCode`: Code for context wrapper components
     - `history`: An array of AST snapshots for undo/redo functionality
     - `historyIndex`: Current position in the history stack
-  - Key methods: `setRenderOutput` (initializes both ASTs after rendering), `updateNodeStyle` (applies style changes), `applyAstChangesToCode` (surgical code updates), `undo`/`redo` (history management), plus multi-component management methods like `addComponent`, `setActiveComponent`, `deleteComponent`, etc.
+  - Key methods: `setRenderOutput` (initializes both ASTs after rendering), `updateNodeStyle` (applies style changes with proper immutable updates within set() callback), `applyAstChangesToCode` (surgical code updates), `undo`/`redo` (history management), plus multi-component management methods like `addComponent`, `setActiveComponent`, `deleteComponent`, etc.
 
 #### `lib/`
 
-- `renderer.ts`: Contains the crucial `renderCodeToAst` function. This orchestrates the initial code processing pipeline by transpiling the user's code and calling the parser to generate the two distinct visual ASTs (`componentAst` and `componentPreviewAst`).
-- `componentParser.ts`: Handles the serialization from React Elements into our custom `SerializableElement` AST format (`serializeComponent`), and the deserialization from our AST back into renderable React Elements (`renderFromAst`).
+- `renderer.ts`: Contains the crucial `renderCodeToAst` function. This orchestrates the initial code processing pipeline by transpiling the user's code and calling the parser to generate the two distinct visual ASTs (`componentAst` and `componentPreviewAst`). Implements Smart Selection by pruning child components from the preview AST to enforce component boundaries, and handles local component imports with dynamic resolution.
+- `componentParser.ts`: Handles the serialization from React Elements into our custom `SerializableElement` AST format (`serializeComponent`), and the deserialization from our AST back into renderable React Elements (`renderFromAst`). Includes robust handling of all React children types using `React.Children.toArray()` and wraps custom components in selectable spans with `display: 'contents'` for proper selection behavior.
 - `styleUpdater.ts`: (Critical Architectural File) Implements the "Apply Changes" logic. It takes the user's original source code and the `componentPreviewAst`, parses the code into a temporary Babel AST, and surgically modifies only the style attributes of the corresponding nodes. This non-destructive approach is the key to preserving all component logic like onClick handlers and state.
 - `codeUpdater.ts`: Alternative implementation of style updating using surgical string replacement approach (currently unused).
 - `astToCode.ts`: Utility for converting `SerializableElement` AST nodes back into formatted JSX code strings. Includes Prettier integration for clean code generation. Used for code generation workflows.
@@ -84,22 +85,22 @@ This directory contains the entire frontend React application, built with Vite. 
 #### `components/`
 
 - `Navbar.tsx`: Navigation bar component with theme toggle functionality and app branding.
-- `EditorLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Canvas, Inspector). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading.
+- `EditorLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Canvas, Inspector). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access and enhanced layout management.
 
 ##### `Canvas/`
 
 - `ComponentCanvas.tsx`: Acts as a container for the rendered component. It renders `IframeCanvas` and is responsible for displaying the `SelectionHighlighter` overlay when an element is selected.
-- `IframeCanvas.tsx`: A key component that creates a sandboxed `<iframe>` for rendering. It uses `createPortal` to render the component AST into the iframe's document body.[5] It also injects dependency scripts and handles click/hover events for element selection within the iframe.
+- `IframeCanvas.tsx`: A key component that creates a sandboxed `<iframe>` for rendering. It uses `createPortal` to render the component AST into the iframe's document body. Includes dependency injection with stabilization to prevent infinite loops, enhanced selection handling for custom components, and AST sanitization for error handling.
 - `SelectionHighlighter.tsx`: An unused component, with the active implementation located inside `ComponentCanvas.tsx` for more accurate positioning.
 
 ##### `CodeEditor/`
 
-- `MonacoEditor.tsx`: Integrates the Monaco Editor, providing a rich code editing experience with TSX/JSX support. It exposes a ref to get the current code.
+- `MonacoEditor.tsx`: Integrates the Monaco Editor, providing a rich code editing experience with TSX/JSX support. It exposes a ref to get the current code. Now includes support for multi-component examples with dropdown selection and fully controlled editor state.
 
 ##### `Inspector/`
 
 - `InspectorPanel.tsx`: The right-hand panel that contains tabs for editing. It includes the Undo/Redo buttons and the master "Apply Changes" button.
-- `StyleEditor.tsx`: Displays input fields (e.g., color pickers, text inputs) to modify the CSS properties of the selected element. Changes are propagated to the Zustand store via the `updateNodeStyle` action.
+- `StyleEditor.tsx`: Displays input fields (e.g., color pickers, text inputs) to modify the CSS properties of the selected element. Changes are propagated to the Zustand store via the `updateNodeStyle` action. Includes smart disclaimer logic that only shows for child components, not root components.
 - `PropsEditor.tsx`: Provides a textarea for the user to input a JSON object, which is then used as props for the root component during rendering.
 - `SetupEditor.tsx`: Allows the user to add external CDN dependency URLs, which are injected as <script> tags into the sandboxed <iframe>. It also provides a code editor for defining a custom wrapper component (e.g., for theme or Redux providers).
 
@@ -139,7 +140,7 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 
 #### `examples/`
 
-- `examples.ts`: Contains predefined example components and multi-component examples that users can load to try the editor.
+- `examples.ts`: Contains predefined example components and multi-component examples that users can load to try the editor. Includes the Card Dashboard example set demonstrating parent-child component relationships.
 
 #### `test/`
 
