@@ -1,4 +1,3 @@
-// client/src/lib/codeUpdater.ts
 /**
  * Code Updater Library - Surgical String Replacement Approach
  *
@@ -11,6 +10,13 @@
  * 3. Applying targeted string replacements to update only the changed styles
  * 4. Preserving all other code formatting, comments, and structure
  *
+ * Key Features:
+ * - Precise style updates without affecting other code
+ * - Maintains original formatting and comments
+ * - Handles both existing and new style attributes
+ * - Robust error handling with fallbacks
+ * - Uses Babel AST traversal for accurate element identification
+ *
  * FRAGILITY WARNING:
  * This approach relies on Babel's ability to parse and traverse the original code accurately.
  * It can be sensitive to:
@@ -21,6 +27,9 @@
  *
  * Future developers should be aware that this method may require updates if the codebase
  * introduces more complex JSX patterns or if Babel parsing becomes unreliable.
+ *
+ * @author Live Component Editor Team
+ * @version 1.0.0
  */
 
 import type { SerializableElement } from '@/store/componentStore';
@@ -33,7 +42,19 @@ interface Change {
   text: string;
 }
 
-// Helper to convert a style object back into a clean string like `{ color: 'red' }`
+/**
+ * Converts a React CSSProperties object to a JSX style object string.
+ *
+ * This helper function transforms a CSS properties object into a string format
+ * that can be used directly in JSX style attributes. It converts JSON-style
+ * quoted keys to JavaScript object literal format.
+ *
+ * @param style - The CSS properties object to convert
+ * @returns A formatted style object string like "{ color: 'red', fontSize: 14 }"
+ * @example
+ * // Input: { backgroundColor: 'blue', fontSize: 16 }
+ * // Output: "{backgroundColor: 'blue', fontSize: 16}"
+ */
 const styleObjectToString = (style: React.CSSProperties): string => {
   const styleString = JSON.stringify(style, null, 2);
   // Convert to valid JSX style object by removing quotes from keys
@@ -52,9 +73,17 @@ const styleObjectToString = (style: React.CSSProperties): string => {
  * The process ensures that only style attributes are modified while preserving
  * all other code structure, formatting, and logic.
  *
- * @param originalCode The original source code string from the editor
- * @param previewAst The preview AST containing updated style information
+ * Key Features:
+ * - Precise style updates without regenerating entire code
+ * - Maintains original formatting, comments, and whitespace
+ * - Handles both existing style attributes and new ones
+ * - Robust error handling with detailed logging
+ * - Uses dynamic imports to avoid process reference issues
+ *
+ * @param originalCode - The original source code string from the editor
+ * @param previewAst - The preview AST containing updated style information
  * @returns The updated code string with applied style changes, or null if update fails
+ * @throws Never - Returns null on errors instead of throwing
  */
 export const updateCodeWithStyles = async (
   originalCode: string,
@@ -105,7 +134,7 @@ export const updateCodeWithStyles = async (
     // 2. Traverse the code's AST. We must re-generate the IDs in the exact same
     //    way the renderer did to ensure they match.
     let idCounter = 0;
-    
+
     try {
       traverseFn(babelAst, {
         JSXOpeningElement(path: NodePath<JSXOpeningElement>) {
@@ -115,8 +144,8 @@ export const updateCodeWithStyles = async (
 
           if (newStyle) {
             const styleAttr = path.node.attributes.find(
-              (attr): attr is JSXAttribute => attr.type === 'JSXAttribute' && 
-                attr.name.type === 'JSXIdentifier' && 
+              (attr): attr is JSXAttribute => attr.type === 'JSXAttribute' &&
+                attr.name.type === 'JSXIdentifier' &&
                 (attr.name as JSXIdentifier).name === 'style'
             );
 

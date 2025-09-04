@@ -5,7 +5,7 @@
 This project is a high-fidelity implementation of a tool that allows developers to paste React component code, interact with it in a live preview, and visually edit its properties. It is designed with a robust, extensible architecture to handle complex, real-world components.
 
 [**View the Live Demo**](#) <!-- Placeholder for deployed link -->
-[**Read the Full Technical Plan**](./PLANNING.md)
+[**Read the Full Technical Plan**](./PLAN.md)
 
 ---
 

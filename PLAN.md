@@ -69,16 +69,16 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 - [x] Wire up `onSave` to the backend `PUT` endpoint.
 
 ### Phase 2: Robustness & Environment Simulation (2 Days)
-- [X] **Refactor:** Move the rendering canvas into a sandboxed `<iframe>`.
-- [X] **Feature:** Implement the Undo/Redo history stack in the Zustand store.
-- [X] **Feature:** Build the "Mock Props" panel in the UI.
-- [X] **Feature:** Implement the "Dependency Management" UI to inject external scripts into the `<iframe>`.
-- [X] **Feature:** Implement the "Context Wrapper" editor to wrap the user's component in providers.
+- [x] **Refactor:** Move the rendering canvas into a sandboxed `<iframe>`.
+- [x] **Feature:** Implement the Undo/Redo history stack in the Zustand store.
+- [x] **Feature:** Build the "Mock Props" panel in the UI.
+- [x] **Feature:** Implement the "Dependency Management" UI to inject external scripts into the `<iframe>`.
+- [x] **Feature:** Implement the "Context Wrapper" editor to wrap the user's component in providers.
 
 ### Phase 3: Multi-Component Workflow & Polish (2 Days)
-- [ ] **Feature:** Implement the "Component Library" UI, allowing users to add and switch between multiple components.
+- [x] **Feature:** Implement the "Component Library" UI, allowing users to add and switch between multiple components.
 - [ ] **Architecture:** Enhance the `render` function to handle placeholder mocking for unknown child components.
-- [X] **UI/UX:** Build the collapsible Component Tree navigator.
+- [x] **UI/UX:** Build the collapsible Component Tree navigator.
 - [ ] **UI/UX:** Implement the "Drill-Down" click for overlapping elements.
 
 ### Phase 4: AI & Advanced Features (1-2 Days)
@@ -111,6 +111,20 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 - ✅ TypeScript JSX configuration fixed
 - ✅ Implement robust, logic-preserving "Apply Changes" workflow using a **Babel AST-based surgical update strategy**
 - 🔄 Backend API integration (ready for Phase 2)
+
+**Phase 2: ✅ COMPLETED**
+- ✅ Refactor: Moved the rendering canvas into a sandboxed `<iframe>`
+- ✅ Feature: Implemented the Undo/Redo history stack in the Zustand store
+- ✅ Feature: Built the "Mock Props" panel in the UI
+- ✅ Feature: Implemented the "Dependency Management" UI to inject external scripts into the `<iframe>`
+- ✅ Feature: Implemented the "Context Wrapper" editor to wrap the user's component in providers
+
+**Phase 3: ✅ MOSTLY COMPLETED**
+- ✅ Feature: Implemented the "Component Library" UI, allowing users to add and switch between multiple components
+- ✅ UI/UX: Built the collapsible Component Tree navigator
+- 🔄 UI/UX: Implement the "Drill-Down" click for overlapping elements (not yet implemented)
+- ✅ Advanced resizable layout system with react-resizable-panels
+- ✅ LibraryPanel with full CRUD functionality for component management
 
 ## 5. API Schema & Architectural Concerns
 

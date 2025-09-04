@@ -1,19 +1,34 @@
 // client/src/lib/styleUpdater.ts
 
 /**
- * @file This file contains the core logic for the application's most critical feature:
+ * @file Style Updater - Surgical Code Modification System
+ *
+ * @description This file contains the core logic for the application's most critical feature:
  * applying visual style changes back to the user's source code non-destructively.
  *
- * @description The architectural approach here is "Source Code as the Single Source of Truth".
- * We do not generate JSX from our visual AST, as that would destroy component logic (e.g., onClick handlers, state).
- * Instead, this utility performs an AST-based surgical update:
- * 1. It parses the user's original code into a rich Babel Abstract Syntax Tree (AST).
- * 2. It traverses our internal, "visual" AST and the Babel AST in parallel.
- * 3. By matching the structure of the two trees, it precisely locates the corresponding nodes.
- * 4. It modifies *only the 'style' attribute* of the relevant nodes within the Babel AST.
- * 5. It uses `@babel/generator` to convert the modified Babel AST back into a clean, formatted code string.
+ * ARCHITECTURAL APPROACH: "Source Code as the Single Source of Truth"
  *
- * This ensures that all component logic, props, and comments are preserved perfectly.
+ * We do not generate JSX from our visual AST, as that would destroy component logic
+ * (e.g., onClick handlers, state, custom hooks, complex expressions).
+ *
+ * Instead, this utility performs an AST-based surgical update process:
+ *
+ * 1. **Parse Original Code**: Parse the user's original code into a rich Babel AST
+ * 2. **Parallel Traversal**: Traverse our internal "visual" AST and the Babel AST in parallel
+ * 3. **Structural Matching**: Match elements by their structure (not position or IDs)
+ * 4. **Surgical Modification**: Modify *only the 'style' attribute* of corresponding nodes
+ * 5. **Code Generation**: Use @babel/generator to convert the modified Babel AST back into clean, formatted code
+ *
+ * PRESERVATION GUARANTEES:
+ * ✅ All component logic (event handlers, state, hooks)
+ * ✅ All props and their values
+ * ✅ All comments and code formatting
+ * ✅ All TypeScript types and interfaces
+ * ✅ All imports and exports
+ * ✅ All custom logic and expressions
+ *
+ * This ensures that users can visually edit their components while maintaining
+ * full control over their code's logic and behavior.
  */
 
 import { parse } from '@babel/parser';

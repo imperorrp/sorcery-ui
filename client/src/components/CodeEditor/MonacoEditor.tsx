@@ -1,4 +1,9 @@
-// client/src/components/CodeEditor/MonacoEditor.tsx
+/**
+ * Monaco Code Editor - Advanced Code Editing Interface
+ *
+ * Monaco Editor wrapper with TypeScript/JSX support, syntax highlighting,
+ * example loading, and code range highlighting for component inspection.
+ */
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import Editor, { type OnMount } from '@monaco-editor/react';
 import { useTheme } from '@/contexts/ThemeContext';

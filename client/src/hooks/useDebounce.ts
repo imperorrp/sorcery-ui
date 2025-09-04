@@ -1,3 +1,27 @@
+/**
+ * Debounce Hooks - Performance Optimization Utilities
+ *
+ * This module provides custom React hooks for debouncing values and function calls.
+ * Debouncing is essential for optimizing performance in user interfaces by reducing
+ * the frequency of expensive operations like API calls, state updates, or DOM manipulations.
+ *
+ * Key Features:
+ * - Value debouncing for input fields and search
+ * - Callback debouncing for API calls and computations
+ * - TypeScript support with generic types
+ * - Automatic cleanup to prevent memory leaks
+ * - Configurable delay timing
+ *
+ * Use Cases:
+ * - Search input with API calls (wait for user to stop typing)
+ * - Window resize handlers (avoid excessive re-calculations)
+ * - Form validation (delay validation until user stops typing)
+ * - Auto-save functionality (save after user stops editing)
+ *
+ * @author Live Component Editor Team
+ * @version 1.0.0
+ */
+
 import { useState, useEffect } from 'react';
 
 /**

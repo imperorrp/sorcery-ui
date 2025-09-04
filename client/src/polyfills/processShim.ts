@@ -1,3 +1,11 @@
+/**
+ * Process Polyfill - Node.js Compatibility Layer
+ *
+ * Provides a minimal Node.js process global for browser environments.
+ * Required by Babel and other Node.js packages that expect process to exist.
+ * Includes essential process properties like env, version, and utility methods.
+ */
+
 // Process polyfill for browser environment
 // This provides the Node.js process global that Babel packages expect
 

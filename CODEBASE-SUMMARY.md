@@ -45,22 +45,30 @@ This directory contains the entire frontend React application, built with Vite. 
 #### `store/`
 
 - `componentStore.ts`: This is the most critical state management file. It uses Zustand to create a global store that holds:
-  - `componentAst`: The "Live AST" created with the real React library. It is rendered in "Interaction Mode" and allows the component to be fully stateful.
-  - `componentPreviewAst`: The "Preview AST" created with a shimmed React. This is a structurally complete map of the component used for the Navigator and as the blueprint for style updates.
-  - `selectedNodeId`: The ID of the currently selected element.
-  - `originalCode`: The user's source code string, which is treated as the source of truth for all component logic.
-  - `jsxLocation`: The character start/end position of the JSX block within the originalCode.
-  - `isDirty`: A flag indicating that visual changes have been made but not yet applied to the source code.
-  - `isCodeHighlighted`: A flag to control the persistent highlighting in the code editor after changes are applied.
-  - `history`: An array of AST snapshots for undo/redo functionality.
-  - State for mock props (`propsJson`), dependencies, and context wrappers (`wrapperCode`).
-  - Key methods: `setRenderOutput` (initializes both ASTs after rendering), `updateNodeStyle` (applies style changes), `applyAstChangesToCode` (surgical code updates), `undo`/`redo` (history management).
+  - `components`: A map of component IDs to their data, supporting multiple components in a library
+  - `activeComponentId`: The ID of the component currently being edited
+  - `selectedNodeId`: The ID of the currently selected element
+  - `selectionMode`: Either 'interact' or 'select' mode for the canvas
+  - `isDirty`: A flag indicating that visual changes have been made but not yet applied to the source code
+  - `isCodeHighlighted`: A flag to control the persistent highlighting in the code editor after changes are applied
+  - For each component (`ComponentData`):
+    - `componentAst`: The "Live AST" created with the real React library. It is rendered in "Interaction Mode" and allows the component to be fully stateful
+    - `componentPreviewAst`: The "Preview AST" created with a shimmed React. This is a structurally complete map of the component used for the Navigator and as the blueprint for style updates
+    - `code`: The user's source code string, which is treated as the source of truth for all component logic
+    - `jsxLocation`: The character start/end position of the JSX block within the code
+    - `propsJson`: JSON string for mock props
+    - `dependencies`: Array of external dependency URLs
+    - `wrapperCode`: Code for context wrapper components
+    - `history`: An array of AST snapshots for undo/redo functionality
+    - `historyIndex`: Current position in the history stack
+  - Key methods: `setRenderOutput` (initializes both ASTs after rendering), `updateNodeStyle` (applies style changes), `applyAstChangesToCode` (surgical code updates), `undo`/`redo` (history management), plus multi-component management methods like `addComponent`, `setActiveComponent`, `deleteComponent`, etc.
 
 #### `lib/`
 
 - `renderer.ts`: Contains the crucial `renderCodeToAst` function. This orchestrates the initial code processing pipeline by transpiling the user's code and calling the parser to generate the two distinct visual ASTs (`componentAst` and `componentPreviewAst`).
 - `componentParser.ts`: Handles the serialization from React Elements into our custom `SerializableElement` AST format (`serializeComponent`), and the deserialization from our AST back into renderable React Elements (`renderFromAst`).
 - `styleUpdater.ts`: (Critical Architectural File) Implements the "Apply Changes" logic. It takes the user's original source code and the `componentPreviewAst`, parses the code into a temporary Babel AST, and surgically modifies only the style attributes of the corresponding nodes. This non-destructive approach is the key to preserving all component logic like onClick handlers and state.
+- `codeUpdater.ts`: Alternative implementation of style updating using surgical string replacement approach (currently unused).
 - `astToCode.ts`: Utility for converting `SerializableElement` AST nodes back into formatted JSX code strings. Includes Prettier integration for clean code generation. Used for code generation workflows.
 - `utils.ts`: Contains shared utility functions, such as `cn` for merging Tailwind CSS classes.
 
@@ -76,7 +84,7 @@ This directory contains the entire frontend React application, built with Vite. 
 #### `components/`
 
 - `Navbar.tsx`: Navigation bar component with theme toggle functionality and app branding.
-- `EditorLayout.tsx`: The main UI component that assembles the different panels (Navigator, Code Editor, Canvas, Inspector). It manages the resizing and collapsing state for these panels. It also triggers the rendering process by calling `renderCodeToAst`.
+- `EditorLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Canvas, Inspector). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading.
 
 ##### `Canvas/`
 
@@ -98,6 +106,11 @@ This directory contains the entire frontend React application, built with Vite. 
 ##### `Navigator/`
 
 - `ComponentTree.tsx`: Displays a collapsible tree view of the component's structure based on the `componentPreviewAst`. It allows for selecting elements, which updates the `selectedNodeId` in the store.
+- `ComponentLibrary.tsx`: Simple component list interface for switching between components (alternative to LibraryPanel).
+
+##### `Library/`
+
+- `LibraryPanel.tsx`: Comprehensive component library management panel with full CRUD functionality (add, rename, delete, switch between components).
 
 ##### `ui/`
 
@@ -123,6 +136,14 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 - `tsconfig.*.json`: TypeScript configuration files.
 - `test-analyze.js`: Development test file for testing the `analyzeCode` function and JSX location detection.
 - `TestAstToCode.tsx`: Development test component for testing the AST-to-Code generation functionality.
+
+#### `examples/`
+
+- `examples.ts`: Contains predefined example components and multi-component examples that users can load to try the editor.
+
+#### `test/`
+
+- `ComponentStoreTest.tsx`: Test component for verifying the multi-component state management functionality.
 
 ### `server/`
 

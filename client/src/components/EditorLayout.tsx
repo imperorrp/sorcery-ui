@@ -1,3 +1,46 @@
+/**
+ * Editor Layout Component - Main Application Interface
+ *
+ * This is the core layout component that orchestrates the entire Live Component Editor interface.
+ * It manages the three-panel layout system (Navigator, Code Editor, Canvas/Inspector) and coordinates
+ * all the major functionality including rendering, code editing, component inspection, and user interactions.
+ *
+ * Key Features:
+ * - Three-panel resizable layout (Navigator, Editor, Inspector)
+ * - Library panel for component selection and examples
+ * - Monaco code editor integration with syntax highlighting
+ * - Live component canvas with interactive selection
+ * - Inspector panel for props, styles, and component settings
+ * - Undo/redo functionality with history management
+ * - Theme-aware styling with dark/light mode support
+ * - Responsive design with panel minimization controls
+ * - Persistent layout preferences using localStorage
+ *
+ * Architecture:
+ * - Uses react-resizable-panels for smooth panel resizing
+ * - Integrates with Zustand store for state management
+ * - Implements custom hooks for layout management
+ * - Handles complex state synchronization between panels
+ * - Manages component lifecycle and rendering pipeline
+ *
+ * Panel Structure:
+ * 1. Library Panel (leftmost): Component library and examples
+ * 2. Navigator Panel: Component tree and structure navigation
+ * 3. Code Editor Panel: Monaco editor for code editing
+ * 4. Canvas Panel: Live component rendering and interaction
+ * 5. Inspector Panel: Component properties and styling controls
+ *
+ * State Management:
+ * - Component store integration for multi-component support
+ * - Active component tracking and switching
+ * - Code highlighting and selection synchronization
+ * - History management for undo/redo operations
+ * - Layout persistence and restoration
+ *
+ * @author Live Component Editor Team
+ * @version 1.0.0
+ */
+
 import React, { useRef, useState } from 'react';
 import { MonacoEditor } from './CodeEditor/MonacoEditor';
 import type { MonacoEditorRef } from './CodeEditor/MonacoEditor';
@@ -14,6 +57,20 @@ import { useResizableLayout } from '@/hooks/useResizableLayout';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { examples, multiComponentExamples } from '@/examples/examples';
 
+/**
+ * Main editor layout component that manages the entire application interface.
+ *
+ * This component serves as the root container for all editor functionality,
+ * coordinating between the code editor, component canvas, inspector, and
+ * navigation panels. It handles:
+ * - Panel layout and resizing management
+ * - Component rendering and code synchronization
+ * - User interaction modes (selection vs interaction)
+ * - Theme application and responsive design
+ * - State synchronization across all panels
+ *
+ * @returns The complete editor layout with all panels and functionality
+ */
 export const EditorLayout: React.FC = () => {
   const { theme } = useTheme();
   
@@ -142,7 +199,10 @@ export const EditorLayout: React.FC = () => {
       return;
     }
     try {
-      const { runtimeAst, previewAst, jsxLocation } = await renderCodeToAst(code);
+      // Get the full component library from the store
+      const { components } = useComponentStore.getState();
+      // Pass the entire components map into the renderer
+      const { runtimeAst, previewAst, jsxLocation } = await renderCodeToAst(code, components);
       // The setRenderOutput action (which we refactored) will correctly
       // place this data into the active component's state slice.
       setRenderOutput(code, runtimeAst, previewAst, jsxLocation);

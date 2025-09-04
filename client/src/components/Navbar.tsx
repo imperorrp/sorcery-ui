@@ -1,8 +1,17 @@
+/**
+ * Navigation Bar Component
+ *
+ * Top navigation bar with branding and theme toggle functionality.
+ * Provides consistent header across the application with theme switching.
+ */
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Moon, Sun, Code } from 'lucide-react';
 
+/**
+ * Main navigation component with branding and theme controls.
+ */
 export const Navbar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
 

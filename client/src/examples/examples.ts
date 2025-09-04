@@ -1,3 +1,11 @@
+/**
+ * Component Examples - Pre-built Component Templates
+ *
+ * Collection of example React components for demonstration and testing.
+ * Includes single components, interactive examples, and multi-component setups.
+ * Used by the editor for quick component loading and user education.
+ */
+
 export interface Example {
   code: string;
   props?: object;

@@ -1,8 +1,19 @@
+/**
+ * Component Canvas - Live Component Rendering
+ *
+ * Main canvas component that renders components in an iframe and handles
+ * element selection with visual highlighting. Manages the display of
+ * rendered components with interactive selection capabilities.
+ */
 import React from 'react';
 import { useComponentStore } from '@/store/componentStore';
 import type { SerializableElement } from '@/store/componentStore';
 import { IframeCanvas } from './IframeCanvas';
 
+/**
+ * Canvas component that orchestrates component rendering and selection.
+ * Handles iframe rendering, selection highlighting, and state management.
+ */
 export const ComponentCanvas = () => {
   // Use active component selectors for proper data access
   const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
@@ -22,7 +33,10 @@ export const ComponentCanvas = () => {
   );
 };
 
-// A helper component to draw the selection outline
+/**
+ * Visual highlighter for selected elements in the canvas.
+ * Draws blue outline around selected components for user feedback.
+ */
 const SelectionHighlighter = ({ ast }: { ast: SerializableElement | null }) => {
   const selectedNodeId = useComponentStore((s) => s.selectedNodeId);
 

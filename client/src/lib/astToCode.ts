@@ -1,17 +1,69 @@
+/**
+ * AST to Code Converter Module
+ *
+ * This module provides functionality to convert our serializable JSON AST representation
+ * back into formatted JSX/TypeScript code. It's the reverse of the parsing process,
+ * taking the structured data and generating human-readable, properly formatted code.
+ *
+ * Key Features:
+ * - Converts SerializableElement AST nodes to JSX strings
+ * - Handles all prop types (strings, numbers, booleans, objects, styles)
+ * - Properly formats CSS-in-JS style objects
+ * - Generates clean, indented JSX with proper closing tags
+ * - Integrates with Prettier for code formatting and beautification
+ * - Handles edge cases like corrupted nodes and complex prop values
+ *
+ * Architecture:
+ * - astToCodeRecursive: Core recursive conversion function
+ * - styleObjectToJsxString: CSS properties to JSX object string conversion
+ * - generateAndFormatJsx: Prettier integration for final formatting
+ * - astToCode: Main export function for backward compatibility
+ *
+ * @author Live Component Editor Team
+ * @version 1.0.0
+ */
+
 import type React from 'react';
 import type { SerializableElement } from '@/store/componentStore';
 import { format } from 'prettier/standalone';
 import babel from 'prettier/plugins/babel';
 import estree from 'prettier/plugins/estree';
 
-// Helper to convert a CSSProperties object back into a JSX-compatible object string
+/**
+ * Converts a CSSProperties object into a JSX-compatible style object string.
+ *
+ * This function takes React's CSSProperties object and converts it to a string
+ * that can be used directly in JSX style attributes. It handles the conversion
+ * from JSON format to JavaScript object literal format.
+ *
+ * @param style - The CSS properties object to convert
+ * @returns A string representation suitable for JSX style props
+ * @example
+ * // Input: { backgroundColor: 'red', fontSize: 14 }
+ * // Output: {backgroundColor: 'red', fontSize: 14}
+ */
 const styleObjectToJsxString = (style: React.CSSProperties): string => {
   const styleString = JSON.stringify(style, null, 2);
   // Replace double quotes on keys with no quotes for valid JS object keys
   return styleString.replace(/"([^"]+)":/g, '$1:');
 };
 
-// Main function to convert a serializable AST node to a JSX string
+/**
+ * Recursively converts a serializable AST node to a JSX string representation.
+ *
+ * This is the core conversion function that traverses the AST and generates
+ * properly formatted JSX code. It handles:
+ * - String literals and text nodes
+ * - HTML/SVG elements with proper tag names
+ * - Component elements with display names
+ * - All prop types (primitives, objects, styles)
+ * - Nested children with proper indentation
+ * - Error handling for corrupted nodes
+ *
+ * @param node - The AST node to convert (SerializableElement or string)
+ * @param indentLevel - Current indentation level for formatting
+ * @returns A formatted JSX string representation of the node
+ */
 const astToCodeRecursive = (node: SerializableElement | string, indentLevel = 0): string => {
   const indent = ' '.repeat(indentLevel * 2);
 
@@ -91,16 +143,38 @@ const astToCodeRecursive = (node: SerializableElement | string, indentLevel = 0)
   return `${indent}<${tagName}${propsString}>\n${childrenString}\n${indent}</${tagName}>`;
 };
 
-// Export the main function for backward compatibility
+/**
+ * Converts a serializable AST node to JSX code with optional indentation.
+ *
+ * This is the main export function for backward compatibility. It provides
+ * a simple interface to convert AST nodes to JSX strings with customizable
+ * indentation levels.
+ *
+ * @param node - The AST node to convert
+ * @param indentLevel - Starting indentation level (default: 0)
+ * @returns A JSX string representation of the AST node
+ */
 export const astToCode = (node: SerializableElement | string, indentLevel = 0): string => {
   return astToCodeRecursive(node, indentLevel);
 };
 
 /**
- * Takes a serializable AST node and generates a clean, formatted JSX string.
- * This is the final, robust version that correctly handles all Prettier edge cases.
- * @param node The SerializableElement to convert into code.
- * @returns A promise that resolves to a formatted JSX string.
+ * Generates clean, formatted JSX code from a serializable AST node using Prettier.
+ *
+ * This function takes a SerializableElement and produces a properly formatted,
+ * production-ready JSX string. It uses Prettier for consistent code formatting
+ * and handles all the edge cases that can occur with JSX formatting.
+ *
+ * Process:
+ * 1. Generate raw JSX string from AST using astToCodeRecursive
+ * 2. Wrap in a valid JavaScript statement for Prettier context
+ * 3. Format with Prettier using Babel parser and JSX plugins
+ * 4. Extract the formatted JSX from the wrapper statement
+ * 5. Fallback to raw code if formatting fails
+ *
+ * @param node - The SerializableElement to convert to formatted JSX
+ * @returns A Promise that resolves to a formatted JSX string
+ * @throws Never - Returns raw code as fallback on formatting errors
  */
 export async function generateAndFormatJsx(node: SerializableElement): Promise<string> {
   // 1. Generate the raw, unformatted JSX string from the AST.

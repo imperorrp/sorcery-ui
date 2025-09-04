@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { serializeComponent, resetIdCounter } from '@/lib/componentParser';
-import type { SerializableElement, JsxLocation, ElementLocationMap } from '@/store/componentStore';
+import type { SerializableElement, JsxLocation, ElementLocationMap, ComponentData } from '@/store/componentStore';
 import { useComponentStore } from '@/store/componentStore';
 
 /**
  * Renderer Library - Dual-AST Strategy for Interactive Component Editing
  *
- * This module implements a "Dual-AST" approach to enable live, interactive editing of React components:
+ * This module implements the core "Dual-AST" approach that enables live, interactive editing
+ * of React components while preserving their logic and functionality.
+ *
+ * ARCHITECTURE OVERVIEW:
  *
  * 1. **Runtime AST (componentAst)**: Created with the real React library, allowing full interactivity,
  *    state management, and side effects. This is rendered in the iframe for live interaction.
@@ -17,13 +20,21 @@ import { useComponentStore } from '@/store/componentStore';
  *    component's potential output without executing stateful logic, enabling safe style editing and
  *    component tree navigation.
  *
- * The dual approach ensures that:
+ * KEY BENEFITS:
  * - Users can interact with their components in real-time (runtime AST)
  * - Style changes can be applied safely without triggering stateful code (preview AST)
  * - The component tree can be analyzed for navigation and selection (preview AST)
+ * - Surgical code updates preserve all component logic and event handlers
+ *
+ * PROCESS FLOW:
+ * 1. User pastes JSX/TSX code into Monaco Editor
+ * 2. Code is transpiled and executed twice with different React contexts
+ * 3. Both ASTs are generated and stored in the component store
+ * 4. Runtime AST renders in iframe, Preview AST drives the navigator and style editing
+ * 5. Style changes are applied surgically back to source code using Babel AST traversal
  *
  * Both ASTs are generated from the same source code but with different React contexts to achieve
- * this separation of concerns.
+ * this separation of concerns while maintaining perfect synchronization.
  */
 
 /**
@@ -118,9 +129,13 @@ const analyzeCode = async (code: string): Promise<{ jsxLocation: JsxLocation | n
  * 4. Serializing both executions into SerializableElement trees
  *
  * @param code The raw TSX/JSX code string from the Monaco editor
+ * @param allComponents The complete component library for resolving local imports
  * @returns A promise that resolves to an object containing both ASTs and location data
  */
-export async function renderCodeToAst(code: string): Promise<{
+export async function renderCodeToAst(
+  code: string,
+  allComponents: Record<string, ComponentData>
+): Promise<{
   runtimeAst: SerializableElement;
   previewAst: SerializableElement;
   jsxLocation: JsxLocation | null;
@@ -140,21 +155,89 @@ export async function renderCodeToAst(code: string): Promise<{
 
   // Dynamic import to avoid process reference before shim loads
   const Babel = await import('@babel/standalone');
-  
+
+  // Create a Babel plugin to resolve local component imports
+  const componentMap: Record<string, any> = {};
+
+  const resolveLocalComponentsPlugin = () => {
+    return {
+      visitor: {
+        // Find `import { Card } from './Card'` or `import Card from './Card'`
+        ImportDeclaration(path: any) {
+          const source = path.node.source.value;
+          // A simple heuristic: if the import is local, treat it as a library component
+          if (source.startsWith('./')) {
+            const componentName = source.substring(2); // Get "Card" from "./Card"
+            const componentData = Object.values(allComponents).find(c => c.name === componentName);
+
+            if (componentData) {
+              // Transpile the dependency component's code on the fly
+              const result = Babel.transform(componentData.code, {
+                presets: ['react', 'typescript'],
+              });
+              if (result.code) {
+                // We need to get the actual exported function. We can do this with a trick.
+                const getComponentFunc = new Function('React', 'exports', `${result.code.replace(/export default/, 'exports.default =')}; return exports.default;`);
+                const ComponentFunction = getComponentFunc(React, {});
+                componentMap[componentName] = ComponentFunction;
+
+                // We've resolved it, so we can remove the import statement from the final code.
+                path.remove();
+              }
+            }
+          }
+        },
+        // Now, find where the component is used, e.g., `<Card ... />`
+        Identifier(path: any) {
+          if (componentMap[path.node.name]) {
+            // Replace the identifier "Card" with a direct reference
+            // that we can pass into the execution scope.
+            path.node.name = `__localComponents__.${path.node.name}`;
+          }
+        }
+      }
+    };
+  };
+
   const result = Babel.transform(sourceForTranspile, {
     presets: ['react', 'typescript'],
+    plugins: [resolveLocalComponentsPlugin], // Use the plugin here
     filename: 'UserComponent.tsx',
   });
   const transpiledCode = result?.code;
   if (!transpiledCode) throw new Error('Babel transpilation failed.');
 
   const ReactShim = { ...(React as any), useState: (v: any) => [v, () => {}], useEffect: () => {} };
-  (globalThis as any).USER_COMPONENT = undefined;
-  new Function('React', transpiledCode)(ReactShim);
-  const UserComponentForPreview = (globalThis as any).USER_COMPONENT;
+
+  // The context object now includes our resolved library components
+  const executionScope = {
+    React: ReactShim,
+    __localComponents__: componentMap,
+  };
+
+  // We use `new Function` to execute the code in a controlled scope
+  const keys = Object.keys(executionScope);
+  const values = Object.values(executionScope);
+  const componentCreator = new Function(...keys, transpiledCode);
 
   (globalThis as any).USER_COMPONENT = undefined;
-  new Function('React', transpiledCode)(React);
+  componentCreator(...values); // This will attach USER_COMPONENT to globalThis
+
+  const UserComponentForPreview = (globalThis as any).USER_COMPONENT;
+
+  // Now execute with real React for the runtime version
+  const runtimeExecutionScope = {
+    React: React,
+    __localComponents__: componentMap,
+  };
+
+  const runtimeKeys = Object.keys(runtimeExecutionScope);
+  const runtimeValues = Object.values(runtimeExecutionScope);
+  const runtimeComponentCreator = new Function(...runtimeKeys, transpiledCode);
+
+  (globalThis as any).USER_COMPONENT = undefined;
+  runtimeComponentCreator(...runtimeValues); // This will attach USER_COMPONENT to globalThis
+
   const UserComponentForRuntime = (globalThis as any).USER_COMPONENT;
   if (typeof UserComponentForRuntime !== 'function' && typeof UserComponentForPreview !== 'function') {
     throw new Error('The code must have a default export that is a React component.');

@@ -1,9 +1,20 @@
+/**
+ * Iframe Canvas - Isolated Component Rendering
+ *
+ * Renders components in a sandboxed iframe environment with selection
+ * and interaction capabilities. Handles dependency injection, DOM events,
+ * and portal rendering for isolated component execution.
+ */
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useComponentStore } from '@/store/componentStore';
 import { renderFromAst } from '@/lib/componentParser';
 import type { SerializableElement } from '@/store/componentStore';
 
+/**
+ * Iframe-based canvas for isolated component rendering and interaction.
+ * Manages sandboxed environment, dependency loading, and selection handling.
+ */
 export const IframeCanvas: React.FC = () => {
   // Use active component selectors for proper data access
   const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);

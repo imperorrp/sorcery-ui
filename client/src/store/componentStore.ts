@@ -5,17 +5,26 @@ import { updateStylesInCode } from '@/lib/styleUpdater';
 import { defaultExample } from '@/examples/examples';
 
 /**
- * Component Store - Central State Management for Component Library Editing
+ * Component Store - Central State Management for Live Component Editor
  *
  * This Zustand store manages the application's state for interactive component editing.
- * It now supports managing multiple components in a library, with one being "active" at any time.
+ * It supports managing multiple components in a library, with one being "active" at any time.
  * Each component maintains multiple representations to enable different editing modes:
  *
  * Key State Properties:
- * - components: A map of component IDs to their data
+ * - components: A map of component IDs to their data (multi-component library)
  * - activeComponentId: The ID of the component currently being edited
  * - selectedNodeId: Currently selected element in the active component tree for editing
+ * - selectionMode: Either 'interact' or 'select' mode for the canvas
  * - isDirty: Flag indicating whether the active component has changes that haven't been applied back to the code
+ * - isCodeHighlighted: Flag to control persistent highlighting in the code editor after changes are applied
+ *
+ * Architecture:
+ * - Multi-component library with full CRUD operations
+ * - Dual AST system: runtime AST (interactive) + preview AST (safe for editing)
+ * - Surgical code updates that preserve component logic
+ * - History stack with unlimited undo/redo
+ * - Computed getters for backward compatibility
  */
 
 // Define the structure of our serializable element AST
@@ -47,33 +56,59 @@ interface HistorySnapshot {
 }
 
 // At the top of the file, above the ComponentState interface
+/**
+ * ComponentData - Complete state representation for a single component
+ *
+ * Each component in the library maintains its own complete state including:
+ * - Source code and AST representations
+ * - Configuration (props, dependencies, wrapper)
+ * - Edit history for undo/redo functionality
+ * - Metadata (name, ID)
+ */
 export interface ComponentData {
   id: string; // A unique identifier
-  name: string;
-  code: string;
-  componentAst: SerializableElement | null;
-  componentPreviewAst: SerializableElement | null;
-  jsxLocation: JsxLocation | null;
-  propsJson: string;
-  dependencies: string[];
-  wrapperCode: string;
-  history: HistorySnapshot[];
-  historyIndex: number;
+  name: string; // Display name for the component
+  code: string; // The user's source code string (source of truth for logic)
+  componentAst: SerializableElement | null; // Runtime AST created with real React (interactive)
+  componentPreviewAst: SerializableElement | null; // Preview AST created with shimmed React (safe for editing)
+  jsxLocation: JsxLocation | null; // Location of JSX block in source code for highlighting
+  propsJson: string; // JSON string of mock props for component rendering
+  dependencies: string[]; // Array of external CDN URLs to inject
+  wrapperCode: string; // Code for React context providers/wrappers
+  history: HistorySnapshot[]; // Array of AST snapshots for undo/redo
+  historyIndex: number; // Current position in history stack
 }
 
 // Find and REPLACE the ComponentState interface with this
+/**
+ * ComponentState - Global application state interface
+ *
+ * Contains the complete state of the Live Component Editor including:
+ * - Multi-component library management
+ * - Global UI state (selection, modes)
+ * - Active component tracking
+ */
 interface ComponentState {
   components: Record<string, ComponentData>; // A map of component IDs to their data
   activeComponentId: string | null; // The ID of the component currently being edited
 
   // Global state that remains outside:
-  selectedNodeId: string | null;
-  selectionMode: 'interact' | 'select';
+  selectedNodeId: string | null; // Currently selected element ID
+  selectionMode: 'interact' | 'select'; // Canvas interaction mode
   isDirty: boolean; // isDirty now refers to the active component
-  isCodeHighlighted: boolean;
+  isCodeHighlighted: boolean; // Controls persistent code highlighting
 }
 
 // Define the actions that can be performed on the state
+/**
+ * ComponentActions - Available actions for state management
+ *
+ * Comprehensive set of actions for:
+ * - Component library CRUD operations
+ * - Legacy actions for backward compatibility
+ * - UI state management
+ * - Code and AST manipulation
+ */
 interface ComponentActions {
   // Component Library Management
   addComponent: () => void;
@@ -130,6 +165,13 @@ interface ComponentActions {
 }
 
 // Computed state properties for backward compatibility
+/**
+ * ComputedState - Computed getters for backward compatibility
+ *
+ * These getters derive values from the active component to maintain
+ * compatibility with existing code that expects single-component state.
+ * They automatically track the currently active component.
+ */
 interface ComputedState {
   // Legacy getters that derive from the active component
   componentAst: SerializableElement | null;
