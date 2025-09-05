@@ -4,7 +4,20 @@ import type { SerializableElement } from '@/store/componentStore';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-// Helper: find a node by id in the serializable AST
+/**
+ * Style Editor - Visual Style Modification Panel
+ *
+ * Provides an interface for modifying CSS properties of selected DOM elements
+ * in the component canvas. Changes are applied to the preview AST and reflected
+ * in real-time in the iframe canvas.
+ */
+
+/**
+ * Recursively searches for a node by ID in the serializable AST tree
+ * @param node - The root node to start searching from
+ * @param id - The target node ID to find
+ * @returns The found node or null if not found
+ */
 const findNodeById = (node: SerializableElement, id: string): SerializableElement | null => {
   if (node.id === id) return node;
   if (node.props.children) {
@@ -18,12 +31,24 @@ const findNodeById = (node: SerializableElement, id: string): SerializableElemen
   return null;
 };
 
+/**
+ * StyleEditor Component - Main style editing interface
+ *
+ * Displays controls for modifying CSS properties of the currently selected element.
+ * Supports color pickers, text inputs, and numeric inputs for various style properties.
+ * Includes smart component boundary detection to prevent editing child components.
+ */
 export const StyleEditor: React.FC = () => {
   // Use active component selectors for proper data access
   const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
   const selectedNodeId = useComponentStore((s) => s.selectedNodeId);
   const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
   const updateNodeStyle = useComponentStore((s) => s.updateNodeStyle);
+
+  // Debug log to see when selectedNodeId changes
+  React.useEffect(() => {
+    console.log('🔍 Inspector: selectedNodeId changed to:', selectedNodeId);
+  }, [selectedNodeId]);
 
   // Use the preview AST for editing to avoid side effects
   const selectedNode = React.useMemo(() => {

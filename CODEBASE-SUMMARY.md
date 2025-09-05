@@ -15,7 +15,7 @@ The application operates on a sophisticated Three-AST system to ensure both a fl
   - `componentPreviewAst`: Created using a shimmed version of React, this is a complete, structurally-sound "map" of the component. It is used to render the read-only Navigator tree and acts as the blueprint for applying style changes.
   - `componentAst`: Created using the real React library, this is the "live" version of the component that can manage its own state and interactivity. It is rendered in the iframe's "Interaction Mode".
   - Both of these visual ASTs are stored in the central Zustand store.
-- **Smart Selection & Component Boundaries**: The system implements "Smart Selection" by pruning child components from the preview AST to enforce component boundaries. This prevents users from selecting and editing elements that belong to child components, maintaining clear separation between components and their dependencies.
+- **Smart Selection & Component Boundaries**: The system implements "Smart Selection" by pruning child components from the preview AST to enforce component boundaries. This prevents users from selecting and editing elements that belong to child components, maintaining clear separation between components and their dependencies. **NEW**: Advanced drill-down selection allows users to Shift+click on overlapping elements to see all layers and select specific elements from a visual menu.
 - **Visual Editing Loop**: When the user modifies a style in the Inspector, the updateNodeStyle action creates new, updated copies of both visual ASTs in the store. This change is instantly reflected in the sandboxed <iframe>.
 - **Reconciliation via a Temporary Source AST**: When "Apply Changes" is clicked, the application's core architectural principle is revealed:
   - The styleUpdater.ts utility takes the originalCode string and creates a temporary, highly-detailed Babel AST. This Source AST understands all component logic, including event handlers and hooks.
@@ -25,6 +25,13 @@ The application operates on a sophisticated Three-AST system to ensure both a fl
   - This new string replaces the originalCode in the store, completing the cycle non-destructively.
 
 This architecture treats the user's Source Code as the ultimate source of truth for logic, while using the Visual ASTs as the source of truth for UI state and interaction.
+
+**Recent Enhancements:**
+- Advanced drill-down selection system for overlapping elements (Shift+click)
+- Comprehensive debug logging for selection state tracking
+- Context isolation fixes for iframe-to-parent window store access
+- Enhanced visual feedback with live element highlighting
+- Improved documentation with JSDoc comments throughout the codebase
 
 ## Directory and File Breakdown
 
@@ -90,7 +97,7 @@ This directory contains the entire frontend React application, built with Vite. 
 ##### `Canvas/`
 
 - `ComponentCanvas.tsx`: Acts as a container for the rendered component. It renders `IframeCanvas` and is responsible for displaying the `SelectionHighlighter` overlay when an element is selected.
-- `IframeCanvas.tsx`: A key component that creates a sandboxed `<iframe>` for rendering. It uses `createPortal` to render the component AST into the iframe's document body. Includes dependency injection with stabilization to prevent infinite loops, enhanced selection handling for custom components, and AST sanitization for error handling.
+- `IframeCanvas.tsx`: A key component that creates a sandboxed `<iframe>` for rendering. It uses `createPortal` to render the component AST into the iframe's document body. Includes dependency injection with stabilization to prevent infinite loops, enhanced selection handling for custom components, and AST sanitization for error handling. **NEW**: Features an advanced drill-down selection system with Shift+click for overlapping elements, visual layer indicators, live element highlighting, and proper context bridging between iframe and parent window for store access.
 - `SelectionHighlighter.tsx`: An unused component, with the active implementation located inside `ComponentCanvas.tsx` for more accurate positioning.
 
 ##### `CodeEditor/`
@@ -100,13 +107,13 @@ This directory contains the entire frontend React application, built with Vite. 
 ##### `Inspector/`
 
 - `InspectorPanel.tsx`: The right-hand panel that contains tabs for editing. It includes the Undo/Redo buttons and the master "Apply Changes" button.
-- `StyleEditor.tsx`: Displays input fields (e.g., color pickers, text inputs) to modify the CSS properties of the selected element. Changes are propagated to the Zustand store via the `updateNodeStyle` action. Includes smart disclaimer logic that only shows for child components, not root components.
+- `StyleEditor.tsx`: Displays input fields (e.g., color pickers, text inputs) to modify the CSS properties of the selected element. Changes are propagated to the Zustand store via the `updateNodeStyle` action. Includes smart disclaimer logic that only shows for child components, not root components, and comprehensive JSDoc documentation.
 - `PropsEditor.tsx`: Provides a textarea for the user to input a JSON object, which is then used as props for the root component during rendering.
 - `SetupEditor.tsx`: Allows the user to add external CDN dependency URLs, which are injected as <script> tags into the sandboxed <iframe>. It also provides a code editor for defining a custom wrapper component (e.g., for theme or Redux providers).
 
 ##### `Navigator/`
 
-- `ComponentTree.tsx`: Displays a collapsible tree view of the component's structure based on the `componentPreviewAst`. It allows for selecting elements, which updates the `selectedNodeId` in the store.
+- `ComponentTree.tsx`: Displays a collapsible tree view of the component's structure based on the `componentPreviewAst`. It allows for selecting elements, which updates the `selectedNodeId` in the store. Includes comprehensive JSDoc documentation and debug logging for selection state changes.
 - `ComponentLibrary.tsx`: Simple component list interface for switching between components (alternative to LibraryPanel).
 
 ##### `Library/`

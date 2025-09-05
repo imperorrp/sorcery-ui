@@ -511,7 +511,11 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
       }));
     },
 
-    setSelectedNodeId: (nodeId) => set({ selectedNodeId: nodeId }),
+    setSelectedNodeId: (nodeId) => {
+      console.log('🏪 Store: setSelectedNodeId called with:', nodeId);
+      set({ selectedNodeId: nodeId });
+      console.log('🏪 Store: selectedNodeId set successfully');
+    },
 
     /**
      * Updates the style of a specific node in the active component's AST

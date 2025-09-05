@@ -1,9 +1,13 @@
 /**
- * Iframe Canvas - Isolated Component Rendering
+ * Iframe Canvas - Isolated Component Rendering with Advanced Selection
  *
- * Renders components in a sandboxed iframe environment with selection
- * and interaction capabilities. Handles dependency injection, DOM events,
- * and portal rendering for isolated component execution.
+ * Renders components in a sandboxed iframe environment with comprehensive selection
+ * and interaction capabilities. Features include:
+ * - Dependency injection with stabilization
+ * - Advanced drill-down selection for overlapping elements (Shift+click)
+ * - Live element highlighting during selection
+ * - DOM event handling and portal rendering
+ * - Context isolation management for proper store access
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -12,8 +16,14 @@ import { renderFromAst } from '@/lib/componentParser';
 import type { SerializableElement } from '@/store/componentStore';
 
 /**
- * Iframe-based canvas for isolated component rendering and interaction.
- * Manages sandboxed environment, dependency loading, and selection handling.
+ * IframeCanvas Component - Advanced sandboxed component renderer
+ *
+ * Creates a sandboxed iframe environment for isolated component execution with:
+ * - Multi-layer element selection via Shift+click drill-down menu
+ * - Real-time element highlighting and visual feedback
+ * - Proper context bridging between iframe and parent window
+ * - Dependency management and script injection
+ * - Selection mode switching (interact/select)
  */
 export const IframeCanvas: React.FC = () => {
   // Use active component selectors for proper data access
@@ -30,6 +40,21 @@ export const IframeCanvas: React.FC = () => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeBody, setIframeBody] = useState<HTMLBodyElement | null>(null);
   const [depTick, setDepTick] = useState(0);
+
+  // ▼▼▼ DRILL-DOWN SELECTION STATE ▼▼▼
+  // State for managing the drill-down menu when Shift+clicking overlapping elements
+  const [drillDownMenu, setDrillDownMenu] = useState<{ x: number; y: number; elements: { id: string; name: string }[] } | null>(null);
+  const [hoveredElementId, setHoveredElementId] = useState<string | null>(null);
+
+  // Create a callback that ensures store actions are called from parent context
+  const handleElementSelection = React.useCallback((elementId: string) => {
+    console.log('🎯 Canvas: handleElementSelection called with:', elementId);
+    console.log('🎯 Canvas: Calling setSelectedNodeId...');
+    setSelectedNodeId(elementId);
+    console.log('🎯 Canvas: setSelectedNodeId call completed');
+    setDrillDownMenu(null); // Close the menu
+  }, [setSelectedNodeId]);
+  // ▲▲▲ END DRILL-DOWN SELECTION STATE ▲▲▲
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -180,16 +205,60 @@ export const IframeCanvas: React.FC = () => {
     // Capture click for selection mode: select closest data-node-id and block app handlers
     const onClickCapture = (e: MouseEvent) => {
       if (selectionMode !== 'select') return;
-      const target = e.target as HTMLElement | null;
-      if (!target) return;
-      
-      const el = target.closest('[data-node-id]') as HTMLElement | null;
-      if (el) {
-        const id = el.getAttribute('data-node-id');
-        if (id) setSelectedNodeId(id);
-      }
+
       e.preventDefault();
       e.stopPropagation();
+      setDrillDownMenu(null); // Always close any existing menu on a new click
+      setHoveredElementId(null); // Clear any hovered element
+
+      // ▼▼▼ DRILL-DOWN SELECTION LOGIC ▼▼▼
+      // Check if the Shift key is pressed for drill-down selection
+      if (e.shiftKey) {
+        const doc = iframeBody.ownerDocument;
+        if (!doc) return;
+
+        // Use `elementsFromPoint` to get a list of all elements under the cursor
+        const elementsAtPoint = doc.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[];
+
+        console.log('🔍 Drill-down: elementsFromPoint found:', elementsAtPoint.length, 'elements');
+        console.log('🔍 Drill-down: Raw elements at point:', elementsAtPoint.map(el => el.tagName));
+
+        // Filter this list to get only our unique, selectable component elements
+        const selectableNodes = elementsAtPoint
+          .map(el => el.closest('[data-node-id]') as HTMLElement | null)
+          .filter((el, index, self) => el && self.indexOf(el) === index) // Get unique elements
+          .map(el => ({
+            id: el!.getAttribute('data-node-id')!,
+            // Get the tag name, or the component name for our wrapped components
+            name: el!.tagName.toLowerCase() === 'span' && el!.style.display === 'contents'
+              ? el!.firstElementChild?.tagName.toLowerCase() || 'Component'
+              : el!.tagName.toLowerCase(),
+          }));
+
+        console.log('🔍 Drill-down: Selectable nodes found:', selectableNodes);
+
+        if (selectableNodes.length > 1) {
+          // If there are multiple layers, open our custom drill-down menu
+          // Convert iframe coordinates to parent document coordinates
+          const iframeRect = iframeRef.current?.getBoundingClientRect();
+          const parentX = iframeRect ? e.pageX + iframeRect.left : e.pageX;
+          const parentY = iframeRect ? e.pageY + iframeRect.top : e.pageY;
+          
+          setDrillDownMenu({ x: parentX, y: parentY, elements: selectableNodes });
+        } else if (selectableNodes.length === 1) {
+          // If only one selectable element is found, select it directly
+          handleElementSelection(selectableNodes[0].id);
+        }
+      } else {
+        // This is the normal click logic (no Shift key)
+        const target = e.target as HTMLElement | null;
+        const el = target?.closest('[data-node-id]') as HTMLElement | null;
+        if (el) {
+          const id = el.getAttribute('data-node-id');
+          if (id) handleElementSelection(id);
+        }
+      }
+      // ▲▲▲ END DRILL-DOWN SELECTION LOGIC ▲▲▲
     };
     doc.addEventListener('click', onClickCapture, true);
     return () => {
@@ -197,64 +266,183 @@ export const IframeCanvas: React.FC = () => {
       doc.removeEventListener('click', onClickCapture, true);
       if (hoverEl) hoverEl.style.outline = '';
     };
-  }, [iframeBody, selectionMode, setSelectedNodeId]);
+  }, [iframeBody, selectionMode, handleElementSelection]);
+
+  // ▼▼▼ DRILL-DOWN ELEMENT HIGHLIGHTING ▼▼▼
+  // Highlight elements in iframe when hovering over menu items
+  useEffect(() => {
+    if (!iframeBody || !hoveredElementId) return;
+    
+    const doc = iframeBody.ownerDocument;
+    const element = doc.querySelector(`[data-node-id="${hoveredElementId}"]`) as HTMLElement;
+    
+    if (element) {
+      const originalOutline = element.style.outline;
+      element.style.outline = '2px solid #10b981'; // Green highlight for drill-down hover
+      
+      return () => {
+        element.style.outline = originalOutline;
+      };
+    }
+  }, [hoveredElementId, iframeBody]);
+  // ▲▲▲ END DRILL-DOWN ELEMENT HIGHLIGHTING ▲▲▲
 
   return (
-    <iframe
-      ref={iframeRef}
-      title="Component Canvas"
-      className="w-full h-full bg-white rounded"
-  sandbox="allow-scripts allow-same-origin"
-    >
-      {iframeBody && createPortal(
-        <div key={combinedKey} style={{ minHeight: '100%', padding: '1rem' }}>
-          {(() => {
-            if (!chosenAst) return null;
+    <div className="relative w-full h-full">
+      <iframe
+        ref={iframeRef}
+        title="Component Canvas"
+        className="w-full h-full bg-white rounded"
+        sandbox="allow-scripts allow-same-origin"
+      >
+        {iframeBody && createPortal(
+          <div key={combinedKey} style={{ minHeight: '100%', padding: '1rem' }}>
+            {(() => {
+              if (!chosenAst) return null;
 
-            // Special handling for selection mode: if the root is a function component,
-            // render its children directly to preserve data-node-id attributes
-            let renderTarget: SerializableElement | string | null = chosenAst;
-            if (selectionMode === 'select' && typeof (chosenAst as SerializableElement).type === 'function') {
-              const children = (chosenAst as SerializableElement).props?.children;
-              if (Array.isArray(children) && children.length === 1 && typeof children[0] !== 'string') {
-                renderTarget = children[0]; // Render the div directly instead of the function component
+              // Special handling for selection mode: if the root is a function component,
+              // render its children directly to preserve data-node-id attributes
+              let renderTarget: SerializableElement | string | null = chosenAst;
+              if (selectionMode === 'select' && typeof (chosenAst as SerializableElement).type === 'function') {
+                const children = (chosenAst as SerializableElement).props?.children;
+                if (Array.isArray(children) && children.length === 1 && typeof children[0] !== 'string') {
+                  renderTarget = children[0]; // Render the div directly instead of the function component
+                }
               }
-            }
 
-            // Deep-clone and ensure props/children exist to avoid runtime errors
-            const cloneAndSanitize = (
-              node: SerializableElement | string | null
-            ): SerializableElement | string | null => {
-              if (typeof node === 'string' || node === null) return node;
-              const cloned = { ...node } as SerializableElement;
-              cloned.props = { ...(cloned.props || {}) } as Record<string, unknown> & { children?: (SerializableElement | string)[] };
-              if (!Array.isArray(cloned.props.children)) cloned.props.children = cloned.props.children ? [cloned.props.children] : [];
-              cloned.props.children = cloned.props.children.map((c: SerializableElement | string) =>
-                typeof c === 'string' ? c : (cloneAndSanitize(c) as SerializableElement)
-              ) as (SerializableElement | string)[];
-              return cloned;
-            };
+              // Deep-clone and ensure props/children exist to avoid runtime errors
+              const cloneAndSanitize = (
+                node: SerializableElement | string | null
+              ): SerializableElement | string | null => {
+                if (typeof node === 'string' || node === null) return node;
+                const cloned = { ...node } as SerializableElement;
+                cloned.props = { ...(cloned.props || {}) } as Record<string, unknown> & { children?: (SerializableElement | string)[] };
+                if (!Array.isArray(cloned.props.children)) cloned.props.children = cloned.props.children ? [cloned.props.children] : [];
+                cloned.props.children = cloned.props.children.map((c: SerializableElement | string) =>
+                  typeof c === 'string' ? c : (cloneAndSanitize(c) as SerializableElement)
+                ) as (SerializableElement | string)[];
+                return cloned;
+              };
 
-            let safeAst: SerializableElement | string | null;
-            try {
-              safeAst = cloneAndSanitize(renderTarget as SerializableElement);
-            } catch (err) {
-              console.error('Failed to sanitize AST for rendering', err, renderTarget);
-              safeAst = renderTarget;
-            }
+              let safeAst: SerializableElement | string | null;
+              try {
+                safeAst = cloneAndSanitize(renderTarget as SerializableElement);
+              } catch (err) {
+                console.error('Failed to sanitize AST for rendering', err, renderTarget);
+                safeAst = renderTarget;
+              }
 
-            try {
-              return renderFromAst(safeAst, (nodeId) => {
-                setSelectedNodeId(nodeId);
-              }, selectionMode === 'select');
-            } catch (err) {
-              console.error('Error while rendering AST in iframe canvas', err, safeAst);
-              return null;
-            }
-          })()}
-        </div>,
-        iframeBody
+              try {
+                return renderFromAst(safeAst, (nodeId) => {
+                  setSelectedNodeId(nodeId);
+                }, selectionMode === 'select');
+              } catch (err) {
+                console.error('Error while rendering AST in iframe canvas', err, safeAst);
+                return null;
+              }
+            })()}
+          </div>,
+          iframeBody
+        )}
+      </iframe>
+
+      {/* ▼▼▼ DRILL-DOWN SELECTION MENU - Rendered in parent context ▼▼▼ */}
+      {drillDownMenu && (
+        <div
+          // This outer div is to close the menu when clicking away
+          onClick={() => {
+            setDrillDownMenu(null);
+            setHoveredElementId(null);
+          }}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998 }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              left: `${drillDownMenu.x}px`,
+              top: `${drillDownMenu.y}px`,
+              background: 'white',
+              border: '1px solid #ddd',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              borderRadius: '8px',
+              zIndex: 9999,
+              padding: '4px',
+              minWidth: '150px',
+            }}
+          >
+            <div style={{ fontWeight: 600, fontSize: '12px', padding: '4px 8px', color: '#666', borderBottom: '1px solid #eee' }}>
+              Select a Layer ({drillDownMenu.elements.length} found)
+            </div>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: '200px', overflowY: 'auto' }}>
+              {drillDownMenu.elements.map((el, index) => (
+                <li
+                  key={el.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log('🔍 Drill-down menu: Clicking element with ID:', el.id);
+                    handleElementSelection(el.id);
+                  }}
+                  onMouseEnter={(e) => {
+                    setHoveredElementId(el.id);
+                    e.currentTarget.style.backgroundColor = '#f0f0f0';
+                  }}
+                  onMouseLeave={(e) => {
+                    setHoveredElementId(null);
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                  style={{
+                    fontSize: '13px',
+                    padding: '8px 12px',
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                    borderLeft: index === 0 ? '3px solid #3b82f6' : '3px solid transparent',
+                    backgroundColor: 'transparent',
+                    transition: 'all 0.15s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    userSelect: 'none',
+                    pointerEvents: 'auto'
+                  }}
+                >
+                  <span style={{
+                    fontSize: '10px',
+                    color: '#666',
+                    backgroundColor: '#f3f4f6',
+                    padding: '2px 6px',
+                    borderRadius: '10px',
+                    minWidth: '20px',
+                    textAlign: 'center',
+                    pointerEvents: 'none'
+                  }}>
+                    {index + 1}
+                  </span>
+                  <span style={{
+                    fontWeight: index === 0 ? '600' : '400',
+                    color: index === 0 ? '#1f2937' : '#6b7280',
+                    pointerEvents: 'none'
+                  }}>
+                    &lt;{el.name}&gt;
+                  </span>
+                  {index === 0 && (
+                    <span style={{
+                      fontSize: '10px',
+                      color: '#3b82f6',
+                      backgroundColor: '#eff6ff',
+                      padding: '2px 6px',
+                      borderRadius: '8px',
+                      pointerEvents: 'none'
+                    }}>
+                      top
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       )}
-    </iframe>
+      {/* ▲▲▲ END DRILL-DOWN SELECTION MENU ▲▲▲ */}
+    </div>
   );
 };

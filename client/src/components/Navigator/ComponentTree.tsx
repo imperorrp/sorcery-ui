@@ -4,6 +4,21 @@ import type { SerializableElement } from '@/store/componentStore';
 import { ChevronRight, ChevronsRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+/**
+ * Component Tree Navigator - Visual Component Structure Explorer
+ *
+ * Displays a hierarchical tree view of the component's DOM structure based on the
+ * preview AST. Allows users to navigate and select elements for editing in the
+ * Inspector panel. Supports expanding/collapsing nodes and visual selection feedback.
+ */
+
+/**
+ * ComponentTree Component - Main tree navigation interface
+ *
+ * Renders the component structure as an interactive tree with expand/collapse
+ * functionality. Clicking on tree nodes updates the selected element in the store,
+ * which propagates to the Inspector and Canvas for editing.
+ */
 export const ComponentTree: React.FC = () => {
 	// Use active component selectors for proper data access
 	const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
@@ -47,6 +62,11 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, depth }) => {
 	const selectedNodeId = useComponentStore((s) => s.selectedNodeId);
 	const setSelectedNodeId = useComponentStore((s) => s.setSelectedNodeId);
 	const [expanded, setExpanded] = useState(true);
+
+	// Debug log to see when selectedNodeId changes
+	React.useEffect(() => {
+		console.log('🌳 Navigator: selectedNodeId changed to:', selectedNodeId);
+	}, [selectedNodeId]);
 
 	if (typeof node === 'string') {
 		const text = node.trim();

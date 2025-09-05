@@ -12,6 +12,7 @@ This project is a high-fidelity implementation of a tool that allows developers 
 ## Core Features
 
 *   **Live Component Rendering:** Paste raw JSX/TSX code and see it render instantly in a sandboxed `iframe`.
+*   **Smart Selection:** Click to select elements, or hold `Shift` + click for overlapping elements to choose from an enhanced context menu with visual layer indicators and live element highlighting.
 *   **Visual WYSIWYG Editing:** Click on any element to select it and modify its styles (typography, layout, color) through a user-friendly inspector panel.
 *   **Multi-Component Support:** Manage and render components that call other components within a shared workspace.
 *   **Real-World Environment Simulation:** Configure props, context providers (like Theme or Redux), and inject 3rd-party libraries (e.g., Framer Motion) to replicate a production environment.

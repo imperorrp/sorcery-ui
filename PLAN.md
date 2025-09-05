@@ -29,8 +29,8 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 ### 2.1. The Editing Canvas & Sandbox
 *   **`<iframe>` Sandbox:** All user components will be rendered inside an `iframe` to ensure complete style and script isolation.
 *   **Selection & Highlighting:** Elements will be selectable via a single click. A blue outline will indicate the selected element, and a lighter outline will appear on hover.
-*   **Overlapping Element Selection:** Holding `Alt/Option` + Click will trigger `document.elementsFromPoint`, presenting a context menu to select elements obscured by others with a higher `z-index`.
-*   **Measurement Guides:** Holding `Alt/Option` while an element is selected will show pixel-distance guides to other hovered elements.
+*   **Overlapping Element Selection:** Holding `Shift` + Click will trigger `document.elementsFromPoint`, presenting a context menu to select elements obscured by others with a higher `z-index`.
+*   **Measurement Guides:** Holding `Shift` while an element is selected will show pixel-distance guides to other hovered elements.
 
 ### 2.2. Component Ingestion & Management
 *   **Monaco Code Editor:** User code will be managed in an instance of Monaco Editor, providing syntax highlighting, validation, and an IDE-like feel.
@@ -79,7 +79,7 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 - [x] **Feature:** Implement the "Component Library" UI, allowing users to add and switch between multiple components.
 - [ ] **Architecture:** Enhance the `render` function to handle placeholder mocking for unknown child components.
 - [x] **UI/UX:** Build the collapsible Component Tree navigator.
-- [ ] **UI/UX:** Implement the "Drill-Down" click for overlapping elements.
+- [x] **UI/UX:** Implement the "Drill-Down" click for overlapping elements (enhanced with visual layer indicators and live element highlighting).
 
 ### Phase 4: AI & Advanced Features (1-2 Days)
 - [ ] **AI:** Create a backend service to analyze component code with an LLM and return a mock props JSON schema.
@@ -131,6 +131,7 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 - ✅ Children Handling Fix: Robust `React.Children.toArray()` implementation for all React children types
 - ✅ Dependency Stabilization: Prevented infinite loops in IframeCanvas with stable dependency keys
 - ✅ Multi-Component Examples: Added Card Dashboard example set demonstrating parent-child relationships
+- ✅ Drill-Down Selection: Implemented Shift+click for selecting overlapping elements with custom menu
 
 ### 5.1. Component API Schema
 ```typescript
