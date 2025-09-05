@@ -25,15 +25,24 @@ import type { SerializableElement, JsxLocation, ElementLocationMap, ComponentDat
  * - The component tree can be analyzed for navigation and selection (preview AST)
  * - Surgical code updates preserve all component logic and event handlers
  *
+ * MISSING COMPONENT DETECTION (v1.2):
+ * - Automatically detects JSX component usages that aren't imported or available in library
+ * - Creates mock placeholder components with red dashed borders for missing components
+ * - Handles both imported missing components and JSX-used missing components
+ * - Uses direct global scope injection for reliable component resolution during execution
+ *
  * PROCESS FLOW:
  * 1. User pastes JSX/TSX code into Monaco Editor
- * 2. Code is transpiled and executed twice with different React contexts
- * 3. Both ASTs are generated and stored in the component store
- * 4. Runtime AST renders in iframe, Preview AST drives the navigator and style editing
- * 5. Style changes are applied surgically back to source code using Babel AST traversal
+ * 2. Code is transpiled and executed twice with different React contexts:
+ *    - Once with shimmed React to create a preview AST (safe for style editing)
+ *    - Once with real React to create a runtime AST (interactive and stateful)
+ * 3. Missing components are detected and mock placeholders are created
+ * 4. Both ASTs are generated and stored in the component store
+ * 5. Runtime AST renders in iframe, Preview AST drives the navigator and style editing
+ * 6. Style changes are applied surgically back to source code using Babel AST traversal
  *
- * Both ASTs are generated from the same source code but with different React contexts to achieve
- * this separation of concerns while maintaining perfect synchronization.
+ * This architecture treats the user's Source Code as the ultimate source of truth for logic,
+ * while using the Visual ASTs as the source of truth for UI state and interaction.
  */
 
 /**
@@ -213,8 +222,19 @@ export async function renderCodeToAst(
   const componentMap: Record<string, any> = {};
 
   const resolveLocalComponentsPlugin = () => {
+    const detectedJsxComponents = new Set<string>();
+
     return {
       visitor: {
+        // Detect all JSX component usages for missing component analysis
+        JSXOpeningElement(path: any) {
+          const name = path.node.name;
+          if (name.type === 'JSXIdentifier' && name.name[0] === name.name[0].toUpperCase()) {
+            // It's a component (starts with capital letter)
+            detectedJsxComponents.add(name.name);
+          }
+        },
+
         // Find `import { Card } from './Card'` or `import Card from './Card'`
         ImportDeclaration(path: any) {
           const source = path.node.source.value;
@@ -238,15 +258,91 @@ export async function renderCodeToAst(
                 // We've resolved it, so we can remove the import statement from the final code.
                 path.remove();
               }
+            } else {
+              // ▼▼▼ MISSING COMPONENT DETECTION: Create mock for imported but missing components ▼▼▼
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const MockComponent = (_props: any) => {
+                return React.createElement(
+                  'div',
+                  {
+                    style: {
+                      border: '2px dashed #ff4757',
+                      padding: '1rem',
+                      backgroundColor: 'rgba(255, 71, 87, 0.05)',
+                      color: '#ff4757',
+                      fontFamily: 'monospace',
+                    },
+                  },
+                  `Missing Component: <${componentName} />`
+                );
+              };
+              componentMap[componentName] = MockComponent;
+              // We still remove the import declaration.
+              path.remove();
+              // ▲▲▲ END OF MISSING COMPONENT DETECTION ▲▲▲
             }
           }
         },
-        // Now, find where the component is used, e.g., `<Card ... />`
+
+        // After processing everything, ensure all detected JSX components have mocks
+        Program: {
+          exit(path: any) {
+            // ▼▼▼ MISSING COMPONENT DETECTION: Create mocks for JSX-used missing components ▼▼▼
+            // This handles components that are used in JSX but never imported
+            detectedJsxComponents.forEach(componentName => {
+              if (!componentMap[componentName]) {
+                // Check if it's in the library (not just imported)
+                const componentData = Object.values(allComponents).find(c => c.name === componentName);
+                if (!componentData) {
+                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                  const MockComponent = (_props: any) => {
+                    return React.createElement(
+                      'div',
+                      {
+                        style: {
+                          border: '2px dashed #ff4757',
+                          padding: '1rem',
+                          backgroundColor: 'rgba(255, 71, 87, 0.05)',
+                          color: '#ff4757',
+                          fontFamily: 'monospace',
+                        },
+                      },
+                      `Missing Component: <${componentName} />`
+                    );
+                  };
+                  componentMap[componentName] = MockComponent;
+                }
+              }
+            });
+
+            // DIRECT GLOBAL REFERENCE FIX (v1.2):
+            // Replace JSX identifiers with direct global references to avoid Babel transform ordering issues
+            // The JSX preset runs after plugins, so we ensure identifiers remain unchanged for global resolution
+            path.traverse({
+              JSXOpeningElement(jsxPath: any) {
+                const name = jsxPath.node.name;
+                if (name.type === 'JSXIdentifier' && componentMap[name.name]) {
+                  // Keep the original identifier name - it will resolve to the global component
+                  // that was injected into globalThis before execution
+                }
+              },
+              JSXClosingElement(jsxPath: any) {
+                const name = jsxPath.node.name;
+                if (name.type === 'JSXIdentifier' && componentMap[name.name]) {
+                  // Keep the original identifier name for global resolution
+                }
+              }
+            });
+            // ▲▲▲ END OF DIRECT GLOBAL REFERENCE FIX ▲▲▲
+          }
+        },
+
+        // Identifier visitor - simplified for direct global resolution
         Identifier(path: any) {
+          // Don't modify identifiers that are in componentMap
+          // They will resolve to global components injected before execution
           if (componentMap[path.node.name]) {
-            // Replace the identifier "Card" with a direct reference
-            // that we can pass into the execution scope.
-            path.node.name = `__localComponents__.${path.node.name}`;
+            // Keep original identifier name for global scope resolution
           }
         }
       }
@@ -269,6 +365,18 @@ export async function renderCodeToAst(
     __localComponents__: componentMap,
   };
 
+  // ▼▼▼ GLOBAL SCOPE INJECTION FOR MISSING COMPONENTS (v1.2) ▼▼▼
+  // Inject all components (including mocks) into global scope for reliable JSX resolution
+  // This ensures that when Babel's JSX transform creates React.createElement(ComponentName, ...),
+  // the ComponentName will be available in the global scope during execution
+  Object.keys(componentMap).forEach(componentName => {
+    (globalThis as any)[componentName] = componentMap[componentName];
+  });
+
+  // Also inject React into global scope for JSX compilation
+  (globalThis as any).React = ReactShim;
+  // ▲▲▲ END OF GLOBAL SCOPE INJECTION ▲▲▲
+
   // We use `new Function` to execute the code in a controlled scope
   const keys = Object.keys(executionScope);
   const values = Object.values(executionScope);
@@ -284,6 +392,16 @@ export async function renderCodeToAst(
     React: React,
     __localComponents__: componentMap,
   };
+
+  // ▼▼▼ RUNTIME GLOBAL SCOPE INJECTION ▼▼▼
+  // Ensure all components are available in global scope for runtime execution
+  Object.keys(componentMap).forEach(componentName => {
+    (globalThis as any)[componentName] = componentMap[componentName];
+  });
+
+  // Inject real React for runtime JSX compilation
+  (globalThis as any).React = React;
+  // ▲▲▲ END OF RUNTIME GLOBAL SCOPE INJECTION ▲▲▲
 
   const runtimeKeys = Object.keys(runtimeExecutionScope);
   const runtimeValues = Object.values(runtimeExecutionScope);

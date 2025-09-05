@@ -77,7 +77,7 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 
 ### Phase 3: Multi-Component Workflow & Polish (2 Days)
 - [x] **Feature:** Implement the "Component Library" UI, allowing users to add and switch between multiple components.
-- [ ] **Architecture:** Enhance the `render` function to handle placeholder mocking for unknown child components.
+- [x] **Architecture:** Enhance the `render` function to handle placeholder mocking for unknown child components.
 - [x] **UI/UX:** Build the collapsible Component Tree navigator.
 - [x] **UI/UX:** Implement the "Drill-Down" click for overlapping elements (enhanced with visual layer indicators and live element highlighting).
 
@@ -132,6 +132,9 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 - ✅ Dependency Stabilization: Prevented infinite loops in IframeCanvas with stable dependency keys
 - ✅ Multi-Component Examples: Added Card Dashboard example set demonstrating parent-child relationships
 - ✅ Drill-Down Selection: Implemented Shift+click for selecting overlapping elements with custom menu
+- ✅ **Missing Component Detection (v1.2):** Automatic mock generation for missing components
+- ✅ **Global Scope Injection:** Reliable component resolution using direct global references
+- ✅ **Enhanced Example System:** Categorized examples with missing component demo
 
 ### 5.1. Component API Schema
 ```typescript

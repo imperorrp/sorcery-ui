@@ -3,6 +3,19 @@
  *
  * Monaco Editor wrapper with TypeScript/JSX support, syntax highlighting,
  * example loading, and code range highlighting for component inspection.
+ *
+ * FEATURES:
+ * - TypeScript and JSX syntax highlighting and validation
+ * - Controlled editor state with external code management
+ * - Example loading system with categorized dropdown (Single/Multi Component)
+ * - Code range highlighting for JSX element inspection
+ * - Integration with component store for multi-component example loading
+ *
+ * EXAMPLE SYSTEM (v1.2):
+ * - Single Component Examples: Basic templates for individual development
+ * - Multi Component Examples: Complex setups with parent-child relationships
+ * - Missing Component Demo: Showcases automatic mock generation system
+ * - Categorized dropdown with clear visual separation
  */
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import Editor, { type OnMount } from '@monaco-editor/react';
@@ -105,7 +118,10 @@ export const MonacoEditor = forwardRef<MonacoEditorRef, MonacoEditorProps>(
           <DropdownMenuContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
             <DropdownMenuLabel>Load an Example</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {/* Regular examples */}
+            
+            <DropdownMenuLabel className="text-xs font-medium text-muted-foreground px-2 py-1">
+              Single Component
+            </DropdownMenuLabel>
             {Object.keys(examples).map((key) => {
               const example = examples[key];
               return (
@@ -121,8 +137,9 @@ export const MonacoEditor = forwardRef<MonacoEditorRef, MonacoEditorProps>(
             })}
 
             <DropdownMenuSeparator />
-            <DropdownMenuLabel>Load a Set</DropdownMenuLabel>
-            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-xs font-medium text-muted-foreground px-2 py-1">
+              Multi Component
+            </DropdownMenuLabel>
             {multiComponentExamples && Object.keys(multiComponentExamples).map((key) => (
               <DropdownMenuItem key={key} onSelect={() => handleSelectExampleSet(key)} className="font-medium">
                 <div className="flex items-center justify-between w-full">

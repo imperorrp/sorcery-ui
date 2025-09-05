@@ -32,6 +32,9 @@ This architecture treats the user's Source Code as the ultimate source of truth 
 - Context isolation fixes for iframe-to-parent window store access
 - Enhanced visual feedback with live element highlighting
 - Improved documentation with JSDoc comments throughout the codebase
+- Missing component detection system with automatic mock generation
+- Global scope injection for reliable component resolution
+- Enhanced example system with categorized examples and missing component demo
 
 ## Directory and File Breakdown
 
@@ -73,7 +76,7 @@ This directory contains the entire frontend React application, built with Vite. 
 
 #### `lib/`
 
-- `renderer.ts`: Contains the crucial `renderCodeToAst` function. This orchestrates the initial code processing pipeline by transpiling the user's code and calling the parser to generate the two distinct visual ASTs (`componentAst` and `componentPreviewAst`). Implements Smart Selection by pruning child components from the preview AST to enforce component boundaries, and handles local component imports with dynamic resolution.
+- `renderer.ts`: Contains the crucial `renderCodeToAst` function. This orchestrates the initial code processing pipeline by transpiling the user's code and calling the parser to generate the two distinct visual ASTs (`componentAst` and `componentPreviewAst`). Implements Smart Selection by pruning child components from the preview AST to enforce component boundaries, and handles local component imports with dynamic resolution. Includes automatic mock generation for missing components used in JSX but not imported or available in the library, using global scope injection for reliable component resolution during execution.
 - `componentParser.ts`: Handles the serialization from React Elements into our custom `SerializableElement` AST format (`serializeComponent`), and the deserialization from our AST back into renderable React Elements (`renderFromAst`). Includes robust handling of all React children types using `React.Children.toArray()` and wraps custom components in selectable spans with `display: 'contents'` for proper selection behavior.
 - `styleUpdater.ts`: (Critical Architectural File) Implements the "Apply Changes" logic. It takes the user's original source code and the `componentPreviewAst`, parses the code into a temporary Babel AST, and surgically modifies only the style attributes of the corresponding nodes. This non-destructive approach is the key to preserving all component logic like onClick handlers and state.
 - `codeUpdater.ts`: Alternative implementation of style updating using surgical string replacement approach (currently unused).
@@ -102,7 +105,7 @@ This directory contains the entire frontend React application, built with Vite. 
 
 ##### `CodeEditor/`
 
-- `MonacoEditor.tsx`: Integrates the Monaco Editor, providing a rich code editing experience with TSX/JSX support. It exposes a ref to get the current code. Now includes support for multi-component examples with dropdown selection and fully controlled editor state.
+- `MonacoEditor.tsx`: Integrates the Monaco Editor, providing a rich code editing experience with TSX/JSX support. It exposes a ref to get the current code. Includes support for multi-component examples with dropdown selection and fully controlled editor state, featuring a categorized example system separating Single Component and Multi Component examples.
 
 ##### `Inspector/`
 
@@ -147,7 +150,7 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 
 #### `examples/`
 
-- `examples.ts`: Contains predefined example components and multi-component examples that users can load to try the editor. Includes the Card Dashboard example set demonstrating parent-child component relationships.
+- `examples.ts`: Contains predefined example components and multi-component examples that users can load to try the editor. Includes the Card Dashboard example set demonstrating parent-child component relationships, and the Missing Component Demo showcasing automatic mock generation for missing components used in JSX.
 
 #### `test/`
 

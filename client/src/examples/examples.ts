@@ -4,6 +4,17 @@
  * Collection of example React components for demonstration and testing.
  * Includes single components, interactive examples, and multi-component setups.
  * Used by the editor for quick component loading and user education.
+ *
+ * EXAMPLE CATEGORIES:
+ * - Single Component Examples: Basic templates for individual component development
+ * - Multi-Component Examples: Complex setups demonstrating parent-child relationships
+ * - Missing Component Demo: Showcases automatic mock generation for missing components
+ *
+ * MISSING COMPONENT DEMO (v1.2):
+ * - Demonstrates the missing component detection system
+ * - Shows both imported missing components (FancyButton) and JSX-used missing components (UserAvatar, ProductCard)
+ * - All missing components display as red dashed placeholders
+ * - Tests the global scope injection and JSX resolution system
  */
 
 export interface Example {
@@ -317,4 +328,83 @@ export const examples: Record<string, Example> = {
 // Multi-component examples collection (separate from regular examples)
 export const multiComponentExamples: Record<string, typeof cardDashboardExample> = {
   'Card Dashboard': cardDashboardExample,
+  'Missing Component Demo': {
+    activeId: 'missing-demo-id',
+    components: [
+      {
+        id: 'missing-demo-id',
+        name: 'MissingComponentDemo',
+        code: `
+// MISSING COMPONENT DEMO - Showcases Automatic Mock Generation
+//
+// This component demonstrates the missing component detection system that:
+// 1. Detects components used in JSX but not imported (UserAvatar, ProductCard)
+// 2. Detects components imported but not found in library (FancyButton)
+// 3. Automatically creates red dashed placeholder mocks for all missing components
+// 4. Uses global scope injection for reliable component resolution
+//
+// Expected Behavior:
+// - FancyButton: Shows "Missing Component: <FancyButton />" (imported but missing)
+// - UserAvatar: Shows "Missing Component: <UserAvatar />" (JSX-used but not imported)
+// - ProductCard: Shows "Missing Component: <ProductCard />" (JSX-used but not imported)
+//
+// All placeholders have red dashed borders and descriptive text.
+
+import FancyButton from './FancyButton';
+
+export default function MissingComponentDemo() {
+  return (
+    <div style={{
+      padding: '2rem',
+      backgroundColor: '#f8f9fa',
+      borderRadius: '8px',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    }}>
+      <h2 style={{ marginTop: 0, color: '#1f2937' }}>
+        Missing Component Detection Demo
+      </h2>
+      <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
+        This demo showcases automatic mock generation for missing components:
+      </p>
+      <ul style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
+        <li><strong>Imported but missing:</strong> FancyButton is imported but doesn't exist</li>
+        <li><strong>JSX-used but not imported:</strong> UserAvatar and ProductCard are used in JSX but never imported</li>
+      </ul>
+
+      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <FancyButton label="Imported Missing" />
+        <UserAvatar name="John Doe" />
+        <ProductCard title="Used But Not Imported" />
+      </div>
+
+      <p style={{
+        marginTop: '1.5rem',
+        fontSize: '14px',
+        color: '#6b7280',
+        fontStyle: 'italic'
+      }}>
+        All three components will show red dashed placeholders because they're not in the library.
+      </p>
+    </div>
+  );
+}`,
+        componentAst: null,
+        componentPreviewAst: null,
+        jsxLocation: null,
+        propsJson: '{}',
+        dependencies: [],
+        wrapperCode: `function Wrapper({ children }) {
+  return (
+    <div>
+      {children}
+    </div>
+  );
+}
+
+export default Wrapper;`,
+        history: [{ ast: null, preview: null }],
+        historyIndex: 0,
+      },
+    ] as ComponentData[]
+  },
 };
