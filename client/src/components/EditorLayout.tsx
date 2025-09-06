@@ -227,7 +227,7 @@ export const EditorLayout: React.FC = () => {
             >
               <div className="h-full flex flex-col">
                 <PanelHeader title="Code Editor">
-                  <Button onClick={handleRender} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs">
+                  <Button onClick={handleRender} size="sm">
                     Render
                   </Button>
                 </PanelHeader>
@@ -259,12 +259,8 @@ export const EditorLayout: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Button
                   onClick={() => setSelectionMode(selectionMode === 'interact' ? 'select' : 'interact')}
-                  aria-pressed={selectionMode === 'select'}
-                  className={
-                    selectionMode === 'select'
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : `${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-gray-100 border border-gray-600' : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-300'}`
-                  }
+                  variant={selectionMode === 'select' ? 'default' : 'outline'}
+                  size="sm"
                   title={
                     selectionMode === 'select'
                       ? 'Selection mode: Click to select elements. Click to toggle off.'
@@ -277,7 +273,6 @@ export const EditorLayout: React.FC = () => {
                   onClick={handleFullscreenToggle}
                   variant="outline"
                   size="sm"
-                  className={`${theme === 'dark' ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100'}`}
                   title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
                 >
                   <Maximize2 className="h-4 w-4" />
@@ -318,7 +313,6 @@ export const EditorLayout: React.FC = () => {
                               disabled={!canUndo}
                               size="sm"
                               variant="outline"
-                              className={`h-8 px-2 ${theme === 'dark' ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'}`}
                               title="Undo last change"
                             >
                               <Undo2 className="h-4 w-4" />
@@ -328,7 +322,6 @@ export const EditorLayout: React.FC = () => {
                               disabled={!canRedo}
                               size="sm"
                               variant="outline"
-                              className={`h-8 px-2 ${theme === 'dark' ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'}`}
                               title="Redo last change"
                             >
                               <Redo2 className="h-4 w-4" />
@@ -340,7 +333,6 @@ export const EditorLayout: React.FC = () => {
                               }}
                               disabled={!isDirty}
                               size="sm"
-                              className={`h-8 px-3 ${isDirty ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
                               title={isDirty ? 'Apply inspector changes into the code editor' : 'No changes to apply'}
                             >
                               <Check className="h-4 w-4 mr-1" />

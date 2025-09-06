@@ -21,27 +21,28 @@ export const ComponentLibrary: React.FC = () => {
   const { components, activeComponentId, addComponent, setActiveComponent } = useComponentStore();
 
   return (
-    <div className="p-2 border-b border-gray-300 dark:border-gray-700">
+    <div className="p-2 border-b border bg-card">
       <div className="flex justify-between items-center mb-2">
-        <h3 className="text-sm font-semibold">Components</h3>
+        <h3 className="text-sm font-semibold text-foreground">Components</h3>
         <Button variant="ghost" size="sm" onClick={addComponent}>
           <PlusCircle className="h-4 w-4" />
         </Button>
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1 bg-card">
         {Object.values(components).map((component) => (
-          <button
-            key={component.id}
-            onClick={() => setActiveComponent(component.id)}
-            className={cn(
-              'w-full text-left text-sm px-2 py-1 rounded-md truncate',
-              activeComponentId === component.id
-                ? 'bg-blue-600/20 text-blue-800 dark:text-blue-300'
-                : 'hover:bg-gray-200 dark:hover:bg-gray-800'
-            )}
-          >
-            {component.name}
-          </button>
+        <Button
+          key={component.id}
+          variant="ghost"
+          onClick={() => setActiveComponent(component.id)}
+          className={cn(
+            'w-full text-left px-2 py-1 rounded-md truncate justify-start text-foreground',
+            activeComponentId === component.id
+              ? 'bg-accent text-accent-foreground'
+              : 'hover:bg-accent hover:text-accent-foreground'
+          )}
+        >
+          {component.name}
+        </Button>
         ))}
       </div>
     </div>

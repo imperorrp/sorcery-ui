@@ -19,12 +19,12 @@ export const Navbar: React.FC = () => {
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   return (
-    <nav className={`px-6 py-3 border-b ${theme === 'dark' ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}>
+    <nav className="px-6 py-3 border-b bg-card border-border">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2">
-            <Code className={`h-6 w-6 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
-            <h1 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            <Code className="h-6 w-6 text-primary" />
+            <h1 className="text-xl font-bold text-foreground">
               Live Component Editor
             </h1>
           </div>
@@ -33,7 +33,7 @@ export const Navbar: React.FC = () => {
         <div className="flex items-center space-x-3">
           <Sheet open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
             <SheetTrigger asChild>
-              <Button variant="outline" size="sm" className={`flex items-center space-x-2 ${theme === 'dark' ? 'bg-gray-800 border-gray-600 hover:bg-gray-700' : 'bg-white border-gray-300 hover:bg-gray-50'}`}>
+              <Button variant="outline" size="sm" className="flex items-center space-x-2">
                 <Library className="h-4 w-4" />
                 <span>Library</span>
               </Button>
@@ -48,13 +48,13 @@ export const Navbar: React.FC = () => {
             </SheetContent>
           </Sheet>
 
-          <div className={`h-6 w-px ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'}`} />
+          <div className="h-6 w-px bg-border" />
 
           <Button
             onClick={toggleTheme}
             variant="outline"
             size="icon"
-            className={`h-9 w-9 ${theme === 'dark' ? 'bg-gray-800 border-gray-600 hover:bg-gray-700' : 'bg-white border-gray-300 hover:bg-gray-50'}`}
+            className="h-9 w-9"
             title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
           >
             {theme === 'light' ? (

@@ -3,6 +3,7 @@ import { useComponentStore } from '@/store/componentStore';
 import type { SerializableElement } from '@/store/componentStore';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 /**
  * Style Editor - Visual Style Modification Panel
@@ -64,7 +65,7 @@ export const StyleEditor: React.FC = () => {
   };
 
   if (!selectedNode) {
-    return <p className="text-sm text-gray-500 text-center py-4">Select an element to inspect its styles.</p>;
+    return <p className="text-sm text-muted-foreground text-center py-4">Select an element to inspect its styles.</p>;
   }
 
   // ▼▼▼ DISCLAIMER LOGIC FIX (v1.1) ▼▼▼
@@ -83,13 +84,13 @@ export const StyleEditor: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-gray-400">Selected: &lt;{typeof selectedNode.type === 'string' ? selectedNode.type : 'Component'}&gt;</p>
+      <p className="text-sm text-muted-foreground">Selected: &lt;{typeof selectedNode.type === 'string' ? selectedNode.type : 'Component'}&gt;</p>
 
       {/* Smart Selection Disclaimer for Library Components */}
       {isChildComponent && (
-        <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 text-xs rounded-md border border-yellow-200 dark:border-yellow-700">
+        <div className="p-3 bg-accent text-accent-foreground text-xs rounded-md border border-border">
           <div className="flex items-start gap-2">
-            <span className="text-yellow-600 dark:text-yellow-400">💡</span>
+            <span className="text-accent-foreground">💡</span>
             <div>
               <p className="font-medium mb-1">Component Boundary</p>
               <p>This is a child component. To edit its internal styles, please select it from the Component Library.</p>
@@ -100,83 +101,86 @@ export const StyleEditor: React.FC = () => {
 
       {/* Only show style controls for DOM elements, not library components */}
       {!isChildComponent && (
-        <>
-          {/* Color and Background Color in a compact grid */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="color" className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                Text Color
-              </Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="color"
-                  type="color"
-                  value={currentColor}
-                  onChange={(e) => handleStyleChange('color', e.target.value)}
-                  className="w-12 h-8 p-1 border rounded cursor-pointer"
-                />
-                <Input
-                  type="text"
-                  value={currentColor}
-                  onChange={(e) => handleStyleChange('color', e.target.value)}
-                  className="flex-1 text-xs font-mono"
-                  placeholder="#000000"
-                />
-              </div>
-            </div>
+        <Accordion type="multiple" defaultValue={['colors', 'typography']}>
+          <AccordionItem value="colors">
+            <AccordionTrigger>Colors</AccordionTrigger>
+            <AccordionContent>
+              {/* Color and Background Color in a compact grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="color" className="text-xs font-medium mb-2 block">
+                    Text Color
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="color"
+                      type="color"
+                      value={currentColor}
+                      onChange={(e) => handleStyleChange('color', e.target.value)}
+                      className="w-12 h-8 p-1 border rounded cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={currentColor}
+                      onChange={(e) => handleStyleChange('color', e.target.value)}
+                      className="flex-1 text-xs font-mono"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
 
-            <div>
-              <Label htmlFor="backgroundColor" className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                Background
-              </Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="backgroundColor"
-                  type="color"
-                  value={currentBgColor}
-                  onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
-                  className="w-12 h-8 p-1 border rounded cursor-pointer"
-                />
-                <Input
-                  type="text"
-                  value={currentBgColor}
-                  onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
-                  className="flex-1 text-xs font-mono"
-                  placeholder="#ffffff"
-                />
+                <div>
+                  <Label htmlFor="backgroundColor" className="text-xs font-medium mb-2 block">
+                    Background
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="backgroundColor"
+                      type="color"
+                      value={currentBgColor}
+                      onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
+                      className="w-12 h-8 p-1 border rounded cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={currentBgColor}
+                      onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
+                      className="flex-1 text-xs font-mono"
+                      placeholder="#ffffff"
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </AccordionContent>
+          </AccordionItem>
 
-          {/* Font Size with a more compact layout */}
-          <div>
-            <Label htmlFor="fontSize" className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-              Font Size
-            </Label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="fontSize"
-                type="number"
-                value={currentFontSize}
-                onChange={(e) => handleStyleChange('fontSize', `${e.target.value}px`)}
-                className="w-20 text-sm"
-                min="8"
-                max="72"
-              />
-              <span className="text-xs text-gray-500">px</span>
-              <div className="flex-1 text-xs text-gray-400">
-                Current: {currentFontSize}px
+          <AccordionItem value="typography">
+            <AccordionTrigger>Typography</AccordionTrigger>
+            <AccordionContent>
+              {/* Font Size with a more compact layout */}
+              <div>
+                <Label htmlFor="fontSize" className="text-xs font-medium mb-2 block">
+                  Font Size
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="fontSize"
+                    type="number"
+                    value={currentFontSize}
+                    onChange={(e) => handleStyleChange('fontSize', `${e.target.value}px`)}
+                    className="w-20 text-sm"
+                    min="8"
+                    max="72"
+                  />
+                  <span className="text-xs text-muted-foreground">px</span>
+                  <div className="flex-1 text-xs text-muted-foreground">
+                    Current: {currentFontSize}px
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Additional styling controls can be added here */}
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-            <p className="text-xs text-gray-500 mb-3">
-              💡 Tip: Select elements in the canvas to style them individually, or use the component props for dynamic styling.
-            </p>
-          </div>
-        </>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       )}
     </div>
   );

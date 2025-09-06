@@ -188,7 +188,7 @@ export const IframeCanvas: React.FC = () => {
     if (!doc) return;
 
     let hoverEl: HTMLElement | null = null;
-    const hoverStyle = 'outline: 2px dashed #3b82f6; outline-offset: 2px;';
+    const hoverStyle = 'outline: 2px dashed hsl(var(--primary)); outline-offset: 2px;';
 
     const onMove = (e: MouseEvent) => {
       if (selectionMode !== 'select') return;
@@ -278,7 +278,7 @@ export const IframeCanvas: React.FC = () => {
     
     if (element) {
       const originalOutline = element.style.outline;
-      element.style.outline = '2px solid #10b981'; // Green highlight for drill-down hover
+      element.style.outline = '2px solid hsl(var(--primary))'; // Primary color highlight for drill-down hover
       
       return () => {
         element.style.outline = originalOutline;
@@ -361,8 +361,8 @@ export const IframeCanvas: React.FC = () => {
               position: 'absolute',
               left: `${drillDownMenu.x}px`,
               top: `${drillDownMenu.y}px`,
-              background: 'white',
-              border: '1px solid #ddd',
+              background: 'hsl(var(--background))',
+              border: '1px solid hsl(var(--border))',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               borderRadius: '8px',
               zIndex: 9999,
@@ -370,7 +370,7 @@ export const IframeCanvas: React.FC = () => {
               minWidth: '150px',
             }}
           >
-            <div style={{ fontWeight: 600, fontSize: '12px', padding: '4px 8px', color: '#666', borderBottom: '1px solid #eee' }}>
+            <div style={{ fontWeight: 600, fontSize: '12px', padding: '4px 8px', color: 'hsl(var(--muted-foreground))', borderBottom: '1px solid hsl(var(--border))' }}>
               Select a Layer ({drillDownMenu.elements.length} found)
             </div>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: '200px', overflowY: 'auto' }}>
@@ -395,7 +395,7 @@ export const IframeCanvas: React.FC = () => {
                     padding: '8px 12px',
                     cursor: 'pointer',
                     borderRadius: '4px',
-                    borderLeft: index === 0 ? '3px solid #3b82f6' : '3px solid transparent',
+                    borderLeft: index === 0 ? '3px solid hsl(var(--primary))' : '3px solid transparent',
                     backgroundColor: 'transparent',
                     transition: 'all 0.15s ease',
                     display: 'flex',
@@ -407,8 +407,8 @@ export const IframeCanvas: React.FC = () => {
                 >
                   <span style={{
                     fontSize: '10px',
-                    color: '#666',
-                    backgroundColor: '#f3f4f6',
+                    color: 'hsl(var(--muted-foreground))',
+                    backgroundColor: 'hsl(var(--muted))',
                     padding: '2px 6px',
                     borderRadius: '10px',
                     minWidth: '20px',
@@ -419,7 +419,7 @@ export const IframeCanvas: React.FC = () => {
                   </span>
                   <span style={{
                     fontWeight: index === 0 ? '600' : '400',
-                    color: index === 0 ? '#1f2937' : '#6b7280',
+                    color: index === 0 ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
                     pointerEvents: 'none'
                   }}>
                     &lt;{el.name}&gt;
@@ -427,8 +427,8 @@ export const IframeCanvas: React.FC = () => {
                   {index === 0 && (
                     <span style={{
                       fontSize: '10px',
-                      color: '#3b82f6',
-                      backgroundColor: '#eff6ff',
+                      color: 'hsl(var(--primary))',
+                      backgroundColor: 'hsl(var(--accent))',
                       padding: '2px 6px',
                       borderRadius: '8px',
                       pointerEvents: 'none'

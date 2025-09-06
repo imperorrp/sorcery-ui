@@ -30,12 +30,12 @@ export function SetupEditor() {
       <div>
         <div className="flex items-center gap-2 mb-3">
           <Code2 className="h-4 w-4 text-green-500" />
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Context Wrapper</span>
+          <span className="text-sm font-medium text-foreground">Context Wrapper</span>
         </div>
-        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
-          Define a React component to wrap your main component. Use <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">{'{children}'}</code> as placeholder for your component.
+        <p className="text-xs text-muted-foreground mb-3">
+          Define a React component to wrap your main component. Use <code className="bg-muted px-1 py-0.5 rounded text-xs">{'{children}'}</code> as placeholder for your component.
         </p>
-        <div className="border border-gray-300 dark:border-gray-700 rounded-md h-48 overflow-hidden">
+        <div className="border rounded-md h-48 overflow-hidden">
            <Editor
               height="100%"
               language="typescript"
@@ -51,8 +51,8 @@ export function SetupEditor() {
               }}
             />
         </div>
-        <p className="text-xs text-gray-500 mt-2">
-          Example: <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">{'<ThemeProvider theme="dark">{children}</ThemeProvider>'}</code>
+        <p className="text-xs text-muted-foreground mt-2">
+          Example: <code className="bg-muted px-1 py-0.5 rounded">{'<ThemeProvider theme="dark">{children}</ThemeProvider>'}</code>
         </p>
       </div>
 
@@ -60,9 +60,9 @@ export function SetupEditor() {
       <div>
         <div className="flex items-center gap-2 mb-3">
           <Package className="h-4 w-4 text-purple-500" />
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">External Dependencies</span>
+          <span className="text-sm font-medium text-foreground">External Dependencies</span>
         </div>
-        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+        <p className="text-xs text-muted-foreground mb-3">
           Add CDN URLs for external libraries your component needs. These will be loaded in the preview iframe.
         </p>
 
@@ -82,11 +82,11 @@ export function SetupEditor() {
 
         <div className="space-y-2 max-h-32 overflow-y-auto">
           {dependencies.length === 0 ? (
-            <p className="text-xs text-gray-500 italic">No dependencies added yet</p>
+            <p className="text-xs text-muted-foreground italic">No dependencies added yet</p>
           ) : (
             dependencies.map(dep => (
-              <div key={dep} className="flex items-center justify-between bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs group hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <span className="truncate font-mono text-xs">{dep}</span>
+              <div key={dep} className="flex items-center justify-between bg-muted p-2 rounded text-xs group hover:bg-muted/80 transition-colors">
+                <span className="truncate font-mono text-xs text-foreground">{dep}</span>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -100,8 +100,8 @@ export function SetupEditor() {
           )}
         </div>
 
-        <div className="bg-purple-50 dark:bg-purple-950/20 p-3 rounded-md border border-purple-200 dark:border-purple-800 mt-4">
-          <p className="text-xs text-purple-700 dark:text-purple-300">
+        <div className="bg-accent p-3 rounded-md border border-border mt-4">
+          <p className="text-xs text-accent-foreground">
             💡 <strong>Popular CDNs:</strong> Skypack, UNPKG, jsDelivr, or CDNJS for reliable package hosting.
           </p>
         </div>

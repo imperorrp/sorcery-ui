@@ -72,7 +72,7 @@ const SelectionHighlighter = ({ ast }: { ast: SerializableElement | null }) => {
   top: `${iframeRect.top + rect.top - containerRect.top}px`,
     width: `${rect.width}px`,
     height: `${rect.height}px`,
-    border: '2px solid #3b82f6', // A nice blue outline
+    border: '2px solid hsl(var(--primary))', // Primary color outline
     pointerEvents: 'none', // Make sure it doesn't interfere with clicks
     zIndex: 100,
   };

@@ -18,11 +18,11 @@ export const SelectionHighlighter: React.FC<SelectionHighlighterProps> = ({ ast 
       left: 0,
       right: 0,
       bottom: 0,
-      border: '2px solid #3b82f6',
+      border: '2px solid hsl(var(--primary))',
       borderRadius: '4px',
       pointerEvents: 'none',
       zIndex: 1000 + depth,
-      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      backgroundColor: 'hsl(var(--primary) / 0.1)',
     };
 
     return (

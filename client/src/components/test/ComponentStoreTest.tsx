@@ -1,5 +1,6 @@
 import React from 'react';
 import { useComponentStore } from '@/store/componentStore';
+import { Button } from '@/components/ui/button';
 
 /**
  * Simple test component to verify the new multi-component state management
@@ -55,33 +56,33 @@ export const ComponentStoreTest: React.FC = () => {
       </div>
       
       <div style={{ marginBottom: '10px' }}>
-        <button onClick={addComponent} style={{ marginRight: '10px' }}>
+        <Button onClick={addComponent} variant="outline" size="sm" style={{ marginRight: '10px' }}>
           Add Component
-        </button>
+        </Button>
         {activeComponent && (
-          <button 
+          <Button 
             onClick={() => updateComponentName(activeComponent.id, `Updated ${Date.now()}`)}
+            variant="outline"
+            size="sm"
             style={{ marginRight: '10px' }}
           >
             Update Name
-          </button>
+          </Button>
         )}
       </div>
       
       <div style={{ marginBottom: '10px' }}>
         <strong>Switch to Component:</strong>
         {Object.values(components).map((comp) => (
-          <button
+          <Button
             key={comp.id}
             onClick={() => setActiveComponent(comp.id)}
-            style={{ 
-              marginRight: '5px', 
-              backgroundColor: comp.id === activeComponentId ? '#007bff' : undefined,
-              color: comp.id === activeComponentId ? 'white' : undefined
-            }}
+            variant={comp.id === activeComponentId ? "default" : "outline"}
+            size="sm"
+            style={{ marginRight: '5px' }}
           >
             {comp.name}
-          </button>
+          </Button>
         ))}
       </div>
       

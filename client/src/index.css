@@ -64,6 +64,30 @@
   }
 }
 
+/* Semantic utility mappings for theme tokens
+   These provide Tailwind-like class names (used across components)
+   and map them to the project's CSS variables. This prevents
+   panels appearing transparent when classes like `bg-card` are used. */
+@layer utilities {
+  .bg-background { background-color: hsl(var(--background)); }
+  .bg-card { background-color: hsl(var(--card)); }
+  .bg-popover { background-color: hsl(var(--popover)); }
+  .bg-muted { background-color: hsl(var(--muted)); }
+  .bg-accent { background-color: hsl(var(--accent)); }
+
+  .text-foreground { color: hsl(var(--foreground)); }
+  .text-muted-foreground { color: hsl(var(--muted-foreground)); }
+  .text-accent-foreground { color: hsl(var(--accent-foreground)); }
+  .text-primary { color: hsl(var(--primary)); }
+
+  .text-popover-foreground { color: hsl(var(--popover-foreground)); }
+
+  .border-border { border-color: hsl(var(--border)); }
+
+  /* helper to apply ring offset consistent with background token */
+  .ring-offset-background { --tw-ring-offset-color: hsl(var(--background)); }
+}
+
 /* react-resizable-panels base styles */
 [data-panel-group-direction=horizontal] [data-panel-resize-handle] {
   width: var(--rp-handle-size);

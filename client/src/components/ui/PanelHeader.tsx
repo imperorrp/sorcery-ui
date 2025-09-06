@@ -10,7 +10,7 @@ export const PanelHeader: React.FC<PanelHeaderProps> = ({
   children,
 }) => {
   return (
-    <div className="flex items-center justify-between h-10 px-2 sm:px-3 border-b bg-gray-50 dark:bg-gray-900/50 text-xs font-semibold">
+    <div className="flex items-center justify-between h-10 px-2 sm:px-3 border-b bg-card text-xs font-semibold text-foreground">
       <span>{title}</span>
       <div className="flex items-center gap-1 ml-auto">
         {children}

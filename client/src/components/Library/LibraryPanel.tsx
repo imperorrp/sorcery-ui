@@ -17,6 +17,7 @@ import React, { useState } from 'react';
 import { useComponentStore } from '@/store/componentStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PlusCircle, Save, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -71,42 +72,55 @@ export const LibraryPanel: React.FC = () => {
   };
 
   return (
-    <div className="p-2 h-full flex flex-col">
+    <TooltipProvider>
+      <div className="p-2 h-full flex flex-col bg-card">
       {/* Header */}
-      <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-300 dark:border-gray-700">
-        <h3 className="text-sm font-semibold">Component Library</h3>
+      <div className="flex justify-between items-center mb-2 pb-2 border-b border">
+        <h3 className="text-sm font-semibold text-foreground">Component Library</h3>
         <div className="flex gap-1">
-          <Button 
-            title="Save current code as new component" 
-            variant="ghost" 
-            size="sm" 
-            className="h-7 w-7 p-0" 
-            onClick={handleSave}
-          >
-            <Save className="h-4 w-4" />
-          </Button>
-          <Button 
-            title="Add blank component" 
-            variant="ghost" 
-            size="sm" 
-            className="h-7 w-7 p-0" 
-            onClick={addComponent}
-          >
-            <PlusCircle className="h-4 w-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-7 w-7 p-0" 
+                onClick={handleSave}
+              >
+                <Save className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Save current code as new component</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-7 w-7 p-0" 
+                onClick={addComponent}
+              >
+                <PlusCircle className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Add blank component</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
       
       {/* Component List */}
-      <div className="space-y-1 flex-grow overflow-auto">
+      <div className="space-y-1 flex-grow overflow-auto bg-card">
         {Object.values(components).map((component) => (
           <div
             key={component.id}
             className={cn(
-              'group w-full flex justify-between items-center text-left text-sm px-2 py-1.5 rounded-md cursor-pointer transition-colors',
+              'group w-full flex justify-between items-center text-left px-2 py-1.5 rounded-md cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-foreground',
               activeComponentId === component.id 
-                ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300' 
-                : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                ? 'bg-accent text-accent-foreground' 
+                : 'hover:bg-accent hover:text-accent-foreground bg-card'
             )}
             onClick={() => setActiveComponent(component.id)}
           >
@@ -126,7 +140,7 @@ export const LibraryPanel: React.FC = () => {
               />
             ) : (
               <span 
-                className="truncate flex-1"
+                className="truncate flex-1 text-sm text-foreground"
                 onDoubleClick={(e) => {
                   e.stopPropagation();
                   handleRename(component.id, component.name);
@@ -155,5 +169,6 @@ export const LibraryPanel: React.FC = () => {
         ))}
       </div>
     </div>
+    </TooltipProvider>
   );
 };

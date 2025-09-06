@@ -107,7 +107,7 @@ export const MonacoEditor = forwardRef<MonacoEditorRef, MonacoEditorProps>(
     <div className="flex flex-col h-full">
       {/* The new stateless header from our previous step */}
       <div className='flex items-center justify-between px-2 py-1 border-b'>
-        <span className='text-sm text-gray-600 dark:text-gray-400'>TSX Editor</span>
+        <span className='text-sm text-muted-foreground'>TSX Editor</span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant='outline' size='sm' className='flex items-center gap-2'>
@@ -115,7 +115,7 @@ export const MonacoEditor = forwardRef<MonacoEditorRef, MonacoEditorProps>(
               <span>Examples</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+          <DropdownMenuContent className="bg-background border border-border shadow-lg">
             <DropdownMenuLabel>Load an Example</DropdownMenuLabel>
             <DropdownMenuSeparator />
             

@@ -1,5 +1,6 @@
 import React from 'react';
 import { generateAndFormatJsx } from '@/lib/astToCode';
+import { Button } from './components/ui/button';
 
 // Test component for the new AST-to-Code generation system
 const TestComponent: React.FC = () => {
@@ -57,20 +58,9 @@ const TestComponent: React.FC = () => {
   return (
     <div style={{ padding: '20px', fontFamily: 'monospace' }}>
       <h2>AST-to-Code Generation Test</h2>
-      <button
-        onClick={runTest}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: '#007acc',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          marginBottom: '20px'
-        }}
-      >
+      <Button onClick={runTest} className="mb-5">
         Run AST-to-Code Test
-      </button>
+      </Button>
 
       {testResult && (
         <div>

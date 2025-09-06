@@ -11,6 +11,7 @@ import {
 
 import { useRef, useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { Button } from "@/components/ui/button";
 
 export const FloatingDock = ({
   items,
@@ -96,16 +97,18 @@ const FloatingDockMobile = ({
           </motion.div>
         )}
       </AnimatePresence>
-      <button
+      <Button
         onClick={() => setOpen(!open)}
-        className={`flex h-10 w-10 items-center justify-center rounded-full ${
-          theme === 'dark' ? 'bg-neutral-800' : 'bg-gray-50'
+        variant="ghost"
+        size="icon"
+        className={`h-10 w-10 rounded-full ${
+          theme === 'dark' ? 'bg-neutral-800 hover:bg-neutral-700' : 'bg-gray-50 hover:bg-gray-100'
         }`}
       >
         <IconLayoutNavbarCollapse className={`h-5 w-5 ${
           theme === 'dark' ? 'text-neutral-400' : 'text-neutral-500'
         }`} />
-      </button>
+      </Button>
     </div>
   );
 };

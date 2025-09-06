@@ -31,16 +31,16 @@ export const ComponentTree: React.FC = () => {
 			{/* Active Component Tree Section */}
 			<div className="flex-1 overflow-auto">
 				<div className="px-2 py-1 mb-2">
-					<h3 className="text-sm font-semibold text-gray-300">Component Structure</h3>
+					<h3 className="text-sm font-semibold text-foreground">Component Structure</h3>
 					{activeComponentId && (
-						<p className="text-xs text-gray-500">
+						<p className="text-xs text-muted-foreground">
 							{components[activeComponentId]?.name || 'Unknown Component'}
 						</p>
 					)}
 				</div>
 				
 				{!componentPreviewAst ? (
-					<div className="text-sm text-gray-500 px-2">
+					<div className="text-sm text-muted-foreground px-2">
 						Render the active component to see its tree.
 					</div>
 				) : (
@@ -72,8 +72,8 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, depth }) => {
 		const text = node.trim();
 		if (text === '') return null;
 		return (
-			<div className="text-xs text-gray-400 truncate" style={{ paddingLeft: `${depth * 0.75}rem` }}>
-				<ChevronsRight className="inline-block h-3 w-3 mr-1 text-gray-600" />
+			<div className="text-xs text-muted-foreground truncate" style={{ paddingLeft: `${depth * 0.75}rem` }}>
+				<ChevronsRight className="inline-block h-3 w-3 mr-1 text-muted-foreground" />
 				"{text.length > 30 ? `${text.substring(0, 30)}...` : text}"
 			</div>
 		);
@@ -106,24 +106,24 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, depth }) => {
 			<div
 				onClick={handleSelect}
 				className={cn(
-					"flex items-center text-sm cursor-pointer hover:bg-gray-800 rounded p-1",
-					isSelected && "bg-blue-600/30 hover:bg-blue-600/40"
+					"flex items-center text-sm cursor-pointer hover:bg-accent rounded p-1 text-foreground",
+					isSelected && "bg-accent text-accent-foreground"
 				)}
 				style={{ paddingLeft: `${depth * 0.75}rem` }}
 			>
 				{hasChildren ? (
 					<ChevronRight
-						className={cn("h-4 w-4 mr-1 flex-shrink-0 transition-transform", expanded && "rotate-90")}
+						className={cn("h-4 w-4 mr-1 flex-shrink-0 transition-transform text-muted-foreground", expanded && "rotate-90")}
 						onClick={handleToggle}
 					/>
 				) : (
 					<span className="w-5 mr-1" />
 				)}
-				<span className="font-semibold text-gray-300">{label}</span>
+				<span className="font-semibold text-foreground">{label}</span>
 			</div>
 
 			{expanded && hasChildren && (
-				<div className="pl-2 border-l border-gray-700 ml-4">
+				<div className="pl-2 border-l border ml-4">
 					{children.map((child: SerializableElement | string, index: number) => (
 						<TreeNode key={index} node={child} depth={depth + 1} />
 					))}

@@ -14,12 +14,12 @@ export const PropsEditor: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-3">
-        <Code className="h-4 w-4 text-blue-500" />
-        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Props Configuration</span>
+        <Code className="h-4 w-4 text-primary" />
+        <span className="text-sm font-medium text-foreground">Props Configuration</span>
       </div>
 
       <div>
-        <Label htmlFor="props-json" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label htmlFor="props-json" className="text-sm font-medium text-foreground">
           Component Props (JSON)
         </Label>
         <Textarea
@@ -30,7 +30,7 @@ export const PropsEditor: React.FC = () => {
           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPropsJson(e.target.value)}
         />
         <div className="flex items-center justify-between mt-2">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             Define the data your component receives as props. Changes require clicking "Render" to apply.
           </p>
           <Button
@@ -45,8 +45,8 @@ export const PropsEditor: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-md border border-blue-200 dark:border-blue-800">
-        <p className="text-xs text-blue-700 dark:text-blue-300">
+      <div className="bg-accent p-3 rounded-md border border-border">
+        <p className="text-xs text-accent-foreground">
           💡 <strong>Pro tip:</strong> Props are the primary way to pass data into your component.
           Use descriptive names and consider adding TypeScript interfaces for better development experience.
         </p>
