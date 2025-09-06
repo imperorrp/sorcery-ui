@@ -28,6 +28,8 @@
 import { ThemeProvider } from './contexts/ThemeContext';
 import { Navbar } from './components/Navbar';
 import { EditorLayout } from './components/EditorLayout';
+import { TwentyFirstToolbar } from '@21st-extension/toolbar-react';
+import { ReactPlugin } from '@21st-extension/react';
 
 /**
  * Root application component that orchestrates the entire Live Component Editor.
@@ -41,6 +43,7 @@ import { EditorLayout } from './components/EditorLayout';
 function App() {
   return (
     <ThemeProvider>
+      <TwentyFirstToolbar config={{ plugins: [ReactPlugin] }} />
       <div className="h-screen overflow-hidden flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors">
         <Navbar />
         <div className="flex-1 overflow-hidden">

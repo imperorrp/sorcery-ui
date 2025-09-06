@@ -208,3 +208,7 @@ Implementation notes / backlog
 - Small, self-contained change: update `SelectionHighlighter` to sample computed style and set box-shadow accordingly.
 - Add an optional small label (element tag / id) positioned near the outline when element size allows.
 - Priority: low — UX polish to schedule in Phase 3 or as part of a later polish pass.
+
+# Style application policy (future):
+
+Settle on a style application policy - direct to elements/components v/s creation of global CSS classes with adjoining documentation 
