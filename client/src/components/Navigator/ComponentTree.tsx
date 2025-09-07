@@ -65,7 +65,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, depth }) => {
 
 	// Debug log to see when selectedNodeId changes
 	React.useEffect(() => {
-		console.log('🌳 Navigator: selectedNodeId changed to:', selectedNodeId);
+		// Navigator: selectedNodeId changed
 	}, [selectedNodeId]);
 
 	if (typeof node === 'string') {

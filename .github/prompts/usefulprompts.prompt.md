@@ -1,0 +1,4 @@
+---
+mode: agent
+---
+first, go through codebase summary to understand how the codebase works and is currently summarized. read it entirely. then, go through every single file that was modified (find out which files by doing git status) or created recently after the last commit and find out what was changed or modified. read the files themselves DIRECTLY, in their ENTIRETY- not just their changes. make any necessary updates to top level doc strings or comments in each file following preexisting conventions and styles of docs in the codebase already. then update codebasesummary for each modified/updated file to reflect the new statuses of these files and codes in them, once again following established codebase summar style and convention. 

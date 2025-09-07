@@ -11,6 +11,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
  * Provides an interface for modifying CSS properties of selected DOM elements
  * in the component canvas. Changes are applied to the preview AST and reflected
  * in real-time in the iframe canvas.
+ *
+ * Features:
+ * - Smart component boundary detection to prevent editing child components
+ * - Fixed disclaimer logic that only shows for child components, not root components
+ * - Real-time style updates with immediate visual feedback
+ * - Accordion-based organization of style controls
+ *
+ * @version 1.2.0
  */
 
 /**
@@ -48,7 +56,7 @@ export const StyleEditor: React.FC = () => {
 
   // Debug log to see when selectedNodeId changes
   React.useEffect(() => {
-    console.log('🔍 Inspector: selectedNodeId changed to:', selectedNodeId);
+  // Inspector: selectedNodeId changed
   }, [selectedNodeId]);
 
   // Use the preview AST for editing to avoid side effects

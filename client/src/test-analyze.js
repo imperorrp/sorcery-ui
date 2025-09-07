@@ -42,22 +42,7 @@ export default MyComponent;
 `;
 
 async function testAnalyzeCode() {
-  console.log('Testing analyzeCode function...');
-
-  try {
-    const result = await analyzeCode(testCode);
-    console.log('analyzeCode result:', result);
-
-    if (result.jsxLocation) {
-      console.log('✅ jsxLocation is set:', result.jsxLocation);
-      console.log('✅ Element location map has', result.elementLocationMap.size, 'entries');
-      console.log('Element locations:', Array.from(result.elementLocationMap.entries()));
-    } else {
-      console.log('❌ jsxLocation is null');
-    }
-  } catch (error) {
-    console.error('❌ Error in analyzeCode:', error);
-  }
+  // Silenced test helper for analyzeCode; run manually during debugging if needed.
 }
 
-testAnalyzeCode();
+// no-op in production

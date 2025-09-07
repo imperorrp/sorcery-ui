@@ -18,12 +18,13 @@ import { PlusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const ComponentLibrary: React.FC = () => {
-  const { components, activeComponentId, addComponent, setActiveComponent } = useComponentStore();
+  const { components, activeComponentId, addComponent, openComponent } = useComponentStore();
 
   return (
     <div className="p-2 border-b border bg-card">
       <div className="flex justify-between items-center mb-2">
-        <h3 className="text-sm font-semibold text-foreground">Components</h3>
+        {/* visually hide duplicate title; keep for screen readers */}
+        <span className="sr-only">Components</span>
         <Button variant="ghost" size="sm" onClick={addComponent}>
           <PlusCircle className="h-4 w-4" />
         </Button>
@@ -33,7 +34,7 @@ export const ComponentLibrary: React.FC = () => {
         <Button
           key={component.id}
           variant="ghost"
-          onClick={() => setActiveComponent(component.id)}
+          onClick={() => openComponent(component.id)}
           className={cn(
             'w-full text-left px-2 py-1 rounded-md truncate justify-start text-foreground',
             activeComponentId === component.id

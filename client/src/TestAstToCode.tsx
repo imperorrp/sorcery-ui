@@ -31,7 +31,7 @@ const TestComponent: React.FC = () => {
             id: 'test-button',
             type: 'button',
             props: {
-              onClick: () => console.log('clicked'),
+              onClick: () => undefined,
               disabled: false,
               children: ['Click me'],
               style: {

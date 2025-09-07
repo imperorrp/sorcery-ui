@@ -18,6 +18,8 @@ import { defaultExample } from '@/examples/examples';
  * - selectionMode: Either 'interact' or 'select' mode for the canvas
  * - isDirty: Flag indicating whether the active component has changes that haven't been applied back to the code
  * - isCodeHighlighted: Flag to control persistent highlighting in the code editor after changes are applied
+ * - examplesVersion: Incremented when example sets are loaded to notify UI
+ * - lastOpenedTabId: Transient flag for tracking explicitly opened components
  *
  * Architecture:
  * - Multi-component library with full CRUD operations
@@ -25,6 +27,9 @@ import { defaultExample } from '@/examples/examples';
  * - Surgical code updates that preserve component logic
  * - History stack with unlimited undo/redo
  * - Computed getters for backward compatibility
+ * - Example set loading with version tracking
+ *
+ * @version 1.2.0
  */
 
 // Define the structure of our serializable element AST
@@ -91,9 +96,14 @@ export interface ComponentData {
 interface ComponentState {
   components: Record<string, ComponentData>; // A map of component IDs to their data
   activeComponentId: string | null; // The ID of the component currently being edited
+  examplesVersion: number; // Incremented when example sets are loaded to notify UI
+  // Transient helper used to tell UI which component was explicitly opened
+  // (as opposed to simply activated via clicking an existing tab).
+  lastOpenedTabId?: string | null;
 
   // Global state that remains outside:
   selectedNodeId: string | null; // Currently selected element ID
+  hoveredNodeId: string | null; // Currently hovered element ID (transient)
   selectionMode: 'interact' | 'select'; // Canvas interaction mode
   isDirty: boolean; // isDirty now refers to the active component
   isCodeHighlighted: boolean; // Controls persistent code highlighting
@@ -124,6 +134,7 @@ interface ComponentActions {
   setAst: (ast: SerializableElement | null) => void;
   setAstWithPreview: (ast: SerializableElement | null, preview: SerializableElement | null) => void;
   setSelectedNodeId: (nodeId: string | null) => void;
+  setHoveredNodeId: (nodeId: string | null) => void;
   updateNodeStyle: (nodeId: string, newStyle: React.CSSProperties) => void;
   undo: () => void;
   redo: () => void;
@@ -162,6 +173,9 @@ interface ComponentActions {
   applyAstChangesToCode: () => Promise<string | null>;
   setDirty: (dirty: boolean) => void;
   clearCodeHighlight: () => void; // Add this for clearing persistent highlighting
+  // Open a component and mark it as explicitly opened (UI may append its tab)
+  openComponent: (componentId: string) => void;
+  clearLastOpenedTab: () => void;
 }
 
 // Computed state properties for backward compatibility
@@ -246,10 +260,12 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
       [defaultComponentId]: defaultComponent,
     },
     activeComponentId: defaultComponentId,
-    selectedNodeId: null,
+  selectedNodeId: null,
+  hoveredNodeId: null,
     selectionMode: 'interact',
     isDirty: false,
     isCodeHighlighted: false,
+  examplesVersion: 0,
 
     // Computed properties for backward compatibility
     get componentAst() {
@@ -329,7 +345,8 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
 
     setActiveComponent: (componentId) => set({ 
       activeComponentId: componentId, 
-      selectedNodeId: null, 
+  selectedNodeId: null, 
+  hoveredNodeId: null,
       isDirty: false,
       isCodeHighlighted: false,
     }),
@@ -423,6 +440,7 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
         selectedNodeId: null,
         isDirty: false,
         isCodeHighlighted: false,
+  lastOpenedTabId: newId,
       }));
     },
 
@@ -461,7 +479,9 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
         activeComponentId: activeId,
         selectedNodeId: null,
         isDirty: false,
-        isCodeHighlighted: false,
+  isCodeHighlighted: false,
+  // bump examplesVersion so UIs know the examples were replaced
+  examplesVersion: get().examplesVersion + 1,
       });
     },
 
@@ -492,7 +512,7 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
       const { activeComponentId, components } = get();
       if (!activeComponentId) return;
       
-      console.log('setAstWithPreview called with ast:', ast, 'preview:', preview);
+  // setAstWithPreview invoked
       const activeComponent = components[activeComponentId];
       const updatedComponent = {
         ...activeComponent,
@@ -512,9 +532,10 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
     },
 
     setSelectedNodeId: (nodeId) => {
-      console.log('🏪 Store: setSelectedNodeId called with:', nodeId);
       set({ selectedNodeId: nodeId });
-      console.log('🏪 Store: selectedNodeId set successfully');
+    },
+    setHoveredNodeId: (nodeId) => {
+      set({ hoveredNodeId: nodeId });
     },
 
     /**
@@ -768,11 +789,21 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
         isDirty: false,
         isCodeHighlighted: false,
         selectedNodeId: null,
+  // Clear any transient open flag after render finishes
+  lastOpenedTabId: null,
       }));
     },
 
     setDirty: (dirty: boolean) => set({ isDirty: dirty }),
     clearCodeHighlight: () => set({ isCodeHighlighted: false }),
+
+    // Mark a component as opened explicitly (UI can append its tab to end)
+    openComponent: (componentId) => {
+      set({ activeComponentId: componentId, selectedNodeId: null, hoveredNodeId: null, lastOpenedTabId: componentId });
+    },
+
+    // Clear transient lastOpenedTabId so UI stops auto-appending
+    clearLastOpenedTab: () => set({ lastOpenedTabId: null }),
 
     applyAstChangesToCode: async (): Promise<string | null> => {
       const { activeComponentId, components } = get();

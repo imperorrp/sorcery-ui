@@ -1,7 +1,7 @@
 // React import not required with automatic JSX runtime
 import { ComponentTree } from '@/components/Navigator/ComponentTree';
 import { ComponentCanvas } from '@/components/Canvas/ComponentCanvas';
-import { MonacoEditor } from '@/components/CodeEditor/MonacoEditor';
+import { CodeEditorWithTabs } from '@/components/CodeEditor/CodeEditorWithTabs';
 import { InspectorPanel } from '@/components/Inspector/InspectorPanel';
 
 export const EditorLayout = () => {
@@ -17,12 +17,12 @@ export const EditorLayout = () => {
         <div className="flex-1 border-2 border-border m-4 min-h-0">
           <ComponentCanvas />
         </div>
-        <div className="h-1/3 bg-card p-4 border-t border-border min-h-0">
-          <MonacoEditor />
+        <div className="h-1/3 bg-card border-t border-border min-h-0">
+          <CodeEditorWithTabs />
         </div>
       </main>
       <aside className="w-96 bg-card p-0 border-l border-border">
-        <InspectorPanel onApplyChanges={() => { /* legacy layout noop */ }} />
+        <InspectorPanel />
       </aside>
     </div>
   );

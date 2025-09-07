@@ -26,7 +26,7 @@ export const LibraryPanel: React.FC = () => {
     components, 
     activeComponentId, 
     addComponent, 
-    setActiveComponent, 
+    openComponent, 
     deleteComponent, 
     updateComponentName, 
     saveActiveCodeAsNewComponent 
@@ -122,7 +122,7 @@ export const LibraryPanel: React.FC = () => {
                 ? 'bg-accent text-accent-foreground' 
                 : 'hover:bg-accent hover:text-accent-foreground bg-card'
             )}
-            onClick={() => setActiveComponent(component.id)}
+            onClick={() => openComponent(component.id)}
           >
             {renamingId === component.id ? (
               <Input

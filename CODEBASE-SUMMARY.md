@@ -2,6 +2,9 @@
 
 This document provides a summary of the "Live Component Editor" codebase, outlining its architecture, the purpose of each major file and folder, and the core data flow.
 
+- `LibraryPanel.tsx`: **NEW (v1.2)** - Comprehensive component library management panel with full CRUD functionality (add, rename, delete, switch between components)
+- `ComponentList.tsx`: **NEW (v1.2)** - Placeholder for future component list interface (currently unused)architecture, the purpose of each major file and folder, and the core data flow.
+
 ## Overall Architecture
 
 The application is a monorepo containing a React client and a Node.js/Express server. The core of the application lies in its client-side architecture, which is a sophisticated hybrid model. It uses **Visual ASTs** (serialized from the Virtual DOM) for real-time rendering and interaction, and a **Source Code AST** (parsed by Babel) for non-destructive, logic-preserving code updates.
@@ -26,7 +29,7 @@ The application operates on a sophisticated Three-AST system to ensure both a fl
 
 This architecture treats the user's Source Code as the ultimate source of truth for logic, while using the Visual ASTs as the source of truth for UI state and interaction.
 
-**Recent Enhancements:**
+**Key Features:**
 - Advanced drill-down selection system for overlapping elements (Shift+click)
 - Comprehensive debug logging for selection state tracking
 - Context isolation fixes for iframe-to-parent window store access
@@ -35,6 +38,10 @@ This architecture treats the user's Source Code as the ultimate source of truth 
 - Missing component detection system with automatic mock generation
 - Global scope injection for reliable component resolution
 - Enhanced example system with categorized examples and missing component demo
+- Multi-component tab system with overflow management and drag-and-drop
+- Floating dock for panel visibility controls
+- Fullscreen mode with automatic panel hiding
+- Comprehensive component library management with CRUD operations
 
 ## Directory and File Breakdown
 
@@ -43,6 +50,7 @@ This architecture treats the user's Source Code as the ultimate source of truth 
 - `package.json`: Defines the npm workspaces for client and server and contains scripts to run both concurrently.
 - `README.md`: High-level overview of the project, features, and setup instructions.
 - `PLAN.md`: A detailed technical planning document outlining the architecture, feature specifications, and development roadmap.
+- `.github/prompts/usefulprompts.prompt.md`: AI prompt template for automated codebase analysis and documentation updates.
 
 ### `client/`
 
@@ -62,6 +70,8 @@ This directory contains the entire frontend React application, built with Vite. 
   - `selectionMode`: Either 'interact' or 'select' mode for the canvas
   - `isDirty`: A flag indicating that visual changes have been made but not yet applied to the source code
   - `isCodeHighlighted`: A flag to control the persistent highlighting in the code editor after changes are applied
+  - `examplesVersion`: Incremented when example sets are loaded to notify UI
+  - `lastOpenedTabId`: Transient flag for tracking explicitly opened components
   - For each component (`ComponentData`):
     - `componentAst`: The "Live AST" created with the real React library. It is rendered in "Interaction Mode" and allows the component to be fully stateful
     - `componentPreviewAst`: The "Preview AST" created with a shimmed React. This is a structurally complete map of the component used for the Navigator and as the blueprint for style updates
@@ -105,7 +115,10 @@ This directory contains the entire frontend React application, built with Vite. 
 
 ##### `CodeEditor/`
 
-- `MonacoEditor.tsx`: Integrates the Monaco Editor, providing a rich code editing experience with TSX/JSX support. It exposes a ref to get the current code. Includes support for multi-component examples with dropdown selection and fully controlled editor state, featuring a categorized example system separating Single Component and Multi Component examples.
+- `MonacoEditor.tsx`: Integrates the Monaco Editor, providing a rich code editing experience with TSX/JSX support. It exposes a ref to get the current code and supports code range highlighting for JSX element inspection.
+- `CodeEditorWithTabs.tsx`: Combines Monaco editor with integrated tab system for multi-component editing experience
+- `ComponentTabs.tsx`: IDE-style component tab bar with overflow management, drag-and-drop reordering, and integrated library access
+- `ExamplesDropdown.tsx`: Placeholder for future example loading interface (currently unused)
 
 ##### `Inspector/`
 
@@ -122,6 +135,7 @@ This directory contains the entire frontend React application, built with Vite. 
 ##### `Library/`
 
 - `LibraryPanel.tsx`: Comprehensive component library management panel with full CRUD functionality (add, rename, delete, switch between components).
+- `ComponentList.tsx`: Placeholder for future component list interface (currently unused).
 
 ##### `ui/`
 
@@ -133,6 +147,7 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 - `Panel.tsx`: Panel container component
 - `tabs.tsx`: Tab navigation component
 - `textarea.tsx`: Textarea component
+- `popover.tsx`: Popover component for dropdown menus and contextual content
 
 ##### `Layouts/`
 

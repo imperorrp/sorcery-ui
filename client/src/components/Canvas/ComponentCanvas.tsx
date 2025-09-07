@@ -21,6 +21,7 @@ export const ComponentCanvas = () => {
   const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
   const selectionMode = useComponentStore((s) => s.selectionMode);
   const selectedNodeId = useComponentStore((s) => s.selectedNodeId);
+  const hoveredNodeId = useComponentStore((s) => s.hoveredNodeId);
   const history = activeComponent?.history ?? [];
   const historyIndex = activeComponent?.historyIndex ?? 0;
   const latestPreview = componentPreviewAst ?? history?.[historyIndex]?.preview ?? null;
@@ -28,7 +29,7 @@ export const ComponentCanvas = () => {
   return (
     <div className="relative w-full h-full" data-canvas-overlay-container>
       <IframeCanvas />
-      {selectedNodeId && <SelectionHighlighter ast={chosenAst} />}
+      {(selectedNodeId || hoveredNodeId) && <SelectionHighlighter ast={chosenAst} />}
     </div>
   );
 };
@@ -39,25 +40,39 @@ export const ComponentCanvas = () => {
  */
 const SelectionHighlighter = ({ ast }: { ast: SerializableElement | null }) => {
   const selectedNodeId = useComponentStore((s) => s.selectedNodeId);
+  const hoveredNodeId = useComponentStore((s) => s.hoveredNodeId);
 
-  // Use a ref to get the actual DOM element corresponding to the selected node ID
-  const [element, setElement] = React.useState<HTMLElement | null>(null);
+  const [selectedEl, setSelectedEl] = React.useState<HTMLElement | null>(null);
+  const [hoveredEl, setHoveredEl] = React.useState<HTMLElement | null>(null);
+
+  // lookup selected element
   React.useEffect(() => {
-    const timeout = setTimeout(() => {
+    const t = setTimeout(() => {
       const iframe = document.querySelector('iframe[title="Component Canvas"]') as HTMLIFrameElement | null;
       if (selectedNodeId && iframe && iframe.contentDocument) {
         const el = iframe.contentDocument.querySelector(`[data-node-id="${selectedNodeId}"]`) as HTMLElement | null;
-        setElement(el);
+        setSelectedEl(el);
       } else {
-        setElement(null);
+        setSelectedEl(null);
       }
     }, 0);
-    return () => clearTimeout(timeout);
+    return () => clearTimeout(t);
   }, [selectedNodeId, ast]);
 
-  if (!element) return null;
+  // lookup hovered element (transient)
+  React.useEffect(() => {
+    const t = setTimeout(() => {
+      const iframe = document.querySelector('iframe[title="Component Canvas"]') as HTMLIFrameElement | null;
+      if (hoveredNodeId && iframe && iframe.contentDocument) {
+        const el = iframe.contentDocument.querySelector(`[data-node-id="${hoveredNodeId}"]`) as HTMLElement | null;
+        setHoveredEl(el);
+      } else {
+        setHoveredEl(null);
+      }
+    }, 0);
+    return () => clearTimeout(t);
+  }, [hoveredNodeId, ast]);
 
-  const rect = element.getBoundingClientRect();
   const iframeEl = document.querySelector('iframe[title="Component Canvas"]') as HTMLIFrameElement | null;
   const iframeRect = iframeEl?.getBoundingClientRect();
   const container = document.querySelector('[data-canvas-overlay-container]') as HTMLElement | null;
@@ -65,17 +80,29 @@ const SelectionHighlighter = ({ ast }: { ast: SerializableElement | null }) => {
 
   if (!iframeRect || !containerRect) return null;
 
-  // Calculate position relative to the canvas
-  const style: React.CSSProperties = {
+  const makeStyle = (rect: DOMRect, zIndex: number, dashed: boolean): React.CSSProperties => ({
     position: 'absolute',
-  left: `${iframeRect.left + rect.left - containerRect.left}px`,
-  top: `${iframeRect.top + rect.top - containerRect.top}px`,
+    left: `${iframeRect.left + rect.left - containerRect.left}px`,
+    top: `${iframeRect.top + rect.top - containerRect.top}px`,
     width: `${rect.width}px`,
     height: `${rect.height}px`,
-    border: '2px solid hsl(var(--primary))', // Primary color outline
-    pointerEvents: 'none', // Make sure it doesn't interfere with clicks
-    zIndex: 100,
-  };
+    border: dashed ? '2px dashed hsla(210, 100%, 50%, 0.9)' : '2px solid hsl(var(--primary))',
+    pointerEvents: 'none',
+    zIndex,
+  });
 
-  return <div style={style} />;
+  return (
+    <>
+      {selectedEl && (() => {
+        const rect = selectedEl.getBoundingClientRect();
+        const style = makeStyle(rect, 90, false);
+        return <div key={`sel-${selectedNodeId}`} style={style} />;
+      })()}
+      {hoveredEl && hoveredNodeId !== selectedNodeId && (() => {
+        const rect = hoveredEl.getBoundingClientRect();
+        const style = makeStyle(rect, 100, true);
+        return <div key={`hov-${hoveredNodeId}`} style={style} />;
+      })()}
+    </>
+  );
 };

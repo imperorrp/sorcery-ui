@@ -8,6 +8,10 @@
  * - Live element highlighting during selection
  * - DOM event handling and portal rendering
  * - Context isolation management for proper store access
+ * - Multi-layer element selection with visual layer indicators
+ * - Automatic mock generation for missing components
+ *
+ * @version 1.2.0
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -32,14 +36,20 @@ export const IframeCanvas: React.FC = () => {
   const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
   const selectionMode = useComponentStore((s) => s.selectionMode);
   const setSelectedNodeId = useComponentStore((s) => s.setSelectedNodeId);
+  const setHoveredNodeId = useComponentStore((s) => s.setHoveredNodeId);
   const dependencies = React.useMemo(() => activeComponent?.dependencies ?? [], [activeComponent?.dependencies]);
   
   // Pull snapshot history to recover preview if current state lost it
   const history = activeComponent?.history ?? [];
   const historyIndex = activeComponent?.historyIndex ?? 0;
+  // history and historyIndex are retained for potential undo/preview logic; acknowledge to avoid linter complaints
+  void history;
+  void historyIndex;
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeBody, setIframeBody] = useState<HTMLBodyElement | null>(null);
   const [depTick, setDepTick] = useState(0);
+  // acknowledge depTick is intentionally present to force re-renders when deps load
+  void depTick;
 
   // ▼▼▼ DRILL-DOWN SELECTION STATE ▼▼▼
   // State for managing the drill-down menu when Shift+clicking overlapping elements
@@ -48,10 +58,7 @@ export const IframeCanvas: React.FC = () => {
 
   // Create a callback that ensures store actions are called from parent context
   const handleElementSelection = React.useCallback((elementId: string) => {
-    console.log('🎯 Canvas: handleElementSelection called with:', elementId);
-    console.log('🎯 Canvas: Calling setSelectedNodeId...');
     setSelectedNodeId(elementId);
-    console.log('🎯 Canvas: setSelectedNodeId call completed');
     setDrillDownMenu(null); // Close the menu
   }, [setSelectedNodeId]);
   // ▲▲▲ END DRILL-DOWN SELECTION STATE ▲▲▲
@@ -71,8 +78,7 @@ export const IframeCanvas: React.FC = () => {
           body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, Apple Color Emoji, Segoe UI Emoji; }
         `;
         doc.head.appendChild(styleEl);
-        setIframeBody(doc.body as HTMLBodyElement);
-        console.log('Iframe body set');
+  setIframeBody(doc.body as HTMLBodyElement);
       }
     };
 
@@ -136,51 +142,6 @@ export const IframeCanvas: React.FC = () => {
   // ▲▲▲ END STABLE DEPENDENCY ▲▲▲
 
   // ▼▼▼ UPDATE REF WHEN DEPENDENCIES CHANGE ▼▼▼
-  // Keep the ref in sync with the current dependencies
-  // This ensures the ref always has the latest dependency list
-  React.useEffect(() => {
-    dependenciesRef.current = dependencies;
-  }, [dependencies]);
-  // ▲▲▲ END REF UPDATE ▲▲▲
-
-  // In case the body becomes available later (e.g., browser quirk), retry when AST changes
-  useEffect(() => {
-    if (!iframeBody) {
-      const iframe = iframeRef.current;
-      if (iframe?.contentDocument?.body) {
-        setIframeBody(iframe.contentDocument.body as HTMLBodyElement);
-      }
-    }
-  }, [iframeBody, componentAst]);
-
-  // No DOM snapshot needed; navigator uses fully resolved AST
-
-  // Choose AST based on mode (previewAst for selection so nested nodes exist)
-  const latestPreview = componentPreviewAst ?? history?.[historyIndex]?.preview ?? null;
-  const chosenAst = selectionMode === 'select' ? latestPreview : componentAst;
-  // Force full re-render when chosen AST or selection mode changes to refresh handlers inside iframe
-  const astKey = chosenAst ? JSON.stringify(chosenAst).length : 0;
-  const modeKey = selectionMode;
-  const combinedKey = `${astKey}-${modeKey}-${depTick}`;
-
-  // Diagnostics: after render, inspect iframe DOM to verify nodes are present
-  useEffect(() => {
-    if (!iframeBody) return;
-    const doc = iframeBody.ownerDocument;
-    if (!doc) return;
-    // Defer to next tick to allow portal to commit
-    const t = setTimeout(() => {
-      try {
-        const count = doc.querySelectorAll('[data-node-id]').length;
-        const len = doc.body?.innerHTML?.length ?? 0;
-        console.log('IframeCanvas - after render: node count =', count, 'body HTML length =', len);
-      } catch (e) {
-        console.warn('IframeCanvas - post-render inspection failed', e);
-      }
-    }, 0);
-    return () => clearTimeout(t);
-  }, [combinedKey, iframeBody]);
-
   // Hover highlight and context selection wiring when in selection mode
   useEffect(() => {
     if (!iframeBody) return;
@@ -188,85 +149,165 @@ export const IframeCanvas: React.FC = () => {
     if (!doc) return;
 
     let hoverEl: HTMLElement | null = null;
-    const hoverStyle = 'outline: 2px dashed hsl(var(--primary)); outline-offset: 2px;';
+    let rafId: number | null = null;
+    let lastPos: { x: number; y: number } | null = null;
 
-    const onMove = (e: MouseEvent) => {
-      if (selectionMode !== 'select') return;
-      const target = e.target as HTMLElement | null;
-      if (!target) return;
-      if (hoverEl === target) return;
-      if (hoverEl) hoverEl.style.outline = '';
-      hoverEl = target;
-      hoverEl.style.cssText += hoverStyle;
+    const clearHover = () => {
+      if (hoverEl) {
+        hoverEl.style.outline = '';
+        hoverEl.style.outlineOffset = '';
+        hoverEl = null;
+      }
+      setHoveredNodeId(null);
     };
 
-    doc.addEventListener('mousemove', onMove);
+    const pickBestCandidate = (elements: Element[]) => {
+      const seen = new Set<HTMLElement>();
+      const candidates: HTMLElement[] = [];
+      for (const el of elements) {
+        const elH = el as HTMLElement;
+        if (!elH || !elH.closest) continue;
+        const candidate = elH.closest('[data-node-id]') as HTMLElement | null;
+        if (candidate && !seen.has(candidate)) {
+          seen.add(candidate);
+          candidates.push(candidate);
+        }
+      }
+      if (candidates.length === 0) return null;
+      // Choose the candidate with the smallest area (prefer innermost/smaller targets)
+      let best = candidates[0];
+      let bestArea = (() => {
+        const r = best.getBoundingClientRect();
+        return r.width * r.height || Number.POSITIVE_INFINITY;
+      })();
+      for (let i = 1; i < candidates.length; i++) {
+        const c = candidates[i];
+        const r = c.getBoundingClientRect();
+        const area = r.width * r.height || Number.POSITIVE_INFINITY;
+        if (area < bestArea) {
+          best = c;
+          bestArea = area;
+        }
+      }
+      return best;
+    };
 
-    // Capture click for selection mode: select closest data-node-id and block app handlers
-    const onClickCapture = (e: MouseEvent) => {
+    const process = () => {
+      rafId = null;
+      if (!lastPos) return;
+      const { x, y } = lastPos;
+      lastPos = null;
+
+      // Allow hover processing when in select mode, or when there is an active selection
+      const currentSelected = useComponentStore.getState().selectedNodeId;
+      if (!(selectionMode === 'select' || !!currentSelected)) {
+        clearHover();
+        return;
+      }
+
+      const elementsAtPoint = doc.elementsFromPoint ? doc.elementsFromPoint(x, y) : [doc.elementFromPoint(x, y)].filter(Boolean) as Element[];
+      const nearest = pickBestCandidate(elementsAtPoint);
+
+      if (!nearest) {
+        clearHover();
+        return;
+      }
+
+      if (hoverEl === nearest) return;
+
+      // Switch outline to new element
+      if (hoverEl) {
+        hoverEl.style.outline = '';
+        hoverEl.style.outlineOffset = '';
+      }
+      hoverEl = nearest;
+      const id = hoverEl.getAttribute('data-node-id') || null;
+      hoverEl.style.outline = '2px dashed hsl(var(--primary))';
+      hoverEl.style.outlineOffset = '2px';
+      if (id) setHoveredNodeId(id);
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      // store last position and schedule a single rAF to process it
+      lastPos = { x: e.clientX, y: e.clientY };
+      if (rafId == null) rafId = requestAnimationFrame(process);
+    };
+
+    const onPointerLeave = () => {
+      lastPos = null;
+      if (rafId != null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      clearHover();
+    };
+
+  const onClickCapture = (e: MouseEvent) => {
       if (selectionMode !== 'select') return;
 
       e.preventDefault();
       e.stopPropagation();
-      setDrillDownMenu(null); // Always close any existing menu on a new click
-      setHoveredElementId(null); // Clear any hovered element
+      setDrillDownMenu(null);
+      setHoveredElementId(null);
+  // Clear transient inline outline, but keep store hovered id so pointermove can update it immediately
+      if (hoverEl) {
+        hoverEl.style.outline = '';
+        hoverEl.style.outlineOffset = '';
+        hoverEl = null;
+      }
 
-      // ▼▼▼ DRILL-DOWN SELECTION LOGIC ▼▼▼
-      // Check if the Shift key is pressed for drill-down selection
+      // existing drill-down selection logic (unchanged)
       if (e.shiftKey) {
-        const doc = iframeBody.ownerDocument;
-        if (!doc) return;
-
-        // Use `elementsFromPoint` to get a list of all elements under the cursor
-        const elementsAtPoint = doc.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[];
-
-        console.log('🔍 Drill-down: elementsFromPoint found:', elementsAtPoint.length, 'elements');
-        console.log('🔍 Drill-down: Raw elements at point:', elementsAtPoint.map(el => el.tagName));
-
-        // Filter this list to get only our unique, selectable component elements
+        const doc2 = iframeBody.ownerDocument;
+        if (!doc2) return;
+        const elementsAtPoint = doc2.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[];
         const selectableNodes = elementsAtPoint
           .map(el => el.closest('[data-node-id]') as HTMLElement | null)
-          .filter((el, index, self) => el && self.indexOf(el) === index) // Get unique elements
+          .filter((el, index, self) => el && self.indexOf(el) === index)
           .map(el => ({
             id: el!.getAttribute('data-node-id')!,
-            // Get the tag name, or the component name for our wrapped components
             name: el!.tagName.toLowerCase() === 'span' && el!.style.display === 'contents'
               ? el!.firstElementChild?.tagName.toLowerCase() || 'Component'
               : el!.tagName.toLowerCase(),
           }));
 
-        console.log('🔍 Drill-down: Selectable nodes found:', selectableNodes);
-
         if (selectableNodes.length > 1) {
-          // If there are multiple layers, open our custom drill-down menu
-          // Convert iframe coordinates to parent document coordinates
           const iframeRect = iframeRef.current?.getBoundingClientRect();
           const parentX = iframeRect ? e.pageX + iframeRect.left : e.pageX;
           const parentY = iframeRect ? e.pageY + iframeRect.top : e.pageY;
-          
           setDrillDownMenu({ x: parentX, y: parentY, elements: selectableNodes });
         } else if (selectableNodes.length === 1) {
-          // If only one selectable element is found, select it directly
           handleElementSelection(selectableNodes[0].id);
         }
       } else {
-        // This is the normal click logic (no Shift key)
-        const target = e.target as HTMLElement | null;
+        const target = (e.target as HTMLElement | null);
         const el = target?.closest('[data-node-id]') as HTMLElement | null;
         if (el) {
           const id = el.getAttribute('data-node-id');
           if (id) handleElementSelection(id);
         }
       }
-      // ▲▲▲ END DRILL-DOWN SELECTION LOGIC ▲▲▲
+
+      // schedule an immediate re-eval after click to refresh hover for whatever is now under the cursor
+      if (rafId == null) rafId = requestAnimationFrame(process);
     };
+
+    doc.addEventListener('pointermove', onPointerMove, true);
+    doc.addEventListener('pointerleave', onPointerLeave, true);
     doc.addEventListener('click', onClickCapture, true);
+
+    // Immediately evaluate once so if the cursor is already over an element after mount we sync UI
+    if (rafId == null) rafId = requestAnimationFrame(process);
+
     return () => {
-      doc.removeEventListener('mousemove', onMove);
+      if (rafId != null) cancelAnimationFrame(rafId);
+      doc.removeEventListener('pointermove', onPointerMove, true);
+      doc.removeEventListener('pointerleave', onPointerLeave, true);
       doc.removeEventListener('click', onClickCapture, true);
-      if (hoverEl) hoverEl.style.outline = '';
+      clearHover();
     };
-  }, [iframeBody, selectionMode, handleElementSelection]);
+  }, [iframeBody, selectionMode, handleElementSelection, setHoveredNodeId]);
+
 
   // ▼▼▼ DRILL-DOWN ELEMENT HIGHLIGHTING ▼▼▼
   // Highlight elements in iframe when hovering over menu items
@@ -295,55 +336,62 @@ export const IframeCanvas: React.FC = () => {
         className="w-full h-full bg-white rounded"
         sandbox="allow-scripts allow-same-origin"
       >
-        {iframeBody && createPortal(
-          <div key={combinedKey} style={{ minHeight: '100%', padding: '1rem' }}>
-            {(() => {
-              if (!chosenAst) return null;
+        {iframeBody && (() => {
+          // small stable key for portal children to avoid unnecessary remounts
+          const combinedKey = `${activeComponent?.id ?? 'no-comp'}|${depTick}|${selectionMode}`;
+          // Choose preview AST when available, otherwise use the main component AST
+          const chosenAst = componentPreviewAst ?? componentAst;
 
-              // Special handling for selection mode: if the root is a function component,
-              // render its children directly to preserve data-node-id attributes
-              let renderTarget: SerializableElement | string | null = chosenAst;
-              if (selectionMode === 'select' && typeof (chosenAst as SerializableElement).type === 'function') {
-                const children = (chosenAst as SerializableElement).props?.children;
-                if (Array.isArray(children) && children.length === 1 && typeof children[0] !== 'string') {
-                  renderTarget = children[0]; // Render the div directly instead of the function component
+          return createPortal(
+            <div key={combinedKey} style={{ minHeight: '100%', padding: '1rem' }}>
+              {(() => {
+                if (!chosenAst) return null;
+
+                // Special handling for selection mode: if the root is a function component,
+                // render its children directly to preserve data-node-id attributes
+                let renderTarget: SerializableElement | string | null = chosenAst;
+                if (selectionMode === 'select' && typeof (chosenAst as SerializableElement).type === 'function') {
+                  const children = (chosenAst as SerializableElement).props?.children;
+                  if (Array.isArray(children) && children.length === 1 && typeof children[0] !== 'string') {
+                    renderTarget = children[0]; // Render the div directly instead of the function component
+                  }
                 }
-              }
 
-              // Deep-clone and ensure props/children exist to avoid runtime errors
-              const cloneAndSanitize = (
-                node: SerializableElement | string | null
-              ): SerializableElement | string | null => {
-                if (typeof node === 'string' || node === null) return node;
-                const cloned = { ...node } as SerializableElement;
-                cloned.props = { ...(cloned.props || {}) } as Record<string, unknown> & { children?: (SerializableElement | string)[] };
-                if (!Array.isArray(cloned.props.children)) cloned.props.children = cloned.props.children ? [cloned.props.children] : [];
-                cloned.props.children = cloned.props.children.map((c: SerializableElement | string) =>
-                  typeof c === 'string' ? c : (cloneAndSanitize(c) as SerializableElement)
-                ) as (SerializableElement | string)[];
-                return cloned;
-              };
+                // Deep-clone and ensure props/children exist to avoid runtime errors
+                const cloneAndSanitize = (
+                  node: SerializableElement | string | null
+                ): SerializableElement | string | null => {
+                  if (typeof node === 'string' || node === null) return node;
+                  const cloned = { ...node } as SerializableElement;
+                  cloned.props = { ...(cloned.props || {}) } as Record<string, unknown> & { children?: (SerializableElement | string)[] };
+                  if (!Array.isArray(cloned.props.children)) cloned.props.children = cloned.props.children ? [cloned.props.children] : [];
+                  cloned.props.children = cloned.props.children.map((c: SerializableElement | string) =>
+                    typeof c === 'string' ? c : (cloneAndSanitize(c) as SerializableElement)
+                  ) as (SerializableElement | string)[];
+                  return cloned;
+                };
 
-              let safeAst: SerializableElement | string | null;
-              try {
-                safeAst = cloneAndSanitize(renderTarget as SerializableElement);
-              } catch (err) {
-                console.error('Failed to sanitize AST for rendering', err, renderTarget);
-                safeAst = renderTarget;
-              }
+                let safeAst: SerializableElement | string | null;
+                try {
+                  safeAst = cloneAndSanitize(renderTarget as SerializableElement);
+                } catch (err) {
+                  console.error('Failed to sanitize AST for rendering', err, renderTarget);
+                  safeAst = renderTarget;
+                }
 
-              try {
-                return renderFromAst(safeAst, (nodeId) => {
-                  setSelectedNodeId(nodeId);
-                }, selectionMode === 'select');
-              } catch (err) {
-                console.error('Error while rendering AST in iframe canvas', err, safeAst);
-                return null;
-              }
-            })()}
-          </div>,
-          iframeBody
-        )}
+                try {
+                  return renderFromAst(safeAst, (nodeId) => {
+                    setSelectedNodeId(nodeId);
+                  }, selectionMode === 'select');
+                } catch (err) {
+                  console.error('Error while rendering AST in iframe canvas', err, safeAst);
+                  return null;
+                }
+              })()}
+            </div>,
+            iframeBody
+          );
+        })()}
       </iframe>
 
       {/* ▼▼▼ DRILL-DOWN SELECTION MENU - Rendered in parent context ▼▼▼ */}
@@ -379,7 +427,6 @@ export const IframeCanvas: React.FC = () => {
                   key={el.id}
                   onClick={(e) => {
                     e.stopPropagation();
-                    console.log('🔍 Drill-down menu: Clicking element with ID:', el.id);
                     handleElementSelection(el.id);
                   }}
                   onMouseEnter={(e) => {

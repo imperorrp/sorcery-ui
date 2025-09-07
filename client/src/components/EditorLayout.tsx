@@ -1,5 +1,17 @@
 /**
- * Editor Layout Component - Main Application Interface
+ * * Key Features:
+ * - Three-panel resizable layout (Navigator, Code Editor, Canvas/Inspector)
+ * - Library panel for component selection and examples
+ * - Monaco code editor integration with syntax highlighting
+ * - Live component canvas with interactive selection and advanced drill-down selection
+ * - Inspector panel for props, styles, and component settings
+ * - Undo/redo functionality with history management
+ * - Theme-aware styling with dark/light mode support
+ * - Responsive design with panel minimization controls
+ * - Persistent layout preferences using localStorage
+ * - Floating dock for panel visibility controls
+ * - Fullscreen mode with automatic panel hiding
+ * - Multi-component tab system with overflow managementyout Component - Main Application Interface
  *
  * This is the core layout component that orchestrates the entire Live Component Editor interface.
  * It manages the three-panel layout system (Navigator, Code Editor, Canvas/Inspector) and coordinates
@@ -38,7 +50,7 @@
  * - Layout persistence and restoration
  *
  * @author Live Component Editor Team
- * @version 1.0.0
+ * @version 1.2.0
  */
 
 import React, { useRef, useState } from 'react';
@@ -50,11 +62,14 @@ import { ComponentTree } from '@/components/Navigator/ComponentTree';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Undo2, Redo2, Check, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useComponentStore } from '@/store/componentStore';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { BookOpenCheck } from 'lucide-react';
+import { useComponentStore, type ComponentData } from '@/store/componentStore';
 import { renderCodeToAst } from '@/lib/renderer';
 import { examples, multiComponentExamples } from '@/examples/examples';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { PanelHeader } from '@/components/ui/PanelHeader';
+import { ComponentTabs } from './CodeEditor/ComponentTabs';
 import { FloatingDock } from '@/components/ui/floating-dock';
 import { IconCode, IconLayoutSidebar, IconTree } from '@tabler/icons-react';
 
@@ -109,7 +124,7 @@ export const EditorLayout: React.FC = () => {
     setIsFullscreen(!isFullscreen);
   };
   
-  const { selectionMode, setSelectionMode, setRenderOutput, applyAstChangesToCode, isCodeHighlighted, clearCodeHighlight, undo, redo, isDirty, updateActiveComponentCode, setPropsJson, setDependencies, loadExampleSet } = useComponentStore();
+  const { selectionMode, setSelectionMode, setRenderOutput, applyAstChangesToCode, isCodeHighlighted, clearCodeHighlight, undo, redo, isDirty, updateActiveComponentCode, loadExampleSet } = useComponentStore();
   
   // ▼▼▼ THIS IS THE FIX ▼▼▼
   // Create selectors to get the data for the *active* component.
@@ -146,17 +161,17 @@ export const EditorLayout: React.FC = () => {
     // Handle regular examples
     const ex = examples[key as keyof typeof examples];
     if (ex) {
-      updateActiveComponentCode(ex.code);
-      if (ex.props) {
-        setPropsJson(JSON.stringify(ex.props, null, 2));
-      } else {
-        setPropsJson('{}');
-      }
-      if (ex.dependency) {
-        setDependencies([ex.dependency]);
-      } else {
-        setDependencies([]);
-      }
+      // Replace the whole component library with this single-example component
+      const newId = `example-${key}`;
+  const singleComp: Partial<ComponentData> = {
+        id: newId,
+        name: key,
+        code: ex.code,
+        propsJson: ex.props ? JSON.stringify(ex.props, null, 2) : '{}',
+        dependencies: ex.dependency ? [ex.dependency] : [],
+      };
+      // loadExampleSet will replace the entire components map and set active component
+      loadExampleSet({ [newId]: singleComp }, newId);
     }
   };
 
@@ -225,21 +240,71 @@ export const EditorLayout: React.FC = () => {
               minSize={20}
               order={1}
             >
-              <div className="h-full flex flex-col">
+                <div className="h-full flex flex-col">
                 <PanelHeader title="Code Editor">
-                  <Button onClick={handleRender} size="sm">
-                    Render
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant='outline' size='sm' className='flex items-center gap-2'>
+                          <BookOpenCheck className='h-4 w-4' />
+                          <span>Examples</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-background border border-border shadow-lg">
+                        <DropdownMenuLabel>Load an Example</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel className="text-xs font-medium text-muted-foreground px-2 py-1">
+                          Single Component
+                        </DropdownMenuLabel>
+                        {Object.keys(examples).map((key) => {
+                          const example = examples[key as keyof typeof examples];
+                          return (
+                            <DropdownMenuItem key={key} onSelect={() => handleExampleSelect(key)}>
+                              <div className="flex items-center justify-between w-full">
+                                <span>{key}</span>
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  ({example.description})
+                                </span>
+                              </div>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel className="text-xs font-medium text-muted-foreground px-2 py-1">
+                          Multi Component
+                        </DropdownMenuLabel>
+                        {multiComponentExamples && Object.keys(multiComponentExamples).map((key) => (
+                          <DropdownMenuItem key={key} onSelect={() => handleExampleSelect(key)} className="font-medium">
+                            <div className="flex items-center justify-between w-full">
+                              <span>🚀 {key}</span>
+                              <span className="text-xs text-muted-foreground ml-2">
+                                (Multi-component)
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button onClick={handleRender} size="sm" variant="default" className="ml-2 px-3 py-1 text-sm">
+                      Render
+                    </Button>
+                  </div>
                 </PanelHeader>
+                {/* Tabs should remain visible even when no component is open */}
+                <ComponentTabs />
                 <div className={`flex-grow overflow-hidden border-r ${theme === 'dark' ? 'bg-gray-950 text-gray-100 border-gray-800' : 'bg-gray-100 text-gray-900 border-gray-300'}`}>
-                  <MonacoEditor
-                    ref={monacoEditorRef}
-                    code={activeCode}
-                    onCodeChange={handleCodeChange}
-                    onExampleSelect={handleExampleSelect}
-                    examples={examples as Record<string, { code: string; description?: string; props?: Record<string, unknown>; dependency?: string }>}
-                    multiComponentExamples={multiComponentExamples}
-                  />
+                  {activeComponent ? (
+                    <MonacoEditor
+                      ref={monacoEditorRef}
+                      code={activeCode}
+                      onCodeChange={handleCodeChange}
+                    />
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
+                      <h3 className="mb-2 text-sm font-semibold">No component open</h3>
+                      <p className="text-xs">Open a component from the Library or load an Example to begin editing.</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </Panel>
@@ -328,7 +393,7 @@ export const EditorLayout: React.FC = () => {
                             </Button>
                             <Button
                               onClick={() => {
-                                console.log('Apply Changes clicked, isDirty:', isDirty);
+                                // Apply Changes clicked
                                 void handleApplyChanges();
                               }}
                               disabled={!isDirty}
