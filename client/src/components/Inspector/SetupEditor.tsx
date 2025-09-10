@@ -6,6 +6,14 @@ import Editor from '@monaco-editor/react';
 import React from "react"
 import { useTheme } from "@/contexts/ThemeContext";
 
+/**
+ * SetupEditor Component - Environment and Dependencies Configuration Panel
+ *
+ * Provides interfaces for configuring context wrappers and external dependencies
+ * for components. Supports Monaco editor for wrapper code and CDN URL management.
+ *
+ * @returns The rendered SetupEditor component
+ */
 export function SetupEditor() {
   // Use active component selectors for proper data access
   const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
@@ -72,10 +80,10 @@ export function SetupEditor() {
             placeholder="https://cdn.skypack.dev/framer-motion"
             value={newDep}
             onChange={e => setNewDep(e.target.value)}
-            className="flex-1 text-sm"
+            className="flex-1 text-sm min-w-0"
             onKeyPress={(e) => e.key === 'Enter' && handleAddDep()}
           />
-          <Button onClick={handleAddDep} size="sm" className="px-3">
+          <Button onClick={handleAddDep} size="sm" className="px-3 flex-shrink-0">
             <Plus className="h-4 w-4" />
           </Button>
         </div>

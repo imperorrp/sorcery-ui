@@ -105,7 +105,7 @@ This directory contains the entire frontend React application, built with Vite. 
 #### `components/`
 
 - `Navbar.tsx`: Navigation bar component with theme toggle functionality and app branding.
-- `EditorLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Canvas, Inspector). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access and enhanced layout management.
+- `EditorLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Canvas, Inspector). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access, fullscreen mode with automatic panel hiding, floating dock for panel visibility controls, and enhanced layout management with persistent preferences.
 
 ##### `Canvas/`
 
@@ -123,13 +123,13 @@ This directory contains the entire frontend React application, built with Vite. 
 ##### `Inspector/`
 
 - `InspectorPanel.tsx`: The right-hand panel that contains tabs for editing. It includes the Undo/Redo buttons and the master "Apply Changes" button.
-- `StyleEditor.tsx`: Displays input fields (e.g., color pickers, text inputs) to modify the CSS properties of the selected element. Changes are propagated to the Zustand store via the `updateNodeStyle` action. Includes smart disclaimer logic that only shows for child components, not root components, and comprehensive JSDoc documentation.
+- `StyleEditor.tsx`: Displays input fields (e.g., color pickers, text inputs) to modify the CSS properties of the selected element. Changes are propagated to the Zustand store via the `updateNodeStyle` action. Includes smart component boundary detection to prevent editing child components and real-time visual feedback.
 - `PropsEditor.tsx`: Provides a textarea for the user to input a JSON object, which is then used as props for the root component during rendering.
 - `SetupEditor.tsx`: Allows the user to add external CDN dependency URLs, which are injected as <script> tags into the sandboxed <iframe>. It also provides a code editor for defining a custom wrapper component (e.g., for theme or Redux providers).
 
 ##### `Navigator/`
 
-- `ComponentTree.tsx`: Displays a collapsible tree view of the component's structure based on the `componentPreviewAst`. It allows for selecting elements, which updates the `selectedNodeId` in the store. Includes comprehensive JSDoc documentation and debug logging for selection state changes.
+- `ComponentTree.tsx`: Displays a collapsible tree view of the component's structure based on the `componentPreviewAst`. It allows for selecting elements, which updates the `selectedNodeId` in the store. Includes smooth scrolling to selected elements and visual selection feedback.
 - `ComponentLibrary.tsx`: Simple component list interface for switching between components (alternative to LibraryPanel).
 
 ##### `Library/`
@@ -145,9 +145,11 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 - `input.tsx`: Input field component
 - `label.tsx`: Label component for form elements
 - `Panel.tsx`: Panel container component
+- `PanelHeader.tsx`: Reusable panel header component with title, icon, and action controls
+- `popover.tsx`: Popover component built on Radix UI primitives for dropdown menus and contextual content
 - `tabs.tsx`: Tab navigation component
 - `textarea.tsx`: Textarea component
-- `popover.tsx`: Popover component for dropdown menus and contextual content
+- `tooltip.tsx`: Tooltip component for contextual help
 
 ##### `Layouts/`
 
@@ -161,7 +163,7 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 - `tailwind.config.js`, `postcss.config.js`: Configuration for Tailwind CSS.
 - `tsconfig.*.json`: TypeScript configuration files.
 - `test-analyze.js`: Development test file for testing the `analyzeCode` function and JSX location detection.
-- `TestAstToCode.tsx`: Development test component for testing the AST-to-Code generation functionality.
+- `TestAstToCode.tsx`: Development test component for testing the AST-to-Code generation functionality with sample AST structures and JSX output.
 
 #### `examples/`
 

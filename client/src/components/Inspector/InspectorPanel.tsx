@@ -13,20 +13,20 @@ import { Palette, Settings, Wrench } from 'lucide-react';
  */
 export const InspectorPanel: React.FC = () => {
   return (
-    <div className="p-4">
+    <div className="p-4 min-w-0">
       <Tabs defaultValue="style" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="style" className="flex items-center gap-2">
-            <Palette className="h-4 w-4" />
-            <span className="font-medium">Style</span>
+        <TabsList className="flex w-full flex-wrap h-auto">
+          <TabsTrigger value="style" className="flex items-center gap-2 flex-1 min-w-0">
+            <Palette className="h-4 w-4 flex-shrink-0" />
+            <span className="font-medium truncate">Style</span>
           </TabsTrigger>
-          <TabsTrigger value="props" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            <span className="font-medium">Props</span>
+          <TabsTrigger value="props" className="flex items-center gap-2 flex-1 min-w-0">
+            <Settings className="h-4 w-4 flex-shrink-0" />
+            <span className="font-medium truncate">Props</span>
           </TabsTrigger>
-          <TabsTrigger value="setup" className="flex items-center gap-2">
-            <Wrench className="h-4 w-4" />
-            <span className="font-medium">Setup</span>
+          <TabsTrigger value="setup" className="flex items-center gap-2 flex-1 min-w-0">
+            <Wrench className="h-4 w-4 flex-shrink-0" />
+            <span className="font-medium truncate">Setup</span>
           </TabsTrigger>
         </TabsList>
 

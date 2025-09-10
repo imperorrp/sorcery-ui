@@ -63,6 +63,21 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, depth }) => {
 	const setSelectedNodeId = useComponentStore((s) => s.setSelectedNodeId);
 	const [expanded, setExpanded] = useState(true);
 
+	const nodeRef = React.useRef<HTMLDivElement | null>(null);
+
+	// Compute selection early so hooks run in a stable order
+	const isSelected = typeof node !== 'string' && selectedNodeId === (node as SerializableElement).id;
+
+	// Scroll this node into view when it becomes selected
+	React.useEffect(() => {
+		if (isSelected && nodeRef.current) {
+			const el = nodeRef.current;
+			if (el.offsetParent !== null) {
+				el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+			}
+		}
+	}, [isSelected]);
+
 	// Debug log to see when selectedNodeId changes
 	React.useEffect(() => {
 		// Navigator: selectedNodeId changed
@@ -83,7 +98,6 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, depth }) => {
 		? node.type
 		: ((node.type as React.ComponentType<unknown>).displayName || (node.type as React.ComponentType<unknown>).name || 'Component');
 
-	const isSelected = selectedNodeId === node.id;
 	const rawChildren = (node as SerializableElement).props?.children as unknown;
 	const children: Array<SerializableElement | string> = Array.isArray(rawChildren)
 		? rawChildren
@@ -105,22 +119,35 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, depth }) => {
 		<div>
 			<div
 				onClick={handleSelect}
+				role="treeitem"
+				aria-selected={isSelected}
+				ref={nodeRef}
 				className={cn(
-					"flex items-center text-sm cursor-pointer hover:bg-accent rounded p-1 text-foreground",
-					isSelected && "bg-accent text-accent-foreground"
+					"flex items-center text-sm cursor-pointer hover:bg-accent p-1",
+					isSelected
+						? "bg-accent text-accent-foreground rounded-md ring-1 ring-accent-foreground/25 shadow-sm"
+						: "rounded"
 				)}
 				style={{ paddingLeft: `${depth * 0.75}rem` }}
 			>
 				{hasChildren ? (
 					<ChevronRight
-						className={cn("h-4 w-4 mr-1 flex-shrink-0 transition-transform text-muted-foreground", expanded && "rotate-90")}
+						className={cn(
+							"h-4 w-4 mr-1 flex-shrink-0 transition-transform",
+							expanded && "rotate-90",
+							isSelected ? "text-accent-foreground" : "text-muted-foreground"
+						)}
 						onClick={handleToggle}
 					/>
 				) : (
-					<span className="w-5 mr-1" />
+					<span className={cn("w-5 mr-1", isSelected && "bg-accent-foreground/10 rounded-sm")} />
 				)}
-				<span className="font-semibold text-foreground">{label}</span>
+				<span className={cn("font-semibold", isSelected ? "font-extrabold text-accent-foreground" : "text-foreground")}>
+					{label}
+				</span>
 			</div>
+
+            
 
 			{expanded && hasChildren && (
 				<div className="pl-2 border-l border ml-4">

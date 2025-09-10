@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 /**
- * Style Editor - Visual Style Modification Panel
+ * StyleEditor Component - Visual Style Modification Panel
  *
  * Provides an interface for modifying CSS properties of selected DOM elements
  * in the component canvas. Changes are applied to the preview AST and reflected
@@ -14,11 +14,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
  *
  * Features:
  * - Smart component boundary detection to prevent editing child components
- * - Fixed disclaimer logic that only shows for child components, not root components
  * - Real-time style updates with immediate visual feedback
  * - Accordion-based organization of style controls
  *
- * @version 1.2.0
+ * @returns The rendered StyleEditor component
  */
 
 /**
@@ -113,8 +112,8 @@ export const StyleEditor: React.FC = () => {
           <AccordionItem value="colors">
             <AccordionTrigger>Colors</AccordionTrigger>
             <AccordionContent>
-              {/* Color and Background Color in a compact grid */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Color and Background Color in a responsive layout */}
+              <div className="flex flex-col gap-4 sm:grid sm:grid-cols-2 sm:gap-4">
                 <div>
                   <Label htmlFor="color" className="text-xs font-medium mb-2 block">
                     Text Color
@@ -125,13 +124,13 @@ export const StyleEditor: React.FC = () => {
                       type="color"
                       value={currentColor}
                       onChange={(e) => handleStyleChange('color', e.target.value)}
-                      className="w-12 h-8 p-1 border rounded cursor-pointer"
+                      className="w-12 h-8 p-1 border rounded cursor-pointer flex-shrink-0"
                     />
                     <Input
                       type="text"
                       value={currentColor}
                       onChange={(e) => handleStyleChange('color', e.target.value)}
-                      className="flex-1 text-xs font-mono"
+                      className="flex-1 text-xs font-mono min-w-0"
                       placeholder="#000000"
                     />
                   </div>
@@ -147,13 +146,13 @@ export const StyleEditor: React.FC = () => {
                       type="color"
                       value={currentBgColor}
                       onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
-                      className="w-12 h-8 p-1 border rounded cursor-pointer"
+                      className="w-12 h-8 p-1 border rounded cursor-pointer flex-shrink-0"
                     />
                     <Input
                       type="text"
                       value={currentBgColor}
                       onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
-                      className="flex-1 text-xs font-mono"
+                      className="flex-1 text-xs font-mono min-w-0"
                       placeholder="#ffffff"
                     />
                   </div>

@@ -5,6 +5,14 @@ import { useComponentStore } from '@/store/componentStore';
 import { Code, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+/**
+ * PropsEditor Component - Component Properties Configuration Panel
+ *
+ * Provides an interface for editing component props as JSON. Changes are applied
+ * when the user clicks "Render" to update the component preview.
+ *
+ * @returns The rendered PropsEditor component
+ */
 export const PropsEditor: React.FC = () => {
   // Use active component selectors for proper data access
   const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
@@ -29,14 +37,14 @@ export const PropsEditor: React.FC = () => {
           value={propsJson}
           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPropsJson(e.target.value)}
         />
-        <div className="flex items-center justify-between mt-2">
-          <p className="text-xs text-muted-foreground">
+        <div className="flex flex-col gap-2 mt-2 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+          <p className="text-xs text-muted-foreground flex-1 min-w-0">
             Define the data your component receives as props. Changes require clicking "Render" to apply.
           </p>
           <Button
             size="sm"
             variant="outline"
-            className="text-xs"
+            className="text-xs flex-shrink-0"
             onClick={() => setPropsJson('{\n  "title": "Hello World",\n  "visible": true\n}')}
           >
             <RefreshCw className="h-3 w-3 mr-1" />

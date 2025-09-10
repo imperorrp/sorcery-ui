@@ -1,5 +1,11 @@
 /**
- * * Key Features:
+ * EditorLayout Component - Main Application Interface
+ *
+ * This is the core layout component that orchestrates the entire Live Component Editor interface.
+ * It manages the three-panel layout system (Navigator, Code Editor, Canvas/Inspector) and coordinates
+ * all the major functionality including rendering, code editing, component inspection, and user interactions.
+ *
+ * Key Features:
  * - Three-panel resizable layout (Navigator, Code Editor, Canvas/Inspector)
  * - Library panel for component selection and examples
  * - Monaco code editor integration with syntax highlighting
@@ -11,22 +17,7 @@
  * - Persistent layout preferences using localStorage
  * - Floating dock for panel visibility controls
  * - Fullscreen mode with automatic panel hiding
- * - Multi-component tab system with overflow managementyout Component - Main Application Interface
- *
- * This is the core layout component that orchestrates the entire Live Component Editor interface.
- * It manages the three-panel layout system (Navigator, Code Editor, Canvas/Inspector) and coordinates
- * all the major functionality including rendering, code editing, component inspection, and user interactions.
- *
- * Key Features:
- * - Three-panel resizable layout (Navigator, Editor, Inspector)
- * - Library panel for component selection and examples
- * - Monaco code editor integration with syntax highlighting
- * - Live component canvas with interactive selection
- * - Inspector panel for props, styles, and component settings
- * - Undo/redo functionality with history management
- * - Theme-aware styling with dark/light mode support
- * - Responsive design with panel minimization controls
- * - Persistent layout preferences using localStorage
+ * - Multi-component tab system with overflow management
  *
  * Architecture:
  * - Uses react-resizable-panels for smooth panel resizing
@@ -60,7 +51,7 @@ import { ComponentCanvas } from './Canvas/ComponentCanvas';
 import { InspectorPanel } from './Inspector/InspectorPanel';
 import { ComponentTree } from '@/components/Navigator/ComponentTree';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Undo2, Redo2, Check, Maximize2 } from 'lucide-react';
+import { Undo2, Redo2, Check, Maximize2, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { BookOpenCheck } from 'lucide-react';
@@ -71,7 +62,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { PanelHeader } from '@/components/ui/PanelHeader';
 import { ComponentTabs } from './CodeEditor/ComponentTabs';
 import { FloatingDock } from '@/components/ui/floating-dock';
-import { IconCode, IconLayoutSidebar, IconTree } from '@tabler/icons-react';
+import { IconCode, IconLayoutSidebar, IconTree, IconBox } from '@tabler/icons-react';
 
 /**
  * Main editor layout component that manages the entire application interface.
@@ -241,13 +232,13 @@ export const EditorLayout: React.FC = () => {
               order={1}
             >
                 <div className="h-full flex flex-col">
-                <PanelHeader title="Code Editor">
-                  <div className="flex items-center gap-2">
+                <PanelHeader title="Code Editor" icon={<IconCode className="h-5 w-5" />}>
+                  <div className="flex items-center gap-2 min-w-0 overflow-hidden">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant='outline' size='sm' className='flex items-center gap-2'>
-                          <BookOpenCheck className='h-4 w-4' />
-                          <span>Examples</span>
+                        <Button variant='outline' size='sm' className='flex items-center gap-2 overflow-hidden whitespace-nowrap flex-none'>
+                          <BookOpenCheck className='h-4 w-4 flex-shrink-0' />
+                          <span className='ml-1 text-sm truncate min-w-0 overflow-hidden whitespace-nowrap'>Examples</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="bg-background border border-border shadow-lg">
@@ -285,8 +276,9 @@ export const EditorLayout: React.FC = () => {
                         ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button onClick={handleRender} size="sm" variant="default" className="ml-2 px-3 py-1 text-sm">
-                      Render
+                    <Button onClick={handleRender} size="default" variant="default" className="ml-2 flex items-center gap-2 overflow-hidden whitespace-nowrap flex-none">
+                      <Play className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate min-w-0 overflow-hidden whitespace-nowrap">Render</span>
                     </Button>
                   </div>
                 </PanelHeader>
@@ -320,8 +312,8 @@ export const EditorLayout: React.FC = () => {
           order={2}
         >
           <div className="h-full flex flex-col">
-            <PanelHeader title="Component Canvas">
-              <div className="flex items-center gap-2">
+            <PanelHeader title="Component Canvas" icon={<IconBox className="h-5 w-5" />}>
+              <div className="flex items-center gap-2 min-w-0 overflow-hidden">
                 <Button
                   onClick={() => setSelectionMode(selectionMode === 'interact' ? 'select' : 'interact')}
                   variant={selectionMode === 'select' ? 'default' : 'outline'}
@@ -331,14 +323,16 @@ export const EditorLayout: React.FC = () => {
                       ? 'Selection mode: Click to select elements. Click to toggle off.'
                       : 'Interaction mode: Click to interact. Toggle to enable selection mode.'
                   }
+                  className="flex items-center gap-2 overflow-hidden whitespace-nowrap flex-none"
                 >
-                  {selectionMode === 'select' ? 'Selection Mode' : 'Interaction Mode'}
+                  <span className="truncate min-w-0 overflow-hidden whitespace-nowrap">{selectionMode === 'select' ? 'Selection Mode' : 'Interaction Mode'}</span>
                 </Button>
                 <Button
                   onClick={handleFullscreenToggle}
                   variant="outline"
                   size="sm"
                   title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                  className="flex items-center overflow-hidden whitespace-nowrap flex-none"
                 >
                   <Maximize2 className="h-4 w-4" />
                 </Button>
@@ -371,16 +365,17 @@ export const EditorLayout: React.FC = () => {
                       order={1}
                     >
                       <div className="h-full flex flex-col">
-                        <PanelHeader title="Inspector">
-                          <div className="flex items-center gap-2">
+                        <PanelHeader title="Inspector" icon={<IconLayoutSidebar className="h-5 w-5" />}>
+                          <div className="flex items-center gap-2 min-w-0 overflow-hidden">
                             <Button
                               onClick={undo}
                               disabled={!canUndo}
                               size="sm"
                               variant="outline"
                               title="Undo last change"
+                              className="overflow-hidden whitespace-nowrap flex-1 min-w-0"
                             >
-                              <Undo2 className="h-4 w-4" />
+                              <Undo2 className="h-4 w-4 flex-shrink-0" />
                             </Button>
                             <Button
                               onClick={redo}
@@ -388,8 +383,9 @@ export const EditorLayout: React.FC = () => {
                               size="sm"
                               variant="outline"
                               title="Redo last change"
+                              className="overflow-hidden whitespace-nowrap flex-1 min-w-0"
                             >
-                              <Redo2 className="h-4 w-4" />
+                              <Redo2 className="h-4 w-4 flex-shrink-0" />
                             </Button>
                             <Button
                               onClick={() => {
@@ -399,9 +395,11 @@ export const EditorLayout: React.FC = () => {
                               disabled={!isDirty}
                               size="sm"
                               title={isDirty ? 'Apply inspector changes into the code editor' : 'No changes to apply'}
+                              className="px-2 sm:px-3 flex items-center gap-2 overflow-hidden whitespace-nowrap flex-none"
                             >
-                              <Check className="h-4 w-4 mr-1" />
-                              Apply Changes
+                              <Check className="h-4 w-4 flex-shrink-0" />
+                              {/* prefer nowrap label so it remains visible until space truly runs out */}
+                              <span className="hidden sm:inline whitespace-nowrap">Apply Changes</span>
                             </Button>
                           </div>
                         </PanelHeader>
@@ -425,7 +423,7 @@ export const EditorLayout: React.FC = () => {
                     order={2}
                   >
                     <div className="h-full flex flex-col">
-                      <PanelHeader title="Navigator" />
+                      <PanelHeader title="Navigator" icon={<IconTree className="h-5 w-5" />} />
                       <div className={`flex-grow overflow-auto p-2 ${theme === 'dark' ? 'bg-gray-950 text-gray-100' : 'bg-gray-100 text-gray-900'}`}>
                         <ComponentTree />
                       </div>
