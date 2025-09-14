@@ -1,7 +1,8 @@
 import React from 'react';
 import { create } from 'zustand';
-// Use the new surgical style updater that preserves component logic
+// Use separate updaters for styles and className
 import { updateStylesInCode } from '@/lib/styleUpdater';
+import { updateClassNameInCode } from '@/lib/classNameUpdater';
 import { defaultExample } from '@/examples/examples';
 
 /**
@@ -28,8 +29,6 @@ import { defaultExample } from '@/examples/examples';
  * - History stack with unlimited undo/redo
  * - Computed getters for backward compatibility
  * - Example set loading with version tracking
- *
- * @version 1.2.0
  */
 
 // Define the structure of our serializable element AST
@@ -78,6 +77,7 @@ export interface ComponentData {
   componentPreviewAst: SerializableElement | null; // Preview AST created with shimmed React (safe for editing)
   jsxLocation: JsxLocation | null; // Location of JSX block in source code for highlighting
   propsJson: string; // JSON string of mock props for component rendering
+  originalPropsJson?: string; // Original props from example, used for reset functionality
   dependencies: string[]; // Array of external CDN URLs to inject
   wrapperCode: string; // Code for React context providers/wrappers
   history: HistorySnapshot[]; // Array of AST snapshots for undo/redo
@@ -107,6 +107,7 @@ interface ComponentState {
   selectionMode: 'interact' | 'select'; // Canvas interaction mode
   isDirty: boolean; // isDirty now refers to the active component
   isCodeHighlighted: boolean; // Controls persistent code highlighting
+  globalCss: string; // Global CSS for utility classes and custom styles
 }
 
 // Define the actions that can be performed on the state
@@ -136,6 +137,7 @@ interface ComponentActions {
   setSelectedNodeId: (nodeId: string | null) => void;
   setHoveredNodeId: (nodeId: string | null) => void;
   updateNodeStyle: (nodeId: string, newStyle: React.CSSProperties) => void;
+  updateNodeClassName: (nodeId: string, newClassName: string) => void;
   undo: () => void;
   redo: () => void;
   setPropsJson: (json: string) => void;
@@ -144,6 +146,7 @@ interface ComponentActions {
   removeDependency: (url: string) => void; // Add this
   setDependencies: (urls: string[]) => void; // Add this
   setWrapperCode: (code: string) => void;  // Add this
+  setGlobalCss: (css: string) => void; // Global CSS for utility classes
   /**
    * Sets the render output after transpiling and executing component code.
    *
@@ -165,8 +168,9 @@ interface ComponentActions {
   /**
    * Applies accumulated AST changes back to the original source code.
    *
-   * This function uses the new AST-to-code generation approach to create clean,
+   * This function uses the unified attribute updater to create clean,
    * formatted JSX from the preview AST and replaces the JSX block in the original code.
+   * It handles both style and className changes in a single pass.
    *
    * @returns A promise that resolves to the updated code string, or null if update fails
    */
@@ -248,7 +252,8 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
     componentPreviewAst: null,
     jsxLocation: null,
     propsJson: JSON.stringify(defaultExample.props || {}, null, 2),
-    dependencies: defaultExample.dependency ? [defaultExample.dependency] : [],
+    originalPropsJson: JSON.stringify(defaultExample.props || {}, null, 2),
+    dependencies: defaultExample.dependency ? (Array.isArray(defaultExample.dependency) ? defaultExample.dependency : [defaultExample.dependency]) : ['https://cdn.tailwindcss.com'],
     wrapperCode: initialWrapperCode, // Use the wrapper code from your store
     history: [{ ast: null, preview: null }],
     historyIndex: 0,
@@ -266,6 +271,7 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
     isDirty: false,
     isCodeHighlighted: false,
   examplesVersion: 0,
+  globalCss: '', // Global CSS for utility classes
 
     // Computed properties for backward compatibility
     get componentAst() {
@@ -326,7 +332,8 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
         componentPreviewAst: null,
         jsxLocation: null,
         propsJson: JSON.stringify(defaultExample.props || {}, null, 2),
-        dependencies: defaultExample.dependency ? [defaultExample.dependency] : [],
+        originalPropsJson: JSON.stringify(defaultExample.props || {}, null, 2),
+        dependencies: defaultExample.dependency ? (Array.isArray(defaultExample.dependency) ? defaultExample.dependency : [defaultExample.dependency]) : ['https://cdn.tailwindcss.com'],
         wrapperCode: initialWrapperCode,
         history: [{ ast: null, preview: null }],
         historyIndex: 0,
@@ -463,10 +470,11 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
             name: partial.name!,
             code: partial.code!,
             propsJson: partial.propsJson || '{}',
+            originalPropsJson: partial.propsJson || '{}',
             componentAst: null,
             componentPreviewAst: null,
             jsxLocation: null,
-            dependencies: [],
+            dependencies: partial.dependencies || ['https://cdn.tailwindcss.com'],
             wrapperCode: initialWrapperCode,
             history: [{ ast: null, preview: null }],
             historyIndex: 0,
@@ -541,42 +549,42 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
     /**
      * Updates the style of a specific node in the active component's AST
      *
-     * STATE MANAGEMENT FIX (v1.1):
-     * - Fixed race conditions by using atomic updates within set() callback
-     * - Proper immutable updates to prevent state mutation bugs
-     * - Correctly sets isDirty flag when changes are made
-     * - Maintains history stack for undo/redo functionality
-     *
      * @param nodeId - The ID of the node to update
-     * @param newStyle - The new CSS properties to apply
+     * @param newStyle - The new style object to apply
      */
-    updateNodeStyle: (nodeId, newStyle) => {
+  updateNodeStyle: (nodeId: string, newStyle: React.CSSProperties) => {
       set((state) => {
         const { activeComponentId, components } = state;
 
-        // 1. Guard Clause: Don't do anything if there's no active component.
+        // Guard Clause: Don't do anything if there's no active component.
         if (!activeComponentId) {
-          return state; // Return the original state unmodified
+          return state;
         }
 
-        // 2. Get a reference to the specific component data we need to update.
         const activeComponentData = components[activeComponentId];
         if (!activeComponentData) {
-          return state; // Safety check
+          return state;
         }
 
         const { componentAst, componentPreviewAst, history, historyIndex } = activeComponentData;
 
-        // 3. Define the update function (this part is the same as before).
-        const updateFn = (node: SerializableElement): SerializableElement => ({
-          ...node,
-          props: {
-            ...node.props,
-            style: { ...node.props.style, ...newStyle },
-          },
-        });
+        // Define the update function for style
+        // IMPORTANT: merge with existing style so previously defined properties are preserved
+        const updateFn = (node: SerializableElement): SerializableElement => {
+          const prevStyle = (node.props?.style as React.CSSProperties) || {};
+          return {
+            ...node,
+            props: {
+              ...node.props,
+              style: {
+                ...prevStyle,
+                ...newStyle,
+              },
+            },
+          };
+        };
 
-        // 4. Create the new, updated versions of the ASTs.
+        // Create the new, updated versions of the ASTs.
         const newComponentAst = componentAst
           ? findAndCloneUpdateNode(componentAst, nodeId, updateFn)
           : null;
@@ -584,11 +592,11 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
           ? findAndCloneUpdateNode(componentPreviewAst, nodeId, updateFn)
           : null;
 
-        // 5. Create the new history entry for the component.
+        // Create the new history entry for the component.
         const newHistory = history.slice(0, historyIndex + 1);
         newHistory.push({ ast: newComponentAst, preview: newComponentPreviewAst });
 
-        // 6. Create the single, updated ComponentData object.
+        // Create the single, updated ComponentData object.
         const updatedComponentData: ComponentData = {
           ...activeComponentData,
           componentAst: newComponentAst,
@@ -597,15 +605,82 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
           historyIndex: newHistory.length - 1,
         };
 
-        // 7. Create the new, top-level state object.
-        // This is the most critical step: we create a new `components` map
-        // and place our updated component data inside it.
+        // Create the new, top-level state object.
         const newState: Partial<ComponentState> = {
           components: {
             ...state.components,
             [activeComponentId]: updatedComponentData,
           },
-          isDirty: true, // <<< Set the dirty flag!
+          isDirty: true,
+        };
+
+        return newState;
+      });
+    },
+
+    /**
+     * Updates the className of a specific node in the active component's AST
+     *
+     * @param nodeId - The ID of the node to update
+     * @param newClassName - The new className string to apply
+     */
+    updateNodeClassName: (nodeId: string, newClassName: string) => {
+      set((state) => {
+        const { activeComponentId, components } = state;
+
+        // Guard Clause: Don't do anything if there's no active component.
+        if (!activeComponentId) {
+          return state;
+        }
+
+        const activeComponentData = components[activeComponentId];
+        if (!activeComponentData) {
+          return state;
+        }
+
+        const { componentAst, componentPreviewAst, history, historyIndex } = activeComponentData;
+
+        // Define the update function for className. Preserve other props.
+        const updateFn = (node: SerializableElement): SerializableElement => ({
+          ...node,
+          props: {
+            ...node.props,
+            className: newClassName,
+          },
+        });
+
+        // If previewAst is missing but runtime ast exists, we will synthesize a preview copy on first edit.
+        const basePreviewAst = componentPreviewAst || componentAst;
+
+        const newComponentAst = componentAst
+          ? findAndCloneUpdateNode(componentAst, nodeId, updateFn)
+          : null;
+  const newComponentPreviewAst = basePreviewAst
+          ? findAndCloneUpdateNode(basePreviewAst, nodeId, updateFn)
+          : null;
+
+        // Ensure previewAst is not referencing runtime object directly (defensive clone already done above)
+
+        // Create the new history entry for the component.
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push({ ast: newComponentAst, preview: newComponentPreviewAst });
+
+        // Create the single, updated ComponentData object.
+        const updatedComponentData: ComponentData = {
+          ...activeComponentData,
+          componentAst: newComponentAst,
+          componentPreviewAst: newComponentPreviewAst,
+          history: newHistory,
+          historyIndex: newHistory.length - 1,
+        };
+
+        // Create the new, top-level state object.
+        const newState: Partial<ComponentState> = {
+          components: {
+            ...state.components,
+            [activeComponentId]: updatedComponentData,
+          },
+          isDirty: true,
         };
 
         return newState;
@@ -760,6 +835,8 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
       }));
     },
 
+    setGlobalCss: (css) => set({ globalCss: css }),
+
     setRenderOutput: (code, runtimeAst, previewAst, jsxLocation) => {
       const { activeComponentId, components } = get();
       if (!activeComponentId) return;
@@ -818,12 +895,13 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
       }
 
       try {
-        // Call our new, logic-preserving updater
-        const newCode = await updateStylesInCode(originalCode, componentPreviewAst);
+        // Chain the updaters: first apply styles, then className
+        const codeWithStyles = await updateStylesInCode(originalCode, componentPreviewAst);
+        const codeWithStylesAndClasses = await updateClassNameInCode(codeWithStyles, componentPreviewAst);
 
         const updatedComponent = {
           ...activeComponent,
-          code: newCode,
+          code: codeWithStylesAndClasses,
         };
 
         set((state) => ({
@@ -835,7 +913,7 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
           isCodeHighlighted: true,
         }));
         
-        return newCode;
+        return codeWithStylesAndClasses;
 
       } catch (error) {
         console.error('Failed to apply style changes to code:', error);

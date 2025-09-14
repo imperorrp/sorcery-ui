@@ -1,52 +1,5 @@
-/**
- * EditorLayout Component - Main Application Interface
- *
- * This is the core layout component that orchestrates the entire Live Component Editor interface.
- * It manages the three-panel layout system (Navigator, Code Editor, Canvas/Inspector) and coordinates
- * all the major functionality including rendering, code editing, component inspection, and user interactions.
- *
- * Key Features:
- * - Three-panel resizable layout (Navigator, Code Editor, Canvas/Inspector)
- * - Library panel for component selection and examples
- * - Monaco code editor integration with syntax highlighting
- * - Live component canvas with interactive selection and advanced drill-down selection
- * - Inspector panel for props, styles, and component settings
- * - Undo/redo functionality with history management
- * - Theme-aware styling with dark/light mode support
- * - Responsive design with panel minimization controls
- * - Persistent layout preferences using localStorage
- * - Floating dock for panel visibility controls
- * - Fullscreen mode with automatic panel hiding
- * - Multi-component tab system with overflow management
- *
- * Architecture:
- * - Uses react-resizable-panels for smooth panel resizing
- * - Integrates with Zustand store for state management
- * - Implements custom hooks for layout management
- * - Handles complex state synchronization between panels
- * - Manages component lifecycle and rendering pipeline
- *
- * Panel Structure:
- * 1. Library Panel (leftmost): Component library and examples
- * 2. Navigator Panel: Component tree and structure navigation
- * 3. Code Editor Panel: Monaco editor for code editing
- * 4. Canvas Panel: Live component rendering and interaction
- * 5. Inspector Panel: Component properties and styling controls
- *
- * State Management:
- * - Component store integration for multi-component support
- * - Active component tracking and switching
- * - Code highlighting and selection synchronization
- * - History management for undo/redo operations
- * - Layout persistence and restoration
- *
- * @author Live Component Editor Team
- * @version 1.2.0
- */
-
 import React, { useRef, useState } from 'react';
-import { MonacoEditor } from './CodeEditor/MonacoEditor';
-import type { MonacoEditorRef } from './CodeEditor/MonacoEditor';
+import { MonacoEditor, type MonacoEditorRef } from './CodeEditor/MonacoEditor';
 import { ComponentCanvas } from './Canvas/ComponentCanvas';
 import { InspectorPanel } from './Inspector/InspectorPanel';
 import { ComponentTree } from '@/components/Navigator/ComponentTree';
@@ -62,7 +15,8 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { PanelHeader } from '@/components/ui/PanelHeader';
 import { ComponentTabs } from './CodeEditor/ComponentTabs';
 import { FloatingDock } from '@/components/ui/floating-dock';
-import { IconCode, IconLayoutSidebar, IconTree, IconBox } from '@tabler/icons-react';
+import { IconCode, IconLayoutSidebar, IconTree, IconBox, IconPalette, IconSettings } from '@tabler/icons-react';
+import { ConfigurerPanel } from './Inspector/ConfigurerPanel';
 
 /**
  * Main editor layout component that manages the entire application interface.
@@ -81,19 +35,21 @@ import { IconCode, IconLayoutSidebar, IconTree, IconBox } from '@tabler/icons-re
 export const EditorLayout: React.FC = () => {
   const { theme } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
-  
+
   // Panel visibility state for dock system
   const [isCodeEditorVisible, setIsCodeEditorVisible] = useState(true);
   const [isInspectorVisible, setIsInspectorVisible] = useState(true);
   const [isNavigatorVisible, setIsNavigatorVisible] = useState(true);
-  
+  const [isConfigurerVisible, setIsConfigurerVisible] = useState(true);
+
   // Remember panel states before entering fullscreen
   const [preFullscreenStates, setPreFullscreenStates] = useState({
     codeEditor: true,
     inspector: true,
-    navigator: true
+    navigator: true,
+    configurer: true
   });
-  
+
   // Handle fullscreen toggle - hide/show all panels
   const handleFullscreenToggle = () => {
     if (!isFullscreen) {
@@ -101,22 +57,25 @@ export const EditorLayout: React.FC = () => {
       setPreFullscreenStates({
         codeEditor: isCodeEditorVisible,
         inspector: isInspectorVisible,
-        navigator: isNavigatorVisible
+        navigator: isNavigatorVisible,
+        configurer: isConfigurerVisible
       });
       setIsCodeEditorVisible(false);
       setIsInspectorVisible(false);
       setIsNavigatorVisible(false);
+      setIsConfigurerVisible(false);
     } else {
       // Exiting fullscreen - restore previous states
       setIsCodeEditorVisible(preFullscreenStates.codeEditor);
       setIsInspectorVisible(preFullscreenStates.inspector);
       setIsNavigatorVisible(preFullscreenStates.navigator);
+      setIsConfigurerVisible(preFullscreenStates.configurer);
     }
     setIsFullscreen(!isFullscreen);
   };
-  
+
   const { selectionMode, setSelectionMode, setRenderOutput, applyAstChangesToCode, isCodeHighlighted, clearCodeHighlight, undo, redo, isDirty, updateActiveComponentCode, loadExampleSet } = useComponentStore();
-  
+
   // ▼▼▼ THIS IS THE FIX ▼▼▼
   // Create selectors to get the data for the *active* component.
   const activeComponent = useComponentStore((state) =>
@@ -126,7 +85,7 @@ export const EditorLayout: React.FC = () => {
   const activeHistory = activeComponent?.history ?? [];
   const activeHistoryIndex = activeComponent?.historyIndex ?? 0;
   // ▲▲▲ END OF FIX ▲▲▲
-  
+
   // Handle code changes from the editor
   const handleCodeChange = (newCode: string) => {
     updateActiveComponentCode(newCode);
@@ -159,7 +118,7 @@ export const EditorLayout: React.FC = () => {
         name: key,
         code: ex.code,
         propsJson: ex.props ? JSON.stringify(ex.props, null, 2) : '{}',
-        dependencies: ex.dependency ? [ex.dependency] : [],
+        dependencies: ex.dependency ? (Array.isArray(ex.dependency) ? ex.dependency : [ex.dependency]) : [],
       };
       // loadExampleSet will replace the entire components map and set active component
       loadExampleSet({ [newId]: singleComp }, newId);
@@ -222,97 +181,131 @@ export const EditorLayout: React.FC = () => {
   return (
     <div className={`h-full w-full ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`} data-layout-container>
       <PanelGroup direction="horizontal" className="h-full w-full">
-        {/* Code Editor Panel - Conditionally rendered */}
-        {isCodeEditorVisible && (
+        {/* Left Panel Group - Code Editor and Configurer */}
+        {(isCodeEditorVisible || isConfigurerVisible) && (
           <>
-            <Panel 
-              id="code-editor"
-              defaultSize={35} 
+            <Panel
+              id="left-panels"
+              defaultSize={35}
               minSize={20}
               order={1}
             >
-                <div className="h-full flex flex-col">
-                <PanelHeader title="Code Editor" icon={<IconCode className="h-5 w-5" />}>
-                  <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant='outline' size='sm' className='flex items-center gap-2 overflow-hidden whitespace-nowrap flex-none'>
-                          <BookOpenCheck className='h-4 w-4 flex-shrink-0' />
-                          <span className='ml-1 text-sm truncate min-w-0 overflow-hidden whitespace-nowrap'>Examples</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="bg-background border border-border shadow-lg">
-                        <DropdownMenuLabel>Load an Example</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel className="text-xs font-medium text-muted-foreground px-2 py-1">
-                          Single Component
-                        </DropdownMenuLabel>
-                        {Object.keys(examples).map((key) => {
-                          const example = examples[key as keyof typeof examples];
-                          return (
-                            <DropdownMenuItem key={key} onSelect={() => handleExampleSelect(key)}>
-                              <div className="flex items-center justify-between w-full">
-                                <span>{key}</span>
-                                <span className="text-xs text-muted-foreground ml-2">
-                                  ({example.description})
-                                </span>
-                              </div>
-                            </DropdownMenuItem>
-                          );
-                        })}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel className="text-xs font-medium text-muted-foreground px-2 py-1">
-                          Multi Component
-                        </DropdownMenuLabel>
-                        {multiComponentExamples && Object.keys(multiComponentExamples).map((key) => (
-                          <DropdownMenuItem key={key} onSelect={() => handleExampleSelect(key)} className="font-medium">
-                            <div className="flex items-center justify-between w-full">
-                              <span>🚀 {key}</span>
-                              <span className="text-xs text-muted-foreground ml-2">
-                                (Multi-component)
-                              </span>
+              <PanelGroup direction="vertical">
+                {/* Code Editor Panel - Conditionally rendered */}
+                {isCodeEditorVisible && (
+                  <>
+                    <Panel
+                      id="code-editor"
+                      defaultSize={isConfigurerVisible ? 70 : 100}
+                      minSize={30}
+                      order={1}
+                    >
+                        <div className="h-full flex flex-col">
+                        <PanelHeader title="Code Editor" icon={<IconCode className="h-5 w-5" />}>
+                          <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant='outline' size='sm' className='flex items-center gap-2 overflow-hidden whitespace-nowrap flex-none'>
+                                  <BookOpenCheck className='h-4 w-4 flex-shrink-0' />
+                                  <span className='ml-1 text-sm truncate min-w-0 overflow-hidden whitespace-nowrap'>Examples</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent className="bg-background border border-border shadow-lg">
+                                <DropdownMenuLabel>Load an Example</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuLabel className="text-xs font-medium text-muted-foreground px-2 py-1">
+                                  Single Component
+                                </DropdownMenuLabel>
+                                {Object.keys(examples).map((key) => {
+                                  const example = examples[key as keyof typeof examples];
+                                  return (
+                                    <DropdownMenuItem key={key} onSelect={() => handleExampleSelect(key)}>
+                                      <div className="flex items-center justify-between w-full">
+                                        <span>{key}</span>
+                                        <span className="text-xs text-muted-foreground ml-2">
+                                          ({example.description})
+                                        </span>
+                                      </div>
+                                    </DropdownMenuItem>
+                                  );
+                                })}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuLabel className="text-xs font-medium text-muted-foreground px-2 py-1">
+                                  Multi Component
+                                </DropdownMenuLabel>
+                                {multiComponentExamples && Object.keys(multiComponentExamples).map((key) => (
+                                  <DropdownMenuItem key={key} onSelect={() => handleExampleSelect(key)} className="font-medium">
+                                    <div className="flex items-center justify-between w-full">
+                                      <span>🚀 {key}</span>
+                                      <span className="text-xs text-muted-foreground ml-2">
+                                        (Multi-component)
+                                      </span>
+                                    </div>
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button onClick={handleRender} size="default" variant="default" className="ml-2 flex items-center gap-2 overflow-hidden whitespace-nowrap flex-none">
+                              <Play className="h-4 w-4 flex-shrink-0" />
+                              <span className="truncate min-w-0 overflow-hidden whitespace-nowrap">Render</span>
+                            </Button>
+                          </div>
+                        </PanelHeader>
+                        {/* Tabs should remain visible even when no component is open */}
+                        <ComponentTabs />
+                        <div className={`flex-grow overflow-hidden border-r ${theme === 'dark' ? 'bg-gray-950 text-gray-100' : 'bg-gray-100 text-gray-900'}`}>
+                          {activeComponent ? (
+                            <MonacoEditor
+                              ref={monacoEditorRef}
+                              code={activeCode}
+                              onCodeChange={handleCodeChange}
+                            />
+                          ) : (
+                            <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
+                              <h3 className="mb-2 text-sm font-semibold">No component open</h3>
+                              <p className="text-xs">Open a component from the Library or load an Example to begin editing.</p>
                             </div>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Button onClick={handleRender} size="default" variant="default" className="ml-2 flex items-center gap-2 overflow-hidden whitespace-nowrap flex-none">
-                      <Play className="h-4 w-4 flex-shrink-0" />
-                      <span className="truncate min-w-0 overflow-hidden whitespace-nowrap">Render</span>
-                    </Button>
-                  </div>
-                </PanelHeader>
-                {/* Tabs should remain visible even when no component is open */}
-                <ComponentTabs />
-                <div className={`flex-grow overflow-hidden border-r ${theme === 'dark' ? 'bg-gray-950 text-gray-100 border-gray-800' : 'bg-gray-100 text-gray-900 border-gray-300'}`}>
-                  {activeComponent ? (
-                    <MonacoEditor
-                      ref={monacoEditorRef}
-                      code={activeCode}
-                      onCodeChange={handleCodeChange}
-                    />
-                  ) : (
-                    <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-                      <h3 className="mb-2 text-sm font-semibold">No component open</h3>
-                      <p className="text-xs">Open a component from the Library or load an Example to begin editing.</p>
+                          )}
+                        </div>
+                      </div>
+                    </Panel>
+                    {isConfigurerVisible && (
+                      <PanelResizeHandle className={`h-2 ${theme === 'dark' ? 'bg-gray-700 hover:bg-blue-500' : 'bg-gray-300 hover:bg-blue-500'}`} />
+                    )}
+                  </>
+                )}
+
+                {/* Configurer Panel - Conditionally rendered */}
+                {isConfigurerVisible && (
+                  <Panel
+                    id="configurer"
+                    defaultSize={isCodeEditorVisible ? 30 : 100}
+                    minSize={20}
+                    order={2}
+                  >
+                    <div className="h-full flex flex-col">
+                      <PanelHeader title="Configurer" icon={<IconSettings className="h-5 w-5" />} />
+                      <div className={`flex-grow overflow-auto ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+                        <ConfigurerPanel />
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
+                  </Panel>
+                )}
+              </PanelGroup>
             </Panel>
             <PanelResizeHandle className={`w-2 ${theme === 'dark' ? 'bg-gray-700 hover:bg-blue-500' : 'bg-gray-300 hover:bg-blue-500'}`} />
           </>
         )}
 
         {/* Component Canvas Panel - Always visible */}
-        <Panel 
+        <Panel
           id="component-canvas"
-          defaultSize={isFullscreen ? 100 : (isCodeEditorVisible ? 45 : 65)} 
+          defaultSize={isFullscreen ? 100 : ((isCodeEditorVisible || isConfigurerVisible) ? 45 : 65)}
           minSize={30}
           order={2}
         >
           <div className="h-full flex flex-col">
-            <PanelHeader title="Component Canvas" icon={<IconBox className="h-5 w-5" />}>
+            <PanelHeader title="Component Preview" icon={<IconBox className="h-5 w-5" />}>
               <div className="flex items-center gap-2 min-w-0 overflow-hidden">
                 <Button
                   onClick={() => setSelectionMode(selectionMode === 'interact' ? 'select' : 'interact')}
@@ -348,9 +341,9 @@ export const EditorLayout: React.FC = () => {
         {(isInspectorVisible || isNavigatorVisible) && (
           <>
             <PanelResizeHandle className={`w-2 ${theme === 'dark' ? 'bg-gray-700 hover:bg-blue-500' : 'bg-gray-300 hover:bg-blue-500'}`} />
-            <Panel 
+            <Panel
               id="right-panels"
-              defaultSize={20} 
+              defaultSize={20}
               minSize={15}
               order={3}
             >
@@ -358,14 +351,14 @@ export const EditorLayout: React.FC = () => {
                 {/* Inspector Panel - Conditionally rendered */}
                 {isInspectorVisible && (
                   <>
-                    <Panel 
+                    <Panel
                       id="inspector"
-                      defaultSize={isNavigatorVisible ? 60 : 100} 
+                      defaultSize={isNavigatorVisible ? 60 : 100}
                       minSize={25}
                       order={1}
                     >
                       <div className="h-full flex flex-col">
-                        <PanelHeader title="Inspector" icon={<IconLayoutSidebar className="h-5 w-5" />}>
+                        <PanelHeader title="Style Editor" icon={<IconPalette className="h-5 w-5" />}>
                           <div className="flex items-center gap-2 min-w-0 overflow-hidden">
                             <Button
                               onClick={undo}
@@ -416,9 +409,9 @@ export const EditorLayout: React.FC = () => {
 
                 {/* Navigator Panel - Conditionally rendered */}
                 {isNavigatorVisible && (
-                  <Panel 
+                  <Panel
                     id="navigator"
-                    defaultSize={isInspectorVisible ? 40 : 100} 
+                    defaultSize={isInspectorVisible ? 40 : 100}
                     minSize={20}
                     order={2}
                   >
@@ -447,8 +440,14 @@ export const EditorLayout: React.FC = () => {
               isActive: isCodeEditorVisible,
             },
             {
-              title: isInspectorVisible ? "Hide Inspector" : "Show Inspector",
-              icon: <IconLayoutSidebar className={`h-full w-full ${isInspectorVisible ? 'text-blue-500 dark:text-blue-400' : 'text-neutral-500 dark:text-neutral-300'}`} />,
+              title: isConfigurerVisible ? "Hide Configurer" : "Show Configurer",
+              icon: <IconLayoutSidebar className={`h-full w-full ${isConfigurerVisible ? 'text-blue-500 dark:text-blue-400' : 'text-neutral-500 dark:text-neutral-300'}`} />,
+              onClick: () => setIsConfigurerVisible(!isConfigurerVisible),
+              isActive: isConfigurerVisible,
+            },
+            {
+              title: isInspectorVisible ? "Hide Style Editor" : "Show Style Editor",
+              icon: <IconPalette className={`h-full w-full ${isInspectorVisible ? 'text-blue-500 dark:text-blue-400' : 'text-neutral-500 dark:text-neutral-300'}`} />,
               onClick: () => setIsInspectorVisible(!isInspectorVisible),
               isActive: isInspectorVisible,
             },

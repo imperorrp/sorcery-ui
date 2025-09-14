@@ -1,13 +1,12 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StyleEditor } from './StyleEditor';
-import { PropsEditor } from './PropsEditor';
-import { SetupEditor } from './SetupEditor';
-import { Palette, Settings, Wrench } from 'lucide-react';
+import { ClassNameEditor } from './ClassNameEditor';
+import { Layers, Brush } from 'lucide-react';
 
 /**
  * InspectorPanel component that provides a tabbed interface for editing component properties.
- * Contains tabs for Style, Props, and Setup editors.
+ * Contains tabs for Style and Classes editors.
  *
  * @returns The rendered InspectorPanel component
  */
@@ -17,16 +16,12 @@ export const InspectorPanel: React.FC = () => {
       <Tabs defaultValue="style" className="w-full">
         <TabsList className="flex w-full flex-wrap h-auto">
           <TabsTrigger value="style" className="flex items-center gap-2 flex-1 min-w-0">
-            <Palette className="h-4 w-4 flex-shrink-0" />
+            <Brush className="h-4 w-4 flex-shrink-0" />
             <span className="font-medium truncate">Style</span>
           </TabsTrigger>
-          <TabsTrigger value="props" className="flex items-center gap-2 flex-1 min-w-0">
-            <Settings className="h-4 w-4 flex-shrink-0" />
-            <span className="font-medium truncate">Props</span>
-          </TabsTrigger>
-          <TabsTrigger value="setup" className="flex items-center gap-2 flex-1 min-w-0">
-            <Wrench className="h-4 w-4 flex-shrink-0" />
-            <span className="font-medium truncate">Setup</span>
+          <TabsTrigger value="classes" className="flex items-center gap-2 flex-1 min-w-0">
+            <Layers className="h-4 w-4 flex-shrink-0" />
+            <span className="font-medium truncate">Classes</span>
           </TabsTrigger>
         </TabsList>
 
@@ -40,24 +35,14 @@ export const InspectorPanel: React.FC = () => {
           <StyleEditor />
         </TabsContent>
 
-        <TabsContent value="props" className="mt-6">
+        <TabsContent value="classes" className="mt-6">
           <div className="mb-4">
-            <h3 className="text-sm font-semibold mb-2">Component Properties</h3>
+            <h3 className="text-sm font-semibold mb-2">CSS Classes</h3>
             <p className="text-xs text-muted-foreground mb-4">
-              Define the data and configuration that your component receives as props.
+              Apply CSS classes to selected elements. Define utility classes in the Global CSS section.
             </p>
           </div>
-          <PropsEditor />
-        </TabsContent>
-
-        <TabsContent value="setup" className="mt-6">
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold mb-2">Environment Setup</h3>
-            <p className="text-xs text-muted-foreground mb-4">
-              Configure context wrappers and external dependencies for your component.
-            </p>
-          </div>
-          <SetupEditor />
+          <ClassNameEditor />
         </TabsContent>
       </Tabs>
     </div>

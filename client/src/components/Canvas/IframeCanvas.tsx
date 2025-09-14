@@ -10,8 +10,6 @@
  * - Context isolation management for proper store access
  * - Multi-layer element selection with visual layer indicators
  * - Automatic mock generation for missing components
- *
- * @version 1.2.0
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -38,6 +36,7 @@ export const IframeCanvas: React.FC = () => {
   const setSelectedNodeId = useComponentStore((s) => s.setSelectedNodeId);
   const setHoveredNodeId = useComponentStore((s) => s.setHoveredNodeId);
   const dependencies = React.useMemo(() => activeComponent?.dependencies ?? [], [activeComponent?.dependencies]);
+  const globalCss = useComponentStore((s) => s.globalCss);
   
   // Pull snapshot history to recover preview if current state lost it
   const history = activeComponent?.history ?? [];
@@ -94,7 +93,7 @@ export const IframeCanvas: React.FC = () => {
     }
   }, []);
 
-  // ▼▼▼ DEPENDENCY STABILIZATION FIX (v1.1) ▼▼▼
+  // ▼▼▼ DEPENDENCY STABILIZATION FIX ▼▼▼
   // Convert the dependencies array to a stable string key to prevent infinite loops
   // This fixes the issue where changing dependencies caused infinite re-renders
   // by creating a stable dependency key that doesn't change on array reference changes
@@ -140,6 +139,25 @@ export const IframeCanvas: React.FC = () => {
   // Now uses stable string key instead of array reference to prevent infinite loops
   }, [dependenciesKey, iframeBody]); // Now uses stable string key instead of array reference
   // ▲▲▲ END STABLE DEPENDENCY ▲▲▲
+
+  // ▼▼▼ GLOBAL CSS INJECTION ▼▼▼
+  // Effect to inject global CSS into the iframe
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframe.contentDocument) return;
+
+    const head = iframe.contentDocument.head;
+    let globalStyleEl = head.querySelector('#global-styles') as HTMLStyleElement;
+
+    if (!globalStyleEl) {
+      globalStyleEl = iframe.contentDocument.createElement('style');
+      globalStyleEl.id = 'global-styles';
+      head.appendChild(globalStyleEl);
+    }
+
+    globalStyleEl.innerHTML = globalCss;
+  }, [iframeBody, globalCss]);
+  // ▲▲▲ END GLOBAL CSS INJECTION ▲▲▲
 
   // ▼▼▼ UPDATE REF WHEN DEPENDENCIES CHANGE ▼▼▼
   // Hover highlight and context selection wiring when in selection mode
@@ -339,8 +357,10 @@ export const IframeCanvas: React.FC = () => {
         {iframeBody && (() => {
           // small stable key for portal children to avoid unnecessary remounts
           const combinedKey = `${activeComponent?.id ?? 'no-comp'}|${depTick}|${selectionMode}`;
-          // Choose preview AST when available, otherwise use the main component AST
-          const chosenAst = componentPreviewAst ?? componentAst;
+          // Use preview AST only in selection mode; use runtime AST for interaction mode so state works.
+          const chosenAst = selectionMode === 'select'
+            ? (componentPreviewAst ?? componentAst) // fall back to runtime if preview missing
+            : (componentAst ?? componentPreviewAst); // fall back to preview if runtime missing
 
           return createPortal(
             <div key={combinedKey} style={{ minHeight: '100%', padding: '1rem' }}>

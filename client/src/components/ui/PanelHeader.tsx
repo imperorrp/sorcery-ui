@@ -23,7 +23,7 @@ export const PanelHeader: React.FC<PanelHeaderProps> = ({
   children,
 }) => {
   return (
-    <div className="flex items-center justify-between h-12 px-3 sm:px-4 border-b bg-card text-md font-bold text-foreground font-sans min-w-0 overflow-hidden">
+    <div className="flex items-center justify-between h-12 px-3 sm:px-4 border-b bg-card text-md font-bold text-foreground font-sans min-w-0 overflow-hidden flex-shrink-0">
       {/* Title area: keep visible as long as possible (do not aggressively shrink) */}
       <div className="flex items-center gap-2 min-w-0 flex-shrink-0 overflow-hidden">
         {icon}

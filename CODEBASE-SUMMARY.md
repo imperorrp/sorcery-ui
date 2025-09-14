@@ -91,6 +91,9 @@ This directory contains the entire frontend React application, built with Vite. 
 - `styleUpdater.ts`: (Critical Architectural File) Implements the "Apply Changes" logic. It takes the user's original source code and the `componentPreviewAst`, parses the code into a temporary Babel AST, and surgically modifies only the style attributes of the corresponding nodes. This non-destructive approach is the key to preserving all component logic like onClick handlers and state.
 - `codeUpdater.ts`: Alternative implementation of style updating using surgical string replacement approach (currently unused).
 - `astToCode.ts`: Utility for converting `SerializableElement` AST nodes back into formatted JSX code strings. Includes Prettier integration for clean code generation. Used for code generation workflows.
+- `attributeUpdater.ts`: Unified surgical code modification system that applies visual style and className changes back to source code non-destructively using AST-based structural matching.
+- `classNameUpdater.ts`: Surgical code modification system focused on applying visual className changes back to source code non-destructively using AST-based structural matching.
+- `tailwindParser.ts`: Utility for parsing and manipulating Tailwind CSS classes, enabling structured editing of className strings through categorized properties.
 - `utils.ts`: Contains shared utility functions, such as `cn` for merging Tailwind CSS classes.
 
 #### `hooks/`
@@ -105,7 +108,7 @@ This directory contains the entire frontend React application, built with Vite. 
 #### `components/`
 
 - `Navbar.tsx`: Navigation bar component with theme toggle functionality and app branding.
-- `EditorLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Canvas, Inspector). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access, fullscreen mode with automatic panel hiding, floating dock for panel visibility controls, and enhanced layout management with persistent preferences.
+- `EditorLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Component Preview, Style Editor). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access, fullscreen mode with automatic panel hiding, floating dock for panel visibility controls, and enhanced layout management with persistent preferences.
 
 ##### `Canvas/`
 
@@ -126,6 +129,11 @@ This directory contains the entire frontend React application, built with Vite. 
 - `StyleEditor.tsx`: Displays input fields (e.g., color pickers, text inputs) to modify the CSS properties of the selected element. Changes are propagated to the Zustand store via the `updateNodeStyle` action. Includes smart component boundary detection to prevent editing child components and real-time visual feedback.
 - `PropsEditor.tsx`: Provides a textarea for the user to input a JSON object, which is then used as props for the root component during rendering.
 - `SetupEditor.tsx`: Allows the user to add external CDN dependency URLs, which are injected as <script> tags into the sandboxed <iframe>. It also provides a code editor for defining a custom wrapper component (e.g., for theme or Redux providers).
+- `ClassNameEditor.tsx`: UI component for managing element className with visual controls. Provides an input field to edit CSS classes and dropdown menus for common Tailwind utilities like padding, margin, colors, typography, and display properties.
+- `ConfigurerPanel.tsx`: Tabbed interface for component configuration with tabs for Props, Global CSS, Context Wrapper, and External Dependencies editors.
+- `ContextWrapperEditor.tsx`: Monaco editor interface for defining React context wrapper components that wrap the main component during rendering.
+- `DependenciesEditor.tsx`: Interface for managing external CDN dependencies that are loaded in the preview iframe for component rendering.
+- `GlobalCssEditor.tsx`: Monaco editor interface for defining global CSS styles and utility classes available in the sandboxed iframe.
 
 ##### `Navigator/`
 
@@ -154,6 +162,7 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 ##### `Layouts/`
 
 - `EditorLayout.tsx`: Alternative layout implementation (currently unused - main layout is in components/EditorLayout.tsx).
+- `EditorLayout_deprecated.tsx`: Deprecated layout implementation kept for reference, replaced by the main EditorLayout.tsx.
 
 ##### `contexts/`
 

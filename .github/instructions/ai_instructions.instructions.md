@@ -7,9 +7,9 @@ Guidelines to follow:
 
 2. **Coding Standards**: Follow established coding standards and best practices for the programming languages and frameworks used in the project. This includes naming conventions, file organization, modularization, and code formatting. ALWAYS add comments at the tops of files, before functions and even in them wherever necessary to keep the code highly understandable. Add clear jsdocs multi line comments too before functions and at the tops of files to explain their purpose and usage. Describe params and return values too, including their types. 
 
-3. **Documentation**: Refer to existing documentation, including README files, code comments, and design documents. This will provide valuable context and guidance for implementing changes.
+3. **Documentation**: Refer to existing documentation, including README files, code comments, and design documents. This will provide valuable context and guidance for implementing changes. Documentation in the codebase is meant to represent the current state of the code, not its history. So, if you find any documentation that is outdated or incorrect, please update it to accurately reflect the present state of the code.
 
-4. **Version Control**: Use version control effectively, including meaningful commit messages and branching strategies. This helps track changes and facilitates collaboration.
+4. **Version Control**: Use version control effectively, including meaningful commit messages and branching strategies. This helps track changes and facilitates collaboration. (Note: do NOT write about version at ALL in the codebase or codebase summary. if there are any 'version' mentioning comments there, edit them to remove them).
 
 5. **Security**: Be mindful of security implications when making changes, especially in areas like authentication, authorization, and data handling.
 

@@ -19,6 +19,17 @@ export const PropsEditor: React.FC = () => {
   const propsJson = activeComponent?.propsJson ?? '{}';
   const setPropsJson = useComponentStore((s) => s.setPropsJson);
 
+  // Get default props for the current example
+  const getDefaultPropsForExample = () => {
+    // Use originalPropsJson if it exists (for components loaded from examples)
+    if (activeComponent?.originalPropsJson) {
+      return activeComponent.originalPropsJson;
+    }
+
+    // Fallback to hardcoded defaults for non-example components
+    return '{\n  "title": "Hello World",\n  "visible": true\n}';
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-3">
@@ -45,7 +56,7 @@ export const PropsEditor: React.FC = () => {
             size="sm"
             variant="outline"
             className="text-xs flex-shrink-0"
-            onClick={() => setPropsJson('{\n  "title": "Hello World",\n  "visible": true\n}')}
+            onClick={() => setPropsJson(getDefaultPropsForExample())}
           >
             <RefreshCw className="h-3 w-3 mr-1" />
             Reset

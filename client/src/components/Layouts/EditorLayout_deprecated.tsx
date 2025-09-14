@@ -1,8 +1,20 @@
+// note: this file's code is NOT in use currently. ignore it.
+
+/**
+ * EditorLayout_deprecated Component - Deprecated Layout Implementation
+ *
+ * This is a deprecated layout implementation that has been replaced by the main EditorLayout.tsx.
+ * This file is kept for reference but is not currently used in the application.
+ *
+ * @deprecated Use EditorLayout.tsx instead
+ * @returns The rendered deprecated EditorLayout component
+ */
+
 // React import not required with automatic JSX runtime
 import { ComponentTree } from '@/components/Navigator/ComponentTree';
 import { ComponentCanvas } from '@/components/Canvas/ComponentCanvas';
 import { CodeEditorWithTabs } from '@/components/CodeEditor/CodeEditorWithTabs';
-import { InspectorPanel } from '@/components/Inspector/InspectorPanel';
+import { ConfigurerPanel } from '@/components/Inspector/ConfigurerPanel';
 
 export const EditorLayout = () => {
   return (
@@ -22,7 +34,7 @@ export const EditorLayout = () => {
         </div>
       </main>
       <aside className="w-96 bg-card p-0 border-l border-border">
-        <InspectorPanel />
+        <ConfigurerPanel />
       </aside>
     </div>
   );
