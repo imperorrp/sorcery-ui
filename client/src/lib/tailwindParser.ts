@@ -16,9 +16,23 @@
 
 // An object to hold the current state of a className string
 export interface TailwindState {
-  // Spacing
-  padding?: string; // e.g., 'p-4', 'px-2', 'py-1'
-  margin?: string;  // e.g., 'm-4', 'mx-2', 'my-1', 'mt-3'
+  // Spacing - individual axes
+  spacing: {
+    p?: string;  // p-4 (all sides)
+    px?: string; // px-2 (left and right)
+    py?: string; // py-1 (top and bottom)
+    pt?: string; // pt-3 (top)
+    pr?: string; // pr-2 (right)
+    pb?: string; // pb-1 (bottom)
+    pl?: string; // pl-4 (left)
+    m?: string;  // m-4 (all sides)
+    mx?: string; // mx-2 (left and right)
+    my?: string; // my-1 (top and bottom)
+    mt?: string; // mt-3 (top)
+    mr?: string; // mr-2 (right)
+    mb?: string; // mb-1 (bottom)
+    ml?: string; // ml-4 (left)
+  };
 
   // Layout
   display?: string; // e.g., 'block', 'flex', 'inline', 'hidden'
@@ -43,6 +57,17 @@ export interface TailwindState {
   width?: string; // e.g., 'w-full', 'w-1/2', 'w-64'
   height?: string; // e.g., 'h-full', 'h-32'
 
+  // New properties for enhanced controls
+  gap?: string; // e.g., 'gap-4'
+  opacity?: string; // e.g., 'opacity-50'
+  boxShadow?: string; // e.g., 'shadow-md'
+  borderWidth?: string; // e.g., 'border-2'
+  cursor?: string; // e.g., 'cursor-pointer'
+  backgroundImage?: string; // e.g., 'bg-gradient-to-r'
+  fontItalic?: string; // e.g., 'italic'
+  underline?: string; // e.g., 'underline'
+  truncate?: string; // e.g., 'truncate'
+
   // Classes we don't recognize or handle visually
   remainingClasses: string[];
 }
@@ -56,15 +81,42 @@ export interface TailwindState {
 export function parseClasses(className: string): TailwindState {
   const classes = className.trim().split(/\s+/).filter(Boolean);
   const state: TailwindState = {
+    spacing: {},
     remainingClasses: [],
   };
 
   for (const cls of classes) {
-    // Spacing
-    if (cls.match(/^p[xytblr]?-/)) {
-      state.padding = cls;
-    } else if (cls.match(/^m[xytblr]?-/) || cls === 'm-auto') {
-      state.margin = cls;
+    // Spacing - individual axes
+    if (cls.match(/^p-/) && !cls.match(/^p[xytlrb]-/)) {
+      state.spacing.p = cls;
+    } else if (cls.match(/^px-/)) {
+      state.spacing.px = cls;
+    } else if (cls.match(/^py-/)) {
+      state.spacing.py = cls;
+    } else if (cls.match(/^pt-/)) {
+      state.spacing.pt = cls;
+    } else if (cls.match(/^pr-/)) {
+      state.spacing.pr = cls;
+    } else if (cls.match(/^pb-/)) {
+      state.spacing.pb = cls;
+    } else if (cls.match(/^pl-/)) {
+      state.spacing.pl = cls;
+    } else if (cls.match(/^m-/) && !cls.match(/^m[xytlrb]-/) && cls !== 'm-auto') {
+      state.spacing.m = cls;
+    } else if (cls.match(/^mx-/)) {
+      state.spacing.mx = cls;
+    } else if (cls.match(/^my-/)) {
+      state.spacing.my = cls;
+    } else if (cls.match(/^mt-/)) {
+      state.spacing.mt = cls;
+    } else if (cls.match(/^mr-/)) {
+      state.spacing.mr = cls;
+    } else if (cls.match(/^mb-/)) {
+      state.spacing.mb = cls;
+    } else if (cls.match(/^ml-/)) {
+      state.spacing.ml = cls;
+    } else if (cls === 'm-auto') {
+      state.spacing.m = cls;
     }
     // Layout
     else if (['block', 'flex', 'inline', 'inline-block', 'inline-flex', 'grid', 'inline-grid', 'hidden'].includes(cls)) {
@@ -96,11 +148,23 @@ export function parseClasses(className: string): TailwindState {
     } else if (cls.match(/^rounded(-none|sm|md|lg|xl|2xl|3xl|full)?$/)) {
       state.borderRadius = cls;
     }
-    // Sizing
-    else if (cls.match(/^w-(full|screen|min|max|fit|0|px|0\.5|1|1\.5|2|2\.5|3|3\.5|4|5|6|7|8|9|10|11|12|14|16|20|24|28|32|36|40|44|48|52|56|60|64|72|80|96|auto|1\/2|1\/3|1\/4|1\/5|1\/6|1\/12)$/)) {
-      state.width = cls;
-    } else if (cls.match(/^h-(full|screen|min|max|fit|0|px|0\.5|1|1\.5|2|2\.5|3|3\.5|4|5|6|7|8|9|10|11|12|14|16|20|24|28|32|36|40|44|48|52|56|60|64|72|80|96|auto|1\/2|1\/3|1\/4|1\/5|1\/6|1\/12)$/)) {
-      state.height = cls;
+    // New properties
+    else if (cls.match(/^gap-\d+$/)) {
+      state.gap = cls;
+    } else if (cls.match(/^opacity-\d+$/)) {
+      state.opacity = cls;
+    } else if (cls.match(/^shadow(-sm|-md|-lg|-xl|-2xl|-inner|-none)?$/)) {
+      state.boxShadow = cls;
+    } else if (cls.match(/^cursor-(auto|default|pointer|wait|text|move|help|not-allowed|none|context-menu|progress|cell|crosshair|vertical-text|alias|copy|no-drop|grab|grabbing|all-scroll|col-resize|row-resize|n-resize|e-resize|s-resize|w-resize|ne-resize|nw-resize|se-resize|sw-resize|ew-resize|ns-resize|nesw-resize|nwse-resize)$/)) {
+      state.cursor = cls;
+    } else if (cls.match(/^bg-(gradient-to-r|gradient-to-l|gradient-to-t|gradient-to-b|gradient-to-tr|gradient-to-tl|gradient-to-br|gradient-to-bl|none)$/)) {
+      state.backgroundImage = cls;
+    } else if (cls === 'italic' || cls === 'not-italic') {
+      state.fontItalic = cls;
+    } else if (cls === 'underline' || cls === 'no-underline' || cls === 'line-through') {
+      state.underline = cls;
+    } else if (cls === 'truncate') {
+      state.truncate = cls;
     }
     // If no match, add to remaining classes
     else {
@@ -120,7 +184,23 @@ export function parseClasses(className: string): TailwindState {
 export function stringifyClasses(state: TailwindState): string {
   const classes: string[] = [];
 
-  // Add all recognized classes in a consistent order
+  // Add spacing classes in order
+  if (state.spacing.p) classes.push(state.spacing.p);
+  if (state.spacing.px) classes.push(state.spacing.px);
+  if (state.spacing.py) classes.push(state.spacing.py);
+  if (state.spacing.pt) classes.push(state.spacing.pt);
+  if (state.spacing.pr) classes.push(state.spacing.pr);
+  if (state.spacing.pb) classes.push(state.spacing.pb);
+  if (state.spacing.pl) classes.push(state.spacing.pl);
+  if (state.spacing.m) classes.push(state.spacing.m);
+  if (state.spacing.mx) classes.push(state.spacing.mx);
+  if (state.spacing.my) classes.push(state.spacing.my);
+  if (state.spacing.mt) classes.push(state.spacing.mt);
+  if (state.spacing.mr) classes.push(state.spacing.mr);
+  if (state.spacing.mb) classes.push(state.spacing.mb);
+  if (state.spacing.ml) classes.push(state.spacing.ml);
+
+  // Add all other recognized classes in a consistent order
   if (state.display) classes.push(state.display);
   if (state.flex) classes.push(state.flex);
   if (state.flexDirection) classes.push(state.flexDirection);
@@ -130,9 +210,6 @@ export function stringifyClasses(state: TailwindState): string {
   if (state.width) classes.push(state.width);
   if (state.height) classes.push(state.height);
 
-  if (state.padding) classes.push(state.padding);
-  if (state.margin) classes.push(state.margin);
-
   if (state.textColor) classes.push(state.textColor);
   if (state.backgroundColor) classes.push(state.backgroundColor);
 
@@ -141,6 +218,17 @@ export function stringifyClasses(state: TailwindState): string {
 
   if (state.border) classes.push(state.border);
   if (state.borderRadius) classes.push(state.borderRadius);
+
+  // Add new properties
+  if (state.gap) classes.push(state.gap);
+  if (state.opacity) classes.push(state.opacity);
+  if (state.boxShadow) classes.push(state.boxShadow);
+  if (state.borderWidth) classes.push(state.borderWidth);
+  if (state.cursor) classes.push(state.cursor);
+  if (state.backgroundImage) classes.push(state.backgroundImage);
+  if (state.fontItalic) classes.push(state.fontItalic);
+  if (state.underline) classes.push(state.underline);
+  if (state.truncate) classes.push(state.truncate);
 
   // Add remaining classes
   classes.push(...state.remainingClasses);
@@ -158,17 +246,25 @@ export function stringifyClasses(state: TailwindState): string {
  */
 export function updateClassProperty(
   currentClassName: string,
-  property: keyof Omit<TailwindState, 'remainingClasses'>,
+  property: string,
   value: string
 ): string {
   const state = parseClasses(currentClassName);
 
   if (value.trim() === '') {
     // Remove the property
-    (state as Partial<TailwindState>)[property] = undefined;
+    if (property in state.spacing) {
+      (state.spacing as Partial<TailwindState['spacing']>)[property as keyof TailwindState['spacing']] = undefined;
+    } else {
+      (state as Partial<TailwindState>)[property as keyof Omit<TailwindState, 'remainingClasses' | 'spacing'>] = undefined;
+    }
   } else {
     // Update the property
-    (state as Partial<TailwindState>)[property] = value;
+    if (property in state.spacing) {
+      (state.spacing as Partial<TailwindState['spacing']>)[property as keyof TailwindState['spacing']] = value;
+    } else {
+      (state as Partial<TailwindState>)[property as keyof Omit<TailwindState, 'remainingClasses' | 'spacing'>] = value;
+    }
   }
 
   return stringifyClasses(state);
@@ -203,10 +299,34 @@ export function createClassFromValue(property: string, value: string): string {
   if (!value.trim()) return '';
 
   switch (property) {
-    case 'padding':
+    case 'p':
       return `p-${value}`;
-    case 'margin':
+    case 'px':
+      return `px-${value}`;
+    case 'py':
+      return `py-${value}`;
+    case 'pt':
+      return `pt-${value}`;
+    case 'pr':
+      return `pr-${value}`;
+    case 'pb':
+      return `pb-${value}`;
+    case 'pl':
+      return `pl-${value}`;
+    case 'm':
       return value === 'auto' ? 'm-auto' : `m-${value}`;
+    case 'mx':
+      return `mx-${value}`;
+    case 'my':
+      return `my-${value}`;
+    case 'mt':
+      return `mt-${value}`;
+    case 'mr':
+      return `mr-${value}`;
+    case 'mb':
+      return `mb-${value}`;
+    case 'ml':
+      return `ml-${value}`;
     case 'fontSize':
       return `text-${value}`;
     case 'fontWeight':
@@ -219,9 +339,25 @@ export function createClassFromValue(property: string, value: string): string {
       return `text-${value}`;
     case 'backgroundColor':
       return `bg-${value}`;
-    case 'borderRadius':
-      return value === 'none' ? 'rounded-none' : `rounded-${value}`;
-    default:
-      return `${property}-${value}`;
+    case 'gap':
+      return `gap-${value}`;
+    case 'opacity':
+      return `opacity-${value}`;
+    case 'boxShadow':
+      return value === 'none' ? 'shadow-none' : `shadow${value ? `-${value}` : ''}`;
+    case 'borderWidth':
+      return value === '0' ? 'border-0' : `border${value ? `-${value}` : ''}`;
+    case 'cursor':
+      return `cursor-${value}`;
+    case 'backgroundImage':
+      return `bg-${value}`;
+    case 'fontItalic':
+      return value === 'italic' ? 'italic' : 'not-italic';
+    case 'underline':
+      return value === 'underline' ? 'underline' : value === 'line-through' ? 'line-through' : 'no-underline';
+    case 'truncate':
+      return 'truncate';
   }
+
+  return '';
 }

@@ -1,8 +1,25 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import { StyleEditor } from './StyleEditor';
 import { ClassNameEditor } from './ClassNameEditor';
-import { Layers, Brush } from 'lucide-react';
+import { Layers, Brush, Search } from 'lucide-react';
+
+// Import the definitions from tailwind-inspector.json
+import tailwindInspectorDefinitions from '../../lib/definitions/tailwind-inspector.json';
+
+interface ControlDefinition {
+  category: string;
+  label: string;
+  description: string;
+  group: string;
+  control: {
+    type: string;
+    [key: string]: unknown;
+  };
+  classes: Array<{ class: string; value: string; label?: string }> | { "$ref": string };
+  modifiers: string[];
+}
 
 /**
  * InspectorPanel component that provides a tabbed interface for editing component properties.
@@ -11,6 +28,29 @@ import { Layers, Brush } from 'lucide-react';
  * @returns The rendered InspectorPanel component
  */
 export const InspectorPanel: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Filter definitions based on search query
+  const filteredControls = useMemo(() => {
+    // Convert object to array of definitions
+    const definitionsArray = Object.entries(tailwindInspectorDefinitions).map(([category, definition]) => ({
+      category,
+      ...definition
+    })) as ControlDefinition[];
+
+    if (!searchQuery.trim()) {
+      return definitionsArray;
+    }
+
+    const query = searchQuery.toLowerCase();
+    return definitionsArray.filter(definition =>
+      definition.label.toLowerCase().includes(query) ||
+      definition.description.toLowerCase().includes(query) ||
+      definition.category.toLowerCase().includes(query) ||
+      definition.group.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
+
   return (
     <div className="p-4 min-w-0">
       <Tabs defaultValue="style" className="w-full">
@@ -39,10 +79,24 @@ export const InspectorPanel: React.FC = () => {
           <div className="mb-4">
             <h3 className="text-sm font-semibold mb-2">CSS Classes</h3>
             <p className="text-xs text-muted-foreground mb-4">
-              Apply CSS classes to selected elements. Define utility classes in the Global CSS section.
+              Apply CSS classes to selected elements using definition-driven controls.
             </p>
           </div>
-          <ClassNameEditor />
+
+          {/* Search Bar */}
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search properties..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 text-sm"
+              />
+            </div>
+          </div>
+
+          <ClassNameEditor controls={filteredControls} />
         </TabsContent>
       </Tabs>
     </div>
