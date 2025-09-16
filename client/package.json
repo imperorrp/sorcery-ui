@@ -39,6 +39,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@babel/parser": "^7.28.4",
     "@eslint/js": "^9.33.0",
     "@tailwindcss/vite": "^4.1.12",
     "@types/babel__standalone": "^7.1.9",
@@ -50,6 +51,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
+    "prettier": "^3.6.2",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2",

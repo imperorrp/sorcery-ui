@@ -5,7 +5,8 @@
   "description": "Root for the Live Component Editor monorepo",
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
-    "install": "npm install --workspaces --if-present"
+    "install": "npm install --workspaces --if-present",
+    "generate:inspector": "node ./scripts/generate-inspector-def.js"
   },
   "workspaces": [
     "client",
@@ -15,12 +16,15 @@
   "license": "ISC",
   "devDependencies": {
     "@types/babel__traverse": "^7.28.0",
-    "concurrently": "^8.2.2"
+    "axios": "^1.12.2",
+    "concurrently": "^8.2.2",
+    "dotenv": "^17.2.2"
   },
   "dependencies": {
     "@babel/parser": "^7.28.3",
     "@babel/standalone": "^7.28.3",
     "@babel/traverse": "^7.28.3",
+    "@google/genai": "^1.19.0",
     "@radix-ui/react-slot": "^1.2.3",
     "lucide-react": "^0.542.0"
   }
