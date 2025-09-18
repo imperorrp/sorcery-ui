@@ -1,8 +1,8 @@
 import React from 'react';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Check, X } from 'lucide-react';
-import { updateClassProperty } from '@/lib/tailwindParser';
+import { useComponentStore } from '@/store/componentStore';
+import type { SerializableElement } from '@/store/componentStore';
 
 interface ToggleProps {
   definition: {
@@ -11,61 +11,76 @@ interface ToggleProps {
     description: string;
     classes: Array<{ class: string; value: string }>;
   };
-  currentClassName: string;
-  onClassChange: (newClassName: string) => void;
+  selectedNode: SerializableElement;
 }
 
 /**
- * Toggle component for enabling/disabling boolean Tailwind utility classes
- * Provides a visual toggle button interface for on/off type properties
+ * Toggle component for boolean state control with visual feedback.
+ * 
+ * This component provides an elegant toggle button interface for enabling or disabling
+ * boolean Tailwind utility classes. It offers clear visual feedback with check/X icons
+ * and integrates seamlessly with the component store's utility state system for
+ * properties like visibility, display states, and other binary CSS attributes.
+ * 
+ * Key features:
+ * - Visual toggle button with check (active) and X (inactive) icons
+ * - Automatic state detection from component utility state
+ * - Single-click toggle functionality for quick state changes
+ * - Consistent UI with shadcn/ui Button component and theme integration
+ * - Support for multiple toggle classes with intelligent selection
+ * - Real-time utility state synchronization
+ * - Compact design optimized for inspector panels
+ * 
+ * The component handles the complexity of boolean state management while providing
+ * an intuitive, accessible interface for binary property control in the visual editor.
+ * It automatically selects the first available class when activating and clears
+ * the utility class when deactivating.
+ * 
+ * @component
  * @param {ToggleProps} props - Component props
- * @param {Object} props.definition - Definition object containing category, label, description, and classes
- * @param {string} props.definition.category - The toggle category (hidden, visible, etc.)
- * @param {string} props.definition.label - Display label for the control
- * @param {string} props.definition.description - Description text for the control
- * @param {Array} props.definition.classes - Array of available toggle classes
- * @param {string} props.currentClassName - Current className string to check toggle state
- * @param {Function} props.onClassChange - Callback function called when toggle state changes
- * @returns {JSX.Element} The Toggle component
+ * @param {Object} props.definition - Definition object containing control metadata and toggle options
+ * @param {string} props.definition.category - The boolean property category (e.g., 'hidden', 'visible', 'block', 'flex')
+ * @param {string} props.definition.label - Display label for the toggle control
+ * @param {string} props.definition.description - Descriptive text explaining the toggle's purpose
+ * @param {Array<{class: string, value: string}>} props.definition.classes - Array of available toggle classes (typically one for active state)
+ * @param {SerializableElement} props.selectedNode - The currently selected component node being edited
+ * @returns {JSX.Element} The rendered Toggle component with visual state indication
  */
 export const Toggle: React.FC<ToggleProps> = ({
   definition,
-  currentClassName,
-  onClassChange,
+  selectedNode,
 }) => {
-  // Check if the class is currently applied
-  const isActive = definition.classes.some(cls =>
-    currentClassName.includes(cls.class)
-  );
+  const { updateUtilityClass } = useComponentStore();
 
+  // Check if the class is currently applied
+  const isActive = !!(selectedNode.utilityClassState?.[definition.category]);
+
+  /**
+   * Handles toggle state changes and updates the component's utility state.
+   * 
+   * This function toggles between active and inactive states for the boolean property.
+   * When activating, it selects the first available class from the definition. When
+   * deactivating, it clears the utility class by setting it to null.
+   * 
+   * @returns {void}
+   */
   const handleToggle = () => {
-    const newClass = !isActive && definition.classes.length > 0 ? definition.classes[0].class : '';
-    const newClassName = updateClassProperty(currentClassName, definition.category, newClass);
-    onClassChange(newClassName);
+    const newClass = !isActive && definition.classes.length > 0 ? definition.classes[0].class : null;
+    updateUtilityClass(selectedNode.id, definition.category, newClass);
   };
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex-1">
-        <Label className="text-xs font-medium">
-          {definition.label}
-        </Label>
-        <p className="text-xs text-muted-foreground">
-          {definition.description}
-        </p>
-      </div>
-      <Button
-        variant={isActive ? "default" : "outline"}
-        size="sm"
-        onClick={handleToggle}
-        className="ml-2 w-8 h-8 p-0"
-      >
-        {isActive ? (
-          <Check className="w-4 h-4" />
-        ) : (
-          <X className="w-4 h-4" />
-        )}
-      </Button>
-    </div>
+    <Button
+      variant={isActive ? "default" : "outline"}
+      size="sm"
+      onClick={handleToggle}
+      className="w-8 h-8 p-0"
+    >
+      {isActive ? (
+        <Check className="w-4 h-4" />
+      ) : (
+        <X className="w-4 h-4" />
+      )}
+    </Button>
   );
 };

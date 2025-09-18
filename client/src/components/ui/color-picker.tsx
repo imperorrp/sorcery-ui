@@ -48,7 +48,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
           {value || placeholder}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-2">
+      <PopoverContent className="w-auto p-2 z-[100]">
         <input
           type="color"
           value={value.startsWith('#') ? value : '#000000'}

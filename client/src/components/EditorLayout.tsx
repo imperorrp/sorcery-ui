@@ -24,13 +24,15 @@ import { ConfigurerPanel } from './Inspector/ConfigurerPanel';
  * This component serves as the root container for all editor functionality,
  * coordinating between the code editor, component canvas, inspector, and
  * navigation panels. It handles:
- * - Panel layout and resizing management
+ * - Panel layout and resizing management with react-resizable-panels
  * - Component rendering and code synchronization
  * - User interaction modes (selection vs interaction)
  * - Theme application and responsive design
  * - State synchronization across all panels
+ * - Fullscreen mode with automatic panel hiding
+ * - Floating dock for panel visibility controls
  *
- * @returns The complete editor layout with all panels and functionality
+ * @returns {JSX.Element} The complete editor layout with all panels and functionality
  */
 export const EditorLayout: React.FC = () => {
   const { theme } = useTheme();
@@ -50,7 +52,10 @@ export const EditorLayout: React.FC = () => {
     configurer: true
   });
 
-  // Handle fullscreen toggle - hide/show all panels
+  /**
+   * Handle fullscreen toggle - hide/show all panels
+   * Remembers panel states before entering fullscreen and restores them when exiting
+   */
   const handleFullscreenToggle = () => {
     if (!isFullscreen) {
       // Entering fullscreen - remember current states and hide all panels
@@ -86,7 +91,11 @@ export const EditorLayout: React.FC = () => {
   const activeHistoryIndex = activeComponent?.historyIndex ?? 0;
   // ▲▲▲ END OF FIX ▲▲▲
 
-  // Handle code changes from the editor
+  /**
+   * Handle code changes from the editor
+   *
+   * @param {string} newCode - The updated code from the Monaco editor
+   */
   const handleCodeChange = (newCode: string) => {
     updateActiveComponentCode(newCode);
     // If the user types, clear the highlight
@@ -99,7 +108,12 @@ export const EditorLayout: React.FC = () => {
   const canUndo = activeHistoryIndex > 0;
   const canRedo = activeHistoryIndex < activeHistory.length - 1;
 
-  // Move examples data and handler logic here
+  /**
+   * Handle example selection from the dropdown menu
+   * Supports both single-component and multi-component examples
+   *
+   * @param {string} key - The key of the selected example
+   */
   const handleExampleSelect = (key: string) => {
     // Handle multi-component examples
     if (multiComponentExamples[key]) {
@@ -125,6 +139,10 @@ export const EditorLayout: React.FC = () => {
     }
   };
 
+  /**
+   * Handle component rendering from the current code
+   * Parses the code, generates ASTs, and updates the component preview
+   */
   const handleRender = async () => {
     if (!monacoEditorRef.current) return;
     // Get the most up-to-date code directly from the editor instance.
@@ -161,6 +179,10 @@ export const EditorLayout: React.FC = () => {
     }
   };
 
+  /**
+   * Handle applying visual changes back to the source code
+   * Uses AST-based surgical updates to preserve component logic
+   */
   const handleApplyChanges = async () => {
     const newCode = await applyAstChangesToCode();
 
@@ -210,7 +232,7 @@ export const EditorLayout: React.FC = () => {
                                   <span className='ml-1 text-sm truncate min-w-0 overflow-hidden whitespace-nowrap'>Examples</span>
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent className="bg-background border border-border shadow-lg">
+                              <DropdownMenuContent className="bg-background border border-border shadow-lg z-[100]">
                                 <DropdownMenuLabel>Load an Example</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuLabel className="text-xs font-medium text-muted-foreground px-2 py-1">

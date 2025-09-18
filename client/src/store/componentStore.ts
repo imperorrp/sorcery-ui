@@ -3,6 +3,7 @@ import { create } from 'zustand';
 // Use separate updaters for styles and className
 import { updateStylesInCode } from '@/lib/styleUpdater';
 import { updateClassNameInCode } from '@/lib/classNameUpdater';
+import { generateClassNameFromState } from '@/lib/utilityStateHelpers';
 import { defaultExample } from '@/examples/examples';
 
 /**
@@ -41,6 +42,7 @@ export interface SerializableElement {
     children?: (SerializableElement | string)[];
     style?: React.CSSProperties;
   };
+  utilityClassState?: Record<string, string>; // Structured state for utility classes
 }
 
 // Location of the returned JSX within source code
@@ -138,6 +140,7 @@ interface ComponentActions {
   setHoveredNodeId: (nodeId: string | null) => void;
   updateNodeStyle: (nodeId: string, newStyle: React.CSSProperties) => void;
   updateNodeClassName: (nodeId: string, newClassName: string) => void;
+  updateUtilityClass: (nodeId: string, category: string, newClass: string | null) => void;
   undo: () => void;
   redo: () => void;
   setPropsJson: (json: string) => void;
@@ -660,6 +663,92 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
           : null;
 
         // Ensure previewAst is not referencing runtime object directly (defensive clone already done above)
+
+        // Create the new history entry for the component.
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push({ ast: newComponentAst, preview: newComponentPreviewAst });
+
+        // Create the single, updated ComponentData object.
+        const updatedComponentData: ComponentData = {
+          ...activeComponentData,
+          componentAst: newComponentAst,
+          componentPreviewAst: newComponentPreviewAst,
+          history: newHistory,
+          historyIndex: newHistory.length - 1,
+        };
+
+        // Create the new, top-level state object.
+        const newState: Partial<ComponentState> = {
+          components: {
+            ...state.components,
+            [activeComponentId]: updatedComponentData,
+          },
+          isDirty: true,
+        };
+
+        return newState;
+      });
+    },
+
+    /**
+     * Updates a utility class in the structured state for a specific node
+     *
+     * @param nodeId - The ID of the node to update
+     * @param category - The category of the utility class (e.g., 'borderColor')
+     * @param newClass - The new class value or null to remove
+     */
+    updateUtilityClass: (nodeId: string, category: string, newClass: string | null) => {
+      set((state) => {
+        const { activeComponentId, components } = state;
+
+        // Guard Clause: Don't do anything if there's no active component.
+        if (!activeComponentId) {
+          return state;
+        }
+
+        const activeComponentData = components[activeComponentId];
+        if (!activeComponentData) {
+          return state;
+        }
+
+        const { componentAst, componentPreviewAst, history, historyIndex } = activeComponentData;
+
+        // Define the update function for utility class state
+        const updateFn = (node: SerializableElement): SerializableElement => {
+          // Start from existing utility state and apply the change
+          const prevUtilityState = node.utilityClassState || {};
+          const newUtilityState: Record<string, string> = { ...prevUtilityState };
+          if (newClass) {
+            newUtilityState[category] = newClass;
+          } else {
+            delete newUtilityState[category]; // Removing the class if newClass is null/empty
+          }
+
+          // Preserve unmanaged classes: anything that was in className but not produced by the previous utility state
+          const prevUtilityValues = new Set(Object.values(prevUtilityState).filter(Boolean));
+          const classNameString = (node.props?.className as string) || '';
+          const currentTokens = classNameString.split(/\s+/).filter(Boolean);
+          const unmanagedTokens = currentTokens.filter(t => !prevUtilityValues.has(t));
+
+          // Generate the final className string from the updated utility state + unmanaged tokens
+          const newClassNameString = generateClassNameFromState(newUtilityState, unmanagedTokens);
+
+          return {
+            ...node,
+            utilityClassState: newUtilityState,
+            props: { ...node.props, className: newClassNameString },
+          };
+        };
+
+        // If previewAst is missing but runtime ast exists, we will synthesize a preview copy on first edit.
+        const basePreviewAst = componentPreviewAst || componentAst;
+
+        const newComponentAst = componentAst
+          ? findAndCloneUpdateNode(componentAst, nodeId, updateFn)
+          : null;
+        const newComponentPreviewAst = basePreviewAst
+          ? findAndCloneUpdateNode(basePreviewAst, nodeId, updateFn)
+          : null;
 
         // Create the new history entry for the component.
         const newHistory = history.slice(0, historyIndex + 1);

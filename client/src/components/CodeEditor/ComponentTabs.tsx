@@ -1,9 +1,12 @@
 /**
  * ComponentTabs - IDE-Style Component Tab Bar
- * 
+ *
  * A modern tab interface for switching between components, inspired by VS Code tabs.
- * Features overflow management with a popover for additional components, and integrated
- * actions for adding/deleting components.
+ * Features overflow management with a popover for additional components, drag-and-drop
+ * reordering, and integrated actions for adding/deleting components. Supports theme
+ * switching and maintains tab state across component library changes.
+ *
+ * @returns {JSX.Element} The rendered ComponentTabs component
  */
 import React, { useRef, useState, useEffect } from 'react';
 import { useComponentStore } from '@/store/componentStore';
@@ -21,9 +24,14 @@ import { LibraryPanel } from '@/components/Library/LibraryPanel';
 
 
 
-//
-// Main ComponentTabs component providing IDE-style tab interface
-//
+/**
+ * Main ComponentTabs component providing IDE-style tab interface
+ *
+ * Manages component switching, tab ordering, overflow handling, and library integration.
+ * Automatically adjusts to theme changes and component library updates.
+ *
+ * @returns {JSX.Element} The rendered ComponentTabs component
+ */
 export const ComponentTabs: React.FC = () => {
   // Subscribe to only the slices we need to avoid stale closures
   const components = useComponentStore((s) => s.components);
@@ -196,7 +204,12 @@ export const ComponentTabs: React.FC = () => {
 
   // tabs are derived above; no resize listener needed
 
-  // Previously this removed the component from the store. Now it only closes the tab (hides it)
+  /**
+   * Handle closing a tab (hides it from the tab bar, but keeps it in the library)
+   *
+   * @param {string} componentId - The ID of the component to close
+   * @param {React.MouseEvent | React.KeyboardEvent} [e] - Optional event to prevent propagation
+   */
   const handleCloseTab = (componentId: string, e?: React.MouseEvent | React.KeyboardEvent) => {
     e?.stopPropagation();
     setClosedTabIds((s) => Array.from(new Set([...s, componentId])));
@@ -209,6 +222,9 @@ export const ComponentTabs: React.FC = () => {
     }
   };
 
+  /**
+   * Scroll the tabs container to the left by one page of tabs
+   */
   const scrollToStart = () => {
     const el = tabsContainerRef.current;
     if (!el) return;
@@ -219,6 +235,9 @@ export const ComponentTabs: React.FC = () => {
   el.scrollTo({ left: Math.max(0, el.scrollLeft - page * tabW), behavior: 'smooth' });
   };
 
+  /**
+   * Scroll the tabs container to the right by one page of tabs
+   */
   const scrollToEnd = () => {
     const el = tabsContainerRef.current;
     if (!el) return;
@@ -332,7 +351,7 @@ export const ComponentTabs: React.FC = () => {
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[320px] p-0" align="end">
+            <PopoverContent className="w-[320px] p-0 z-[100]" align="end">
               <div className="p-3 border-b border-border">
                 <h4 className="font-semibold text-sm">All Components</h4>
                 <p className="text-xs text-muted-foreground">Manage your component library</p>
@@ -350,7 +369,7 @@ export const ComponentTabs: React.FC = () => {
               <BookOpenCheck className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[320px] p-0">
+          <PopoverContent className="w-[320px] p-0 z-[100]">
             <div className="p-3 border-b border-border">
               <h4 className="font-semibold text-sm">Library</h4>
               <p className="text-xs text-muted-foreground">Manage components</p>

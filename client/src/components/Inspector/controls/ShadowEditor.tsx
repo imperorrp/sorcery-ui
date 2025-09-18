@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ColorSwatchPicker } from '@/components/ui/color-swatch-picker';
 import { TEXT_COLORS, BACKGROUND_COLORS } from '@/lib/colorConstants';
 import { Trash2 } from 'lucide-react';
-import { updateClassProperty } from '@/lib/tailwindParser';
+import { useComponentStore } from '@/store/componentStore';
+import type { SerializableElement } from '@/store/componentStore';
 
 interface Shadow {
   offsetX: string;
@@ -23,28 +23,46 @@ interface ShadowEditorProps {
     description: string;
     classes: Array<{ class: string; value: string }>;
   };
-  currentClassName: string;
-  onClassChange: (newClassName: string) => void;
+  selectedNode: SerializableElement;
 }
 
 /**
- * ShadowEditor component for creating and editing box-shadow and drop-shadow properties
- * Provides controls for offset, blur, spread, color, and inset options with multiple shadow support
+ * ShadowEditor component for comprehensive box-shadow manipulation in the visual editor.
+ * 
+ * This component provides an advanced interface for creating and editing CSS box-shadow
+ * properties with full control over offset, blur, spread, color, and inset options.
+ * It integrates seamlessly with the component store's utility state system and supports
+ * both predefined Tailwind shadow classes and custom shadow definitions.
+ * 
+ * Key features:
+ * - Interactive controls for X/Y offset, blur radius, and spread distance
+ * - Color picker integration with predefined color palettes
+ * - Inset shadow toggle for inner shadows
+ * - Multi-shadow support with add/remove functionality
+ * - Automatic mapping to Tailwind shadow utility classes
+ * - Real-time parsing of existing shadow classes from utility state
+ * - Dense, compact layout optimized for inspector panels
+ * - Comprehensive shadow presets (shadow-sm, shadow, shadow-md, shadow-lg, shadow-xl)
+ * 
+ * The component handles the complexity of shadow CSS syntax while providing an
+ * intuitive visual interface. It automatically generates appropriate Tailwind classes
+ * based on user input and maintains synchronization with the component's utility state.
+ * 
+ * @component
  * @param {ShadowEditorProps} props - Component props
- * @param {Object} props.definition - Definition object containing category, label, description, and classes
- * @param {string} props.definition.category - The category (shadow, drop-shadow)
- * @param {string} props.definition.label - Display label for the control
- * @param {string} props.definition.description - Description text for the control
- * @param {Array} props.definition.classes - Array of available shadow classes
- * @param {string} props.currentClassName - Current className string to parse shadow values from
- * @param {Function} props.onClassChange - Callback function called when shadow properties change
- * @returns {JSX.Element} The ShadowEditor component
+ * @param {Object} props.definition - Definition object containing control metadata
+ * @param {string} props.definition.category - The shadow property category (typically 'boxShadow')
+ * @param {string} props.definition.label - Display label for the shadow editor control
+ * @param {string} props.definition.description - Descriptive text explaining shadow editing functionality
+ * @param {Array<{class: string, value: string}>} props.definition.classes - Array of available Tailwind shadow classes
+ * @param {SerializableElement} props.selectedNode - The currently selected component node being edited
+ * @returns {JSX.Element} The rendered ShadowEditor component with comprehensive shadow controls
  */
 export const ShadowEditor: React.FC<ShadowEditorProps> = ({
   definition,
-  currentClassName,
-  onClassChange,
+  selectedNode,
 }) => {
+  const { updateUtilityClass } = useComponentStore();
   const [shadows, setShadows] = useState<Shadow[]>([
     {
       offsetX: '0',
@@ -56,19 +74,22 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
     },
   ]);
 
-  // Parse current shadow from className
+  // Parse current shadow from utility state
   useEffect(() => {
+    /**
+     * Parses the current shadow utility class and populates the editor state.
+     * 
+     * This function analyzes the existing Tailwind shadow class from the component's
+     * utility state and maps it to the corresponding shadow properties. It handles
+     * both 'shadow-none' (no shadow) and predefined shadow classes, setting appropriate
+     * default values when no shadow is present.
+     * 
+     * @returns {void}
+     */
     const parseShadow = () => {
-      const classes = currentClassName.split(' ').filter(Boolean);
+      const currentClass = selectedNode.utilityClassState?.[definition.category];
 
-      // Look for shadow classes
-      const shadowClass = classes.find(cls =>
-        cls.startsWith('shadow-') ||
-        cls.startsWith('drop-shadow-') ||
-        cls === 'shadow'
-      );
-
-      if (!shadowClass || shadowClass === 'shadow-none') {
+      if (!currentClass || currentClass === 'shadow-none') {
         setShadows([{
           offsetX: '0',
           offsetY: '4',
@@ -125,15 +146,27 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
         },
       };
 
-      const parsedShadow = shadowMap[shadowClass];
+      const parsedShadow = shadowMap[currentClass];
       if (parsedShadow) {
         setShadows([parsedShadow]);
       }
     };
 
     parseShadow();
-  }, [currentClassName]);
+  }, [selectedNode.utilityClassState, definition.category]);
 
+  /**
+   * Updates a specific shadow's properties and regenerates the utility class.
+   * 
+   * This function modifies individual properties of a shadow at the specified index
+   * and triggers regeneration of the corresponding Tailwind utility class. It maintains
+   * immutability by creating new shadow arrays and ensures the component store is
+   * updated with the new class.
+   * 
+   * @param {number} index - The index of the shadow to update in the shadows array
+   * @param {Partial<Shadow>} updates - Partial shadow object containing properties to update
+   * @returns {void}
+   */
   const updateShadow = (index: number, updates: Partial<Shadow>) => {
     const newShadows = [...shadows];
     newShadows[index] = { ...newShadows[index], ...updates };
@@ -141,6 +174,15 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
     generateClassName(newShadows);
   };
 
+  /**
+   * Adds a new shadow to the shadow collection with default values.
+   * 
+   * This function creates a new shadow object with sensible default values
+   * and adds it to the shadows array, then triggers regeneration of the
+   * utility class to reflect the changes.
+   * 
+   * @returns {void}
+   */
   const addShadow = () => {
     const newShadow: Shadow = {
       offsetX: '0',
@@ -155,6 +197,16 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
     generateClassName(newShadows);
   };
 
+  /**
+   * Removes a shadow from the shadow collection at the specified index.
+   * 
+   * This function removes the shadow at the given index from the shadows array,
+   * but only if there would be at least one shadow remaining. It then triggers
+   * regeneration of the utility class to reflect the changes.
+   * 
+   * @param {number} index - The index of the shadow to remove from the shadows array
+   * @returns {void}
+   */
   const removeShadow = (index: number) => {
     if (shadows.length > 1) {
       const newShadows = shadows.filter((_, i) => i !== index);
@@ -163,6 +215,17 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
     }
   };
 
+  /**
+   * Generates the appropriate Tailwind utility class from current shadow configuration.
+   * 
+   * This function maps the current shadow properties to the closest matching
+   * Tailwind shadow utility class. It uses a simple heuristic based on common
+   * shadow values to determine the best predefined class match, ensuring
+   * compatibility with the Tailwind design system.
+   * 
+   * @param {Shadow[]} currentShadows - Array of current shadow objects to convert to class
+   * @returns {void}
+   */
   const generateClassName = (currentShadows: Shadow[]) => {
     // For now, we'll map to predefined shadow classes
     // In a real implementation, you'd generate custom shadow values
@@ -186,65 +249,59 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
       return 'shadow';
     });
 
-    const newClassName = updateClassProperty(currentClassName, definition.category, shadowClasses.join(' '));
-    onClassChange(newClassName);
+    const finalClass = shadowClasses.length > 0 ? shadowClasses[0] : null;
+    updateUtilityClass(selectedNode.id, definition.category, finalClass);
   };
 
   const currentShadow = shadows[0]; // For simplicity, focus on first shadow
 
   return (
-    <div className="space-y-4">
-      <Label className="text-xs font-medium">{definition.label}</Label>
-
-      <div className="space-y-3 p-3 border rounded-md bg-muted/20">
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label className="text-xs text-muted-foreground">Offset X</Label>
-            <Input
-              type="text"
-              placeholder="0"
-              value={currentShadow.offsetX}
-              onChange={(e) => updateShadow(0, { offsetX: e.target.value })}
-              className="text-xs"
-            />
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Offset Y</Label>
+    <div className="flex flex-col gap-2 rounded-md border bg-muted/10 p-2">
+      <div className="grid grid-cols-4 gap-1">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">X</span>
+          <Input
+            type="text"
+            placeholder="0"
+            value={currentShadow.offsetX}
+            onChange={(e) => updateShadow(0, { offsetX: e.target.value })}
+            className="h-7 px-1 text-xs"
+          />
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Y</span>
             <Input
               type="text"
               placeholder="4"
               value={currentShadow.offsetY}
               onChange={(e) => updateShadow(0, { offsetY: e.target.value })}
-              className="text-xs"
+              className="h-7 px-1 text-xs"
             />
-          </div>
         </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label className="text-xs text-muted-foreground">Blur</Label>
-            <Input
-              type="text"
-              placeholder="6"
-              value={currentShadow.blur}
-              onChange={(e) => updateShadow(0, { blur: e.target.value })}
-              className="text-xs"
-            />
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Spread</Label>
-            <Input
-              type="text"
-              placeholder="-1"
-              value={currentShadow.spread}
-              onChange={(e) => updateShadow(0, { spread: e.target.value })}
-              className="text-xs"
-            />
-          </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Blur</span>
+          <Input
+            type="text"
+            placeholder="6"
+            value={currentShadow.blur}
+            onChange={(e) => updateShadow(0, { blur: e.target.value })}
+            className="h-7 px-1 text-xs"
+          />
         </div>
-
-        <div>
-          <Label className="text-xs text-muted-foreground mb-2 block">Color</Label>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Spread</span>
+          <Input
+            type="text"
+            placeholder="-1"
+            value={currentShadow.spread}
+            onChange={(e) => updateShadow(0, { spread: e.target.value })}
+            className="h-7 px-1 text-xs"
+          />
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Color</span>
           <ColorSwatchPicker
             value={currentShadow.color}
             onValueChange={(value) => updateShadow(0, { color: value })}
@@ -252,43 +309,37 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
             type="background"
           />
         </div>
-
-        <div className="flex items-center gap-2">
+        <label className="flex items-center gap-1 text-[10px] text-muted-foreground mt-4">
           <input
             type="checkbox"
-            id="inset-shadow"
             checked={currentShadow.inset}
             onChange={(e) => updateShadow(0, { inset: e.target.checked })}
-            className="rounded"
+            className="size-3 rounded"
           />
-          <Label htmlFor="inset-shadow" className="text-xs">Inset shadow</Label>
-        </div>
+          inset
+        </label>
       </div>
-
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-1 pt-1">
         <Button
           variant="outline"
           size="sm"
           onClick={addShadow}
-          className="text-xs"
+          className="h-7 px-2 text-xs"
         >
-          Add Shadow
+          Add
         </Button>
-
         {shadows.length > 1 && (
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => removeShadow(0)}
-            className="text-xs text-destructive hover:text-destructive"
+            className="h-7 px-2 text-xs text-destructive hover:text-destructive"
           >
             <Trash2 className="h-3 w-3 mr-1" />
             Remove
           </Button>
         )}
       </div>
-
-      <p className="text-xs text-muted-foreground">{definition.description}</p>
     </div>
   );
 };

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Label } from '@/components/ui/label';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { updateClassProperty } from '@/lib/tailwindParser';
+import { useComponentStore } from '@/store/componentStore';
+import type { SerializableElement } from '@/store/componentStore';
 
 interface SelectControlProps {
   definition: {
@@ -11,55 +11,77 @@ interface SelectControlProps {
     description: string;
     classes: Array<{ class: string; value: string; label?: string }>;
   };
-  currentClassName: string;
-  onClassChange: (newClassName: string) => void;
+  selectedNode: SerializableElement;
 }
 
 /**
- * SelectControl component for choosing from predefined class options
- * Provides a dropdown interface for selecting Tailwind utility classes
+ * SelectControl component for dropdown selection of Tailwind utility classes.
+ * 
+ * This component provides an elegant dropdown interface for selecting from predefined
+ * sets of Tailwind CSS utility classes, commonly used for properties like border styles,
+ * text transforms, overflow behaviors, and other categorical CSS properties. It integrates
+ * seamlessly with the component store's utility state system and provides clear visual
+ * feedback for the current selection.
+ * 
+ * Key features:
+ * - Dropdown menu interface with proper z-indexing for overlay management
+ * - Automatic current selection detection and display from utility state
+ * - "None" option for clearing selections and removing utility classes
+ * - Label fallback system (uses label if available, otherwise class name)
+ * - Real-time utility state synchronization with component store
+ * - Consistent UI with shadcn/ui DropdownMenu components
+ * 
+ * The component handles the complexity of option management and state synchronization
+ * while providing an intuitive, accessible interface for categorical property selection
+ * in the visual editor.
+ * 
+ * @component
  * @param {SelectControlProps} props - Component props
- * @param {Object} props.definition - Definition object containing category, label, description, and classes
- * @param {string} props.definition.category - The category of the control
- * @param {string} props.definition.label - Display label for the control
- * @param {string} props.definition.description - Description text for the control
- * @param {Array} props.definition.classes - Array of available class options with class, value, and optional label
- * @param {string} props.currentClassName - Current className string to determine selected option
- * @param {Function} props.onClassChange - Callback function called when selection changes
- * @returns {JSX.Element} The SelectControl component
+ * @param {Object} props.definition - Definition object containing control metadata and class options
+ * @param {string} props.definition.category - The property category (e.g., 'borderStyle', 'textTransform', 'overflow')
+ * @param {string} props.definition.label - Display label for the dropdown control
+ * @param {string} props.definition.description - Descriptive text explaining the control's purpose
+ * @param {Array<{class: string, value: string, label?: string}>} props.definition.classes - Array of available Tailwind classes with optional display labels
+ * @param {SerializableElement} props.selectedNode - The currently selected component node being edited
+ * @returns {JSX.Element} The rendered SelectControl component with dropdown selection interface
  */
 export const SelectControl: React.FC<SelectControlProps> = ({
   definition,
-  currentClassName,
-  onClassChange,
+  selectedNode,
 }) => {
-  // Find current selection by checking which class is present in currentClassName
-  const currentClass = definition.classes.find(cls =>
-    currentClassName.includes(cls.class)
-  );
+  const { updateUtilityClass } = useComponentStore();
 
+  // The state for this control is now stored directly in the node's utilityClassState
+  const currentValue = selectedNode.utilityClassState?.[definition.category] || '';
+
+  /**
+   * Handles dropdown selection changes and updates the component's utility state.
+   * 
+   * This function processes user selections from the dropdown menu, updating the
+   * component store with the selected Tailwind class. Empty string selections
+   * result in clearing the utility class (setting it to null) for the "None" option.
+   * 
+   * @param {string} selectedClass - The selected Tailwind class name, or empty string to clear
+   * @returns {void}
+   */
   const handleSelectionChange = (selectedClass: string) => {
-    // Use updateClassProperty to intelligently replace the old class with the new one
-    const newClassName = updateClassProperty(
-      currentClassName,
-      definition.category,
-      selectedClass
-    );
-    onClassChange(newClassName);
+    // This is now simple, direct, and unambiguous.
+    // We are updating the category with the class or null to remove it.
+    updateUtilityClass(selectedNode.id, definition.category, selectedClass || null);
   };
+
+  // Find the current label for display
+  const currentOption = definition.classes.find(cls => cls.class === currentValue);
 
   return (
     <div>
-      <Label className="text-xs font-medium mb-1 block">
-        {definition.label}
-      </Label>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="w-full justify-start text-xs">
-            {currentClass?.label || currentClass?.class || 'Select option'}
+            {currentOption?.label || currentOption?.class || 'Select option'}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-48">
+        <DropdownMenuContent className="w-48 z-[100]">
           <DropdownMenuItem onClick={() => handleSelectionChange('')}>
             None
           </DropdownMenuItem>
@@ -73,9 +95,6 @@ export const SelectControl: React.FC<SelectControlProps> = ({
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-      <p className="text-xs text-muted-foreground mt-1">
-        {definition.description}
-      </p>
     </div>
   );
 };
