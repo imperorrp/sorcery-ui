@@ -16,7 +16,7 @@ interface ControlRowProps {
       type: string;
       [key: string]: unknown;
     };
-    classes?: Array<{ class: string; value: string; label?: string }> | { "$ref": string };
+    classes?: Array<{ class: string; value?: string; label?: string }> | { "$ref": string };
     modifiers?: string[];
   };
   selectedNode: SerializableElement;

@@ -15,6 +15,7 @@ interface SliderProps {
   max?: number;
   step?: number;
   unit?: string;
+  modifierPrefix?: string;
 }
 
 /**
@@ -60,6 +61,7 @@ export const Slider: React.FC<SliderProps> = ({
   max = 100,
   step = 1,
   unit = '',
+  modifierPrefix = ''
 }) => {
   const { updateUtilityClass } = useComponentStore();
   const [value, setValue] = useState<number>(0);
@@ -126,6 +128,8 @@ export const Slider: React.FC<SliderProps> = ({
       } else {
         className = `${definition.category}-${newValue}`;
       }
+      // Apply modifier prefix
+      className = modifierPrefix + className;
     }
 
     updateUtilityClass(selectedNode.id, definition.category, className);

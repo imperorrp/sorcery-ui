@@ -1,0 +1,1013 @@
+{
+  "modifiers": [
+    {
+      "name": "aria-[ATTRIBUTE_SELECTOR]",
+      "type": "ARIA",
+      "description": "Styles an element based on an arbitrary ARIA attribute 'ATTRIBUTE_SELECTOR'.",
+      "css": "&[aria-ATTRIBUTE_SELECTOR]",
+      "requires": "ATTRIBUTE_SELECTOR"
+    },
+    {
+      "name": "aria-busy",
+      "type": "ARIA",
+      "description": "Styles an element when 'aria-busy' is true.",
+      "css": "&[aria-busy=\"true\"]"
+    },
+    {
+      "name": "aria-checked",
+      "type": "ARIA",
+      "description": "Styles an element when 'aria-checked' is true.",
+      "css": "&[aria-checked=\"true\"]"
+    },
+    {
+      "name": "aria-disabled",
+      "type": "ARIA",
+      "description": "Styles an element when 'aria-disabled' is true.",
+      "css": "&[aria-disabled=\"true\"]"
+    },
+    {
+      "name": "aria-expanded",
+      "type": "ARIA",
+      "description": "Styles an element when 'aria-expanded' is true.",
+      "css": "&[aria-expanded=\"true\"]"
+    },
+    {
+      "name": "aria-hidden",
+      "type": "ARIA",
+      "description": "Styles an element when 'aria-hidden' is true.",
+      "css": "&[aria-hidden=\"true\"]"
+    },
+    {
+      "name": "aria-pressed",
+      "type": "ARIA",
+      "description": "Styles an element when 'aria-pressed' is true.",
+      "css": "&[aria-pressed=\"true\"]"
+    },
+    {
+      "name": "aria-readonly",
+      "type": "ARIA",
+      "description": "Styles an element when 'aria-readonly' is true.",
+      "css": "&[aria-readonly=\"true\"]"
+    },
+    {
+      "name": "aria-required",
+      "type": "ARIA",
+      "description": "Styles an element when 'aria-required' is true.",
+      "css": "&[aria-required=\"true\"]"
+    },
+    {
+      "name": "aria-selected",
+      "type": "ARIA",
+      "description": "Styles an element when 'aria-selected' is true.",
+      "css": "&[aria-selected=\"true\"]"
+    },
+    {
+      "name": "@2xl",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a minimum width of 42rem.",
+      "css": "@container (width >= 42rem)"
+    },
+    {
+      "name": "@2xl/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is 42rem (672px) or more.",
+      "css": "@container <name> (width >= 42rem) { ... }"
+    },
+    {
+      "name": "@2xs",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a minimum width of 18rem.",
+      "css": "@container (width >= 18rem)"
+    },
+    {
+      "name": "@2xs/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is 18rem (288px) or more.",
+      "css": "@container <name> (width >= 18rem) { ... }"
+    },
+    {
+      "name": "@3xl",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a minimum width of 48rem.",
+      "css": "@container (width >= 48rem)"
+    },
+    {
+      "name": "@3xl/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is 48rem (768px) or more.",
+      "css": "@container <name> (width >= 48rem) { ... }"
+    },
+    {
+      "name": "@3xs",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a minimum width of 16rem.",
+      "css": "@container (width >= 16rem)"
+    },
+    {
+      "name": "@3xs/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is 16rem (256px) or more.",
+      "css": "@container <name> (width >= 16rem) { ... }"
+    },
+    {
+      "name": "@4xl",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a minimum width of 56rem.",
+      "css": "@container (width >= 56rem)"
+    },
+    {
+      "name": "@4xl/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is 56rem (896px) or more.",
+      "css": "@container <name> (width >= 56rem) { ... }"
+    },
+    {
+      "name": "@5xl",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a minimum width of 64rem.",
+      "css": "@container (width >= 64rem)"
+    },
+    {
+      "name": "@5xl/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is 64rem (1024px) or more.",
+      "css": "@container <name> (width >= 64rem) { ... }"
+    },
+    {
+      "name": "@6xl",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a minimum width of 72rem.",
+      "css": "@container (width >= 72rem)"
+    },
+    {
+      "name": "@6xl/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is 72rem (1152px) or more.",
+      "css": "@container <name> (width >= 72rem) { ... }"
+    },
+    {
+      "name": "@7xl",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a minimum width of 80rem.",
+      "css": "@container (width >= 80rem)"
+    },
+    {
+      "name": "@7xl/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is 80rem (1280px) or more.",
+      "css": "@container <name> (width >= 80rem) { ... }"
+    },
+    {
+      "name": "@lg",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a minimum width of 32rem.",
+      "css": "@container (width >= 32rem)"
+    },
+    {
+      "name": "@lg/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is 32rem (512px) or more.",
+      "css": "@container <name> (width >= 32rem) { ... }"
+    },
+    {
+      "name": "@max-[value]",
+      "type": "Breakpoint",
+      "description": "Styles an element when its parent container's width is less than an arbitrary value.",
+      "css": "@container (width < <value>) { ... }",
+      "requires": "value"
+    },
+    {
+      "name": "@max-[VALUE]",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a custom maximum width 'VALUE'.",
+      "css": "@container (width < VALUE)",
+      "requires": "VALUE"
+    },
+    {
+      "name": "@max-[value]/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is less than an arbitrary value.",
+      "css": "@container <name> (width < <value>) { ... }",
+      "requires": "value"
+    },
+    {
+      "name": "@max-2xl",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a maximum width of 42rem.",
+      "css": "@container (width < 42rem)"
+    },
+    {
+      "name": "@max-2xs",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a maximum width of 18rem.",
+      "css": "@container (width < 18rem)"
+    },
+    {
+      "name": "@max-3xl",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a maximum width of 48rem.",
+      "css": "@container (width < 48rem)"
+    },
+    {
+      "name": "@max-3xs",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a maximum width of 16rem.",
+      "css": "@container (width < 16rem)"
+    },
+    {
+      "name": "@max-4xl",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a maximum width of 56rem.",
+      "css": "@container (width < 56rem)"
+    },
+    {
+      "name": "@max-5xl",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a maximum width of 64rem.",
+      "css": "@container (width < 64rem)"
+    },
+    {
+      "name": "@max-6xl",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a maximum width of 72rem.",
+      "css": "@container (width < 72rem)"
+    },
+    {
+      "name": "@max-7xl",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a maximum width of 80rem.",
+      "css": "@container (width < 80rem)"
+    },
+    {
+      "name": "@max-lg",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a maximum width of 32rem.",
+      "css": "@container (width < 32rem)"
+    },
+    {
+      "name": "@max-md",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a maximum width of 28rem.",
+      "css": "@container (width < 28rem)"
+    },
+    {
+      "name": "@max-sm",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a maximum width of 24rem.",
+      "css": "@container (width < 24rem)"
+    },
+    {
+      "name": "@max-xl",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a maximum width of 36rem.",
+      "css": "@container (width < 36rem)"
+    },
+    {
+      "name": "@max-xs",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a maximum width of 20rem.",
+      "css": "@container (width < 20rem)"
+    },
+    {
+      "name": "@md",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a minimum width of 28rem.",
+      "css": "@container (width >= 28rem)"
+    },
+    {
+      "name": "@md/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is 28rem (448px) or more.",
+      "css": "@container <name> (width >= 28rem) { ... }"
+    },
+    {
+      "name": "@min-[value]",
+      "type": "Breakpoint",
+      "description": "Styles an element when its parent container's width is greater than or equal to an arbitrary value.",
+      "css": "@container (width >= <value>) { ... }",
+      "requires": "value"
+    },
+    {
+      "name": "@min-[VALUE]",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a custom minimum width 'VALUE'.",
+      "css": "@container (width >= VALUE)",
+      "requires": "VALUE"
+    },
+    {
+      "name": "@min-[value]/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is greater than or equal to an arbitrary value.",
+      "css": "@container <name> (width >= <value>) { ... }",
+      "requires": "value"
+    },
+    {
+      "name": "@sm",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a minimum width of 24rem.",
+      "css": "@container (width >= 24rem)"
+    },
+    {
+      "name": "@sm/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is 24rem (384px) or more.",
+      "css": "@container <name> (width >= 24rem) { ... }"
+    },
+    {
+      "name": "@xl",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a minimum width of 36rem.",
+      "css": "@container (width >= 36rem)"
+    },
+    {
+      "name": "@xl/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is 36rem (576px) or more.",
+      "css": "@container <name> (width >= 36rem) { ... }"
+    },
+    {
+      "name": "@xs",
+      "type": "Breakpoint",
+      "description": "Styles an element when its container is at a minimum width of 20rem.",
+      "css": "@container (width >= 20rem)"
+    },
+    {
+      "name": "@xs/{name}",
+      "type": "Breakpoint",
+      "description": "Styles an element when a named parent container's width is 20rem (320px) or more.",
+      "css": "@container <name> (width >= 20rem) { ... }"
+    },
+    {
+      "name": "2xl",
+      "type": "Breakpoint",
+      "description": "Styles an element at double extra-large screen sizes and above.",
+      "css": "@media (width >= 96rem)"
+    },
+    {
+      "name": "lg",
+      "type": "Breakpoint",
+      "description": "Styles an element at large screen sizes and above.",
+      "css": "@media (width >= 64rem)"
+    },
+    {
+      "name": "max-[value]",
+      "type": "Breakpoint",
+      "description": "Styles an element when the viewport width is less than an arbitrary value.",
+      "css": "@media (width < <value>) { ... }",
+      "requires": "value"
+    },
+    {
+      "name": "max-[VALUE]",
+      "type": "Breakpoint",
+      "description": "Styles an element at custom maximum screen width 'VALUE' and below.",
+      "css": "@media (width < VALUE)",
+      "requires": "VALUE"
+    },
+    {
+      "name": "max-2xl",
+      "type": "Breakpoint",
+      "description": "Styles an element at screen sizes below double extra-large.",
+      "css": "@media (width < 96rem)"
+    },
+    {
+      "name": "max-lg",
+      "type": "Breakpoint",
+      "description": "Styles an element at screen sizes below large.",
+      "css": "@media (width < 64rem)"
+    },
+    {
+      "name": "max-md",
+      "type": "Breakpoint",
+      "description": "Styles an element at screen sizes below medium.",
+      "css": "@media (width < 48rem)"
+    },
+    {
+      "name": "max-sm",
+      "type": "Breakpoint",
+      "description": "Styles an element at screen sizes below small.",
+      "css": "@media (width < 40rem)"
+    },
+    {
+      "name": "max-xl",
+      "type": "Breakpoint",
+      "description": "Styles an element at screen sizes below extra-large.",
+      "css": "@media (width < 80rem)"
+    },
+    {
+      "name": "md",
+      "type": "Breakpoint",
+      "description": "Styles an element at medium screen sizes and above.",
+      "css": "@media (width >= 48rem)"
+    },
+    {
+      "name": "min-[value]",
+      "type": "Breakpoint",
+      "description": "Styles an element when the viewport width is greater than or equal to an arbitrary value.",
+      "css": "@media (width >= <value>) { ... }",
+      "requires": "value"
+    },
+    {
+      "name": "min-[VALUE]",
+      "type": "Breakpoint",
+      "description": "Styles an element at custom minimum screen width 'VALUE' and above.",
+      "css": "@media (width >= VALUE)",
+      "requires": "VALUE"
+    },
+    {
+      "name": "sm",
+      "type": "Breakpoint",
+      "description": "Styles an element at small screen sizes and above.",
+      "css": "@media (width >= 40rem)"
+    },
+    {
+      "name": "xl",
+      "type": "Breakpoint",
+      "description": "Styles an element at extra-large screen sizes and above.",
+      "css": "@media (width >= 80rem)"
+    },
+    {
+      "name": "any-pointer-coarse",
+      "type": "Context",
+      "description": "Styles an element when at least one pointing device is less accurate.",
+      "css": "@media (any-pointer: coarse)"
+    },
+    {
+      "name": "any-pointer-fine",
+      "type": "Context",
+      "description": "Styles an element when at least one pointing device is accurate.",
+      "css": "@media (any-pointer: fine)"
+    },
+    {
+      "name": "any-pointer-none",
+      "type": "Context",
+      "description": "Styles an element when no pointing device is present.",
+      "css": "@media (any-pointer: none)"
+    },
+    {
+      "name": "contrast-less",
+      "type": "Context",
+      "description": "Styles an element when the user has requested less contrast.",
+      "css": "@media (prefers-contrast: less)"
+    },
+    {
+      "name": "contrast-more",
+      "type": "Context",
+      "description": "Styles an element when the user has requested more contrast.",
+      "css": "@media (prefers-contrast: more)"
+    },
+    {
+      "name": "dark",
+      "type": "Context",
+      "description": "Styles an element when dark mode is enabled.",
+      "css": "@media (prefers-color-scheme: dark)"
+    },
+    {
+      "name": "forced-colors",
+      "type": "Context",
+      "description": "Styles an element when the user has enabled a forced color mode.",
+      "css": "@media (forced-colors: active)"
+    },
+    {
+      "name": "inverted-colors",
+      "type": "Context",
+      "description": "Styles an element when the user has enabled an inverted color scheme.",
+      "css": "@media (inverted-colors: inverted)"
+    },
+    {
+      "name": "landscape",
+      "type": "Context",
+      "description": "Styles an element when the viewport is in landscape orientation.",
+      "css": "@media (orientation: landscape)"
+    },
+    {
+      "name": "ltr",
+      "type": "Context",
+      "description": "Styles an element when the text direction is left-to-right.",
+      "css": "&:where(:dir(ltr), [dir=\"ltr\"], [dir=\"ltr\"] *)"
+    },
+    {
+      "name": "motion-reduce",
+      "type": "Context",
+      "description": "Styles an element when the user has requested reduced motion.",
+      "css": "@media (prefers-reduced-motion: reduce)"
+    },
+    {
+      "name": "motion-safe",
+      "type": "Context",
+      "description": "Styles an element when the user has not requested reduced motion.",
+      "css": "@media (prefers-reduced-motion: no-preference)"
+    },
+    {
+      "name": "noscript",
+      "type": "Context",
+      "description": "Styles an element when scripting is disabled.",
+      "css": "@media (scripting: none)"
+    },
+    {
+      "name": "not-forced-colors",
+      "type": "Context",
+      "description": "Styles an element when the user is not using a forced colors mode.",
+      "css": "@media not (forced-colors: active)"
+    },
+    {
+      "name": "not-supports-[QUERY]",
+      "type": "Context",
+      "description": "Styles an element based on whether the CSS feature defined by 'QUERY' is not supported.",
+      "css": "@supports not (QUERY)",
+      "requires": "QUERY"
+    },
+    {
+      "name": "pointer-coarse",
+      "type": "Context",
+      "description": "Styles an element when the primary pointing device is less accurate.",
+      "css": "@media (pointer: coarse)"
+    },
+    {
+      "name": "pointer-fine",
+      "type": "Context",
+      "description": "Styles an element when the primary pointing device is accurate.",
+      "css": "@media (pointer: fine)"
+    },
+    {
+      "name": "pointer-none",
+      "type": "Context",
+      "description": "Styles an element when there is no primary pointing device.",
+      "css": "@media (pointer: none)"
+    },
+    {
+      "name": "portrait",
+      "type": "Context",
+      "description": "Styles an element when the viewport is in portrait orientation.",
+      "css": "@media (orientation: portrait)"
+    },
+    {
+      "name": "print",
+      "type": "Context",
+      "description": "Styles an element when the document is being printed.",
+      "css": "@media print"
+    },
+    {
+      "name": "rtl",
+      "type": "Context",
+      "description": "Styles an element when the text direction is right-to-left.",
+      "css": "&:where(:dir(rtl), [dir=\"rtl\"], [dir=\"rtl\"] *)"
+    },
+    {
+      "name": "supports-[QUERY]",
+      "type": "Context",
+      "description": "Styles an element based on whether the CSS feature defined by 'QUERY' is supported.",
+      "css": "@supports (QUERY)",
+      "requires": "QUERY"
+    },
+    {
+      "name": "supports-backdrop-filter",
+      "type": "Context",
+      "description": "Styles an element based on whether the 'backdrop-filter' CSS property is supported.",
+      "css": "@supports (backdrop-filter)"
+    },
+    {
+      "name": "data-[ATTRIBUTE_SELECTOR]",
+      "type": "Data",
+      "description": "Styles an element based on an arbitrary data attribute 'ATTRIBUTE_SELECTOR'.",
+      "css": "&[data-ATTRIBUTE_SELECTOR]",
+      "requires": "ATTRIBUTE_SELECTOR"
+    },
+    {
+      "name": "data-active",
+      "type": "Data",
+      "description": "Styles an element when the 'data-active' attribute exists.",
+      "css": "&[data-active]"
+    },
+    {
+      "name": "group-[SELECTOR]",
+      "type": "Group",
+      "description": "Styles an element when its parent 'group' element matches 'SELECTOR'.",
+      "css": "&:is(:where(.group)SELECTOR *)",
+      "requires": "SELECTOR"
+    },
+    {
+      "name": "group-active",
+      "type": "Group",
+      "description": "Styles an element when a marked parent is active.",
+      "css": ":where(.group:active) &"
+    },
+    {
+      "name": "group-aria-[ATTRIBUTE_SELECTOR]",
+      "type": "Group",
+      "description": "Styles an element when its parent 'group' element's ARIA attribute matches 'ATTRIBUTE_SELECTOR'.",
+      "css": "&:is(:where(.group)[aria-ATTRIBUTE_SELECTOR] *)",
+      "requires": "ATTRIBUTE_SELECTOR"
+    },
+    {
+      "name": "group-focus",
+      "type": "Group",
+      "description": "Styles an element when a marked parent has focus.",
+      "css": ":where(.group:focus) &"
+    },
+    {
+      "name": "group-hover",
+      "type": "Group",
+      "description": "Styles an element when a marked parent is hovered.",
+      "css": ":where(.group:hover) &"
+    },
+    {
+      "name": "group-hover/edit",
+      "type": "Group",
+      "description": "Styles an element when a parent with 'group/edit' is hovered.",
+      "css": ":where(.group\\/edit:hover) &"
+    },
+    {
+      "name": "group-hover/item",
+      "type": "Group",
+      "description": "Styles an element when a parent with 'group/item' is hovered.",
+      "css": ":where(.group\\/item:hover) &"
+    },
+    {
+      "name": "group-odd",
+      "type": "Group",
+      "description": "Styles an element when a marked parent is an oddly numbered child.",
+      "css": ":where(.group:nth-child(odd)) &"
+    },
+    {
+      "name": "peer-[SELECTOR]",
+      "type": "Peer",
+      "description": "Styles an element when its sibling 'peer' element matches 'SELECTOR'.",
+      "css": "&:is(:where(.peer)SELECTOR ~ *)",
+      "requires": "SELECTOR"
+    },
+    {
+      "name": "peer-aria-[ATTRIBUTE_SELECTOR]",
+      "type": "Peer",
+      "description": "Styles an element when its sibling 'peer' element's ARIA attribute matches 'ATTRIBUTE_SELECTOR'.",
+      "css": "&:is(:where(.peer)[aria-ATTRIBUTE_SELECTOR] ~ *)",
+      "requires": "ATTRIBUTE_SELECTOR"
+    },
+    {
+      "name": "peer-checked/draft",
+      "type": "Peer",
+      "description": "Styles an element when a sibling with 'peer/draft' is checked.",
+      "css": ":where(.peer\\/draft:checked) ~ &"
+    },
+    {
+      "name": "peer-checked/published",
+      "type": "Peer",
+      "description": "Styles an element when a sibling with 'peer/published' is checked.",
+      "css": ":where(.peer\\/published:checked) ~ &"
+    },
+    {
+      "name": "peer-disabled",
+      "type": "Peer",
+      "description": "Styles an element when a marked sibling is disabled.",
+      "css": ":where(.peer:disabled) ~ &"
+    },
+    {
+      "name": "peer-focus",
+      "type": "Peer",
+      "description": "Styles an element when a marked sibling has focus.",
+      "css": ":where(.peer:focus) ~ &"
+    },
+    {
+      "name": "peer-invalid",
+      "type": "Peer",
+      "description": "Styles an element when a marked sibling is invalid.",
+      "css": ":where(.peer:invalid) ~ &"
+    },
+    {
+      "name": "peer-required",
+      "type": "Peer",
+      "description": "Styles an element when a marked sibling is required.",
+      "css": ":where(.peer:required) ~ &"
+    },
+    {
+      "name": "after",
+      "type": "Pseudo-element",
+      "description": "Styles the '::after' pseudo-element.",
+      "css": "&::after"
+    },
+    {
+      "name": "backdrop",
+      "type": "Pseudo-element",
+      "description": "Styles the backdrop of a native '<dialog>' element.",
+      "css": "&::backdrop"
+    },
+    {
+      "name": "before",
+      "type": "Pseudo-element",
+      "description": "Styles the '::before' pseudo-element.",
+      "css": "&::before"
+    },
+    {
+      "name": "file",
+      "type": "Pseudo-element",
+      "description": "Styles the button in file inputs.",
+      "css": "&::file-selector-button"
+    },
+    {
+      "name": "first-letter",
+      "type": "Pseudo-element",
+      "description": "Styles the '::first-letter' pseudo-element.",
+      "css": "&::first-letter"
+    },
+    {
+      "name": "first-line",
+      "type": "Pseudo-element",
+      "description": "Styles the '::first-line' pseudo-element.",
+      "css": "&::first-line"
+    },
+    {
+      "name": "marker",
+      "type": "Pseudo-element",
+      "description": "Styles the counters or bullets in lists.",
+      "css": "&::marker, & *::marker"
+    },
+    {
+      "name": "placeholder",
+      "type": "Pseudo-element",
+      "description": "Styles the placeholder text of any input or textarea.",
+      "css": "&::placeholder"
+    },
+    {
+      "name": "selection",
+      "type": "Pseudo-element",
+      "description": "Styles the active text selection.",
+      "css": "&::selection"
+    },
+    {
+      "name": "*",
+      "type": "State",
+      "description": "Styles direct children of an element.",
+      "css": ":is(& > *)"
+    },
+    {
+      "name": "**",
+      "type": "State",
+      "description": "Styles all descendants of an element.",
+      "css": ":is(& *)"
+    },
+    {
+      "name": "active",
+      "type": "State",
+      "description": "Styles an element when it is being pressed.",
+      "css": "&:active"
+    },
+    {
+      "name": "autofill",
+      "type": "State",
+      "description": "Styles an input when it has been autofilled by the browser.",
+      "css": "&:autofill"
+    },
+    {
+      "name": "checked",
+      "type": "State",
+      "description": "Styles a checkbox or radio button when it's checked.",
+      "css": "&:checked"
+    },
+    {
+      "name": "default",
+      "type": "State",
+      "description": "Styles an option, checkbox or radio button that was the default value.",
+      "css": "&:default"
+    },
+    {
+      "name": "details-content",
+      "type": "State",
+      "description": "Styles the content of a '<details>' element.",
+      "css": "&:details-content"
+    },
+    {
+      "name": "disabled",
+      "type": "State",
+      "description": "Styles an input when it's disabled.",
+      "css": "&:disabled"
+    },
+    {
+      "name": "empty",
+      "type": "State",
+      "description": "Styles an element if it has no content.",
+      "css": "&:empty"
+    },
+    {
+      "name": "enabled",
+      "type": "State",
+      "description": "Styles an input when it's enabled.",
+      "css": "&:enabled"
+    },
+    {
+      "name": "even",
+      "type": "State",
+      "description": "Styles an element if it's an evenly numbered child.",
+      "css": "&:nth-child(even)"
+    },
+    {
+      "name": "first",
+      "type": "State",
+      "description": "Styles an element if it's the first child.",
+      "css": "&:first-child"
+    },
+    {
+      "name": "first-of-type",
+      "type": "State",
+      "description": "Styles an element if it's the first child of its type.",
+      "css": "&:first-of-type"
+    },
+    {
+      "name": "focus",
+      "type": "State",
+      "description": "Styles an element when it has focus.",
+      "css": "&:focus"
+    },
+    {
+      "name": "focus-visible",
+      "type": "State",
+      "description": "Styles an element when it has been focused using the keyboard.",
+      "css": "&:focus-visible"
+    },
+    {
+      "name": "focus-within",
+      "type": "State",
+      "description": "Styles an element when it or one of its descendants has focus.",
+      "css": "&:focus-within"
+    },
+    {
+      "name": "has-[SELECTOR]",
+      "type": "State",
+      "description": "Styles an element based on the state or content of its descendants matching 'SELECTOR'.",
+      "css": "&:has(SELECTOR)",
+      "requires": "SELECTOR"
+    },
+    {
+      "name": "hover",
+      "type": "State",
+      "description": "Styles an element when the user hovers over it.",
+      "css": "@media (hover: hover) { &:hover }"
+    },
+    {
+      "name": "in-[SELECTOR]",
+      "type": "State",
+      "description": "Styles an element when a parent matches 'SELECTOR', without needing a 'group' class.",
+      "css": ":where(SELECTOR) &",
+      "requires": "SELECTOR"
+    },
+    {
+      "name": "in-range",
+      "type": "State",
+      "description": "Styles an input when its value is within a specified range limit.",
+      "css": "&:in-range"
+    },
+    {
+      "name": "indeterminate",
+      "type": "State",
+      "description": "Styles a checkbox or radio button in an indeterminate state.",
+      "css": "&:indeterminate"
+    },
+    {
+      "name": "inert",
+      "type": "State",
+      "description": "Styles an element when it is marked with the 'inert' attribute.",
+      "css": "&:is([inert], [inert] *)"
+    },
+    {
+      "name": "invalid",
+      "type": "State",
+      "description": "Styles an input when it's invalid.",
+      "css": "&:invalid"
+    },
+    {
+      "name": "last",
+      "type": "State",
+      "description": "Styles an element if it's the last child.",
+      "css": "&:last-child"
+    },
+    {
+      "name": "last-of-type",
+      "type": "State",
+      "description": "Styles an element if it's the last child of its type.",
+      "css": "&:last-of-type"
+    },
+    {
+      "name": "not-[SELECTOR]",
+      "type": "State",
+      "description": "Styles an element when 'SELECTOR' is not true.",
+      "css": "&:not(SELECTOR)",
+      "requires": "SELECTOR"
+    },
+    {
+      "name": "nth-[NTH_VALUE]",
+      "type": "State",
+      "description": "Styles an element at a specific position defined by 'NTH_VALUE'.",
+      "css": "&:nth-child(NTH_VALUE)",
+      "requires": "NTH_VALUE"
+    },
+    {
+      "name": "nth-last-[NTH_VALUE]",
+      "type": "State",
+      "description": "Styles an element at a specific position from the end defined by 'NTH_VALUE'.",
+      "css": "&:nth-last-child(NTH_VALUE)",
+      "requires": "NTH_VALUE"
+    },
+    {
+      "name": "nth-last-of-type-[NTH_VALUE]",
+      "type": "State",
+      "description": "Styles an element at a specific position from the end of its type defined by 'NTH_VALUE'.",
+      "css": "&:nth-last-of-type(NTH_VALUE)",
+      "requires": "NTH_VALUE"
+    },
+    {
+      "name": "nth-of-type-[NTH_VALUE]",
+      "type": "State",
+      "description": "Styles an element at a specific position of its type defined by 'NTH_VALUE'.",
+      "css": "&:nth-of-type(NTH_VALUE)",
+      "requires": "NTH_VALUE"
+    },
+    {
+      "name": "odd",
+      "type": "State",
+      "description": "Styles an element if it's an oddly numbered child.",
+      "css": "&:nth-child(odd)"
+    },
+    {
+      "name": "only",
+      "type": "State",
+      "description": "Styles an element if it's the only child.",
+      "css": "&:only-child"
+    },
+    {
+      "name": "only-of-type",
+      "type": "State",
+      "description": "Styles an element if it's the only child of its type.",
+      "css": "&:only-of-type"
+    },
+    {
+      "name": "open",
+      "type": "State",
+      "description": "Styles a <details> or <dialog> element when it is in an open state, or a popover.",
+      "css": "&:is([open], :popover-open, :open)"
+    },
+    {
+      "name": "optional",
+      "type": "State",
+      "description": "Styles an input when it's optional.",
+      "css": "&:optional"
+    },
+    {
+      "name": "out-of-range",
+      "type": "State",
+      "description": "Styles an input when its value is outside of a specified range limit.",
+      "css": "&:out-of-range"
+    },
+    {
+      "name": "placeholder-shown",
+      "type": "State",
+      "description": "Styles an input when the placeholder is shown.",
+      "css": "&:placeholder-shown"
+    },
+    {
+      "name": "read-only",
+      "type": "State",
+      "description": "Styles an input when it is read-only.",
+      "css": "&:read-only"
+    },
+    {
+      "name": "required",
+      "type": "State",
+      "description": "Styles an input when it's required.",
+      "css": "&:required"
+    },
+    {
+      "name": "starting",
+      "type": "State",
+      "description": "Sets the appearance of an element when it is first rendered or transitions from 'display: none'.",
+      "css": "@starting-style"
+    },
+    {
+      "name": "target",
+      "type": "State",
+      "description": "Styles an element if its ID matches the current URL fragment.",
+      "css": "&:target"
+    },
+    {
+      "name": "user-invalid",
+      "type": "State",
+      "description": "Styles an input when it's invalid and the user has interacted with it.",
+      "css": "&:user-invalid"
+    },
+    {
+      "name": "user-valid",
+      "type": "State",
+      "description": "Styles an input when it's valid and the user has interacted with it.",
+      "css": "&:user-valid"
+    },
+    {
+      "name": "valid",
+      "type": "State",
+      "description": "Styles an input when it's valid.",
+      "css": "&:valid"
+    },
+    {
+      "name": "visited",
+      "type": "State",
+      "description": "Styles a link when it has already been visited.",
+      "css": "&:visited"
+    }
+  ]
+}

@@ -1,17 +1,32 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { useComponentStore } from '@/store/componentStore';
 import type { SerializableElement } from '@/store/componentStore';
+import datasets from '../../../lib/definitions/datasets.json';
+
+type DatasetOption = { class: string; value: string; label?: string };
+type DatasetsType = Record<string, DatasetOption[]>;
 
 interface SmartSegmentedControlProps {
   definition: {
     category: string;
     label: string;
     description: string;
-    classes: Array<{ class: string; value: string; label?: string }>;
+    strategies: Array<{
+      type: 'list' | 'generative' | 'arbitrary';
+      classes?: Array<{ class: string; value: string; label?: string }>;
+      generative?: {
+        template: string;
+        dataset: string;
+      };
+      arbitrary?: {
+        template: string;
+      };
+    }>;
   };
   selectedNode: SerializableElement;
   options?: Array<{ value: string; label?: string }>;
+  modifierPrefix?: string;
 }
 
 /**
@@ -49,11 +64,41 @@ export const SmartSegmentedControl: React.FC<SmartSegmentedControlProps> = ({
   definition,
   selectedNode,
   options,
+  modifierPrefix = '',
 }) => {
   const { updateUtilityClass } = useComponentStore();
 
   // Find current selection from utility state
   const currentValue = selectedNode.utilityClassState?.[definition.category] || '';
+
+  // Resolve options from strategies
+  const resolvedOptions = useMemo(() => {
+    const allOptions: DatasetOption[] = [];
+
+    for (const strategy of definition.strategies) {
+      if (strategy.type === 'list' && strategy.classes) {
+        allOptions.push(...strategy.classes);
+      } else if (strategy.type === 'generative' && strategy.generative) {
+        const dataset = (datasets as DatasetsType)[strategy.generative.dataset];
+        if (dataset) {
+          const generatedOptions = dataset.map((item: DatasetOption) => {
+            // Apply the template to create the final class name
+            const finalClassName = strategy.generative!.template.replace('{value}', item.class);
+            
+            return {
+              class: finalClassName,
+              value: item.value,
+              label: item.label,
+            };
+          });
+          allOptions.push(...generatedOptions);
+        }
+      }
+      // Skip arbitrary strategies for segmented options
+    }
+
+    return allOptions;
+  }, [definition.strategies]);
 
   /**
    * Handles option selection changes and updates the component's utility state.
@@ -66,11 +111,12 @@ export const SmartSegmentedControl: React.FC<SmartSegmentedControlProps> = ({
    * @returns {void}
    */
   const handleValueChange = (value: string) => {
-    updateUtilityClass(selectedNode.id, definition.category, value || null);
+    const finalClass = value && modifierPrefix ? `${modifierPrefix}${value}` : value || null;
+    updateUtilityClass(selectedNode.id, definition.category, finalClass);
   };
 
-  // Use provided options or generate from definition.classes
-  const controlOptions = options || definition.classes.map(cls => ({
+  // Use provided options or generate from resolved options
+  const controlOptions = options || resolvedOptions.map((cls: DatasetOption) => ({
     value: cls.class,
     label: cls.label || cls.class,
   }));

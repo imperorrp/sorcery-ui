@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { StyleEditor } from './StyleEditor';
 import { ClassNameEditor } from './ClassNameEditor';
+import { ModifierBuilder } from './ModifierBuilder';
+import { ModifierStack, type ModifierValue } from './ModifierStack';
 import { Layers, Brush, Search } from 'lucide-react';
 import { useComponentStore } from '@/store/componentStore';
 import type { SerializableElement } from '@/store/componentStore';
@@ -22,8 +24,17 @@ interface ControlDefinition {
     type: string;
     [key: string]: unknown;
   };
-  classes: Array<{ class: string; value: string; label?: string }> | { "$ref": string };
-  modifiers: string[];
+  strategies?: Array<{
+    type: string;
+    classes?: Array<{ class: string; value?: string; label?: string }>;
+    generative?: { template: string; dataset: string };
+    arbitrary?: { template: string };
+  }>;
+  classes?: Array<{ class: string; value: string; label?: string }> | { "$ref": string };
+  modifiers?: string[];
+  supportsArbitrary?: boolean;
+  structuralVariants?: Array<{ label: string; template: string }>;
+  docUrl?: string;
 }
 
 /**
@@ -51,6 +62,7 @@ interface ControlDefinition {
  */
 export const InspectorPanel: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeModifierStack, setActiveModifierStack] = useState<ModifierValue[]>([]);
 
   // Get current className from the store
   const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
@@ -208,6 +220,52 @@ export const InspectorPanel: React.FC = () => {
   const [newToken, setNewToken] = React.useState('');
 
   /**
+   * Handles adding a new modifier to the active stack
+   */
+  const handleAddModifier = React.useCallback((modifier: ModifierValue) => {
+    setActiveModifierStack(prev => [...prev, modifier]);
+  }, []);
+
+  /**
+   * Handles updating a modifier value in the stack
+   */
+  const handleUpdateModifier = React.useCallback((index: number, value: string) => {
+    setActiveModifierStack(prev => prev.map((mod, i) => 
+      i === index ? { ...mod, value } : mod
+    ));
+  }, []);
+
+  /**
+   * Handles removing a modifier from the active stack
+   */
+  const handleRemoveModifier = React.useCallback((index: number) => {
+    setActiveModifierStack(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  /**
+   * Handles clearing all modifiers from the stack
+   */
+  const handleClearModifiers = React.useCallback(() => {
+    setActiveModifierStack([]);
+  }, []);
+
+  /**
+   * Generates the modifier prefix string for class generation
+   */
+  const modifierPrefix = React.useMemo(() => {
+    if (activeModifierStack.length === 0) return '';
+    
+    const displayTexts = activeModifierStack.map(modifier => {
+      if (modifier.requires && modifier.value) {
+        return modifier.name.replace(`[${modifier.requires}]`, modifier.value);
+      }
+      return modifier.name;
+    });
+    
+    return displayTexts.join(':') + ':';
+  }, [activeModifierStack]);
+
+  /**
    * Adds new CSS class tokens to the currently displayed element.
    * 
    * This function processes a space-separated string of class names, filters out
@@ -238,9 +296,12 @@ export const InspectorPanel: React.FC = () => {
   // Group controls by their group field and filter by search
   const groupedControls = useMemo(() => {
     // Convert object to array of definitions
-    const definitionsArray = Object.entries(tailwindInspectorDefinitions).map(([category, definition]) => ({
+    const definitionsObject = tailwindInspectorDefinitions as unknown as Record<string, Omit<ControlDefinition, 'category'>>;
+    const definitionsArray = Object.entries(definitionsObject).map(([category, definition]) => ({
       category,
-      ...definition
+      ...definition,
+      classes: definition.classes, // Keep original classes intact
+      modifiers: [] // Add empty modifiers array for compatibility
     })) as ControlDefinition[];
 
     // Filter by search query
@@ -342,33 +403,29 @@ export const InspectorPanel: React.FC = () => {
 
         <TabsContent value="classes" className="mt-6">
           <div className="mb-4">
-            <h3 className="text-sm font-semibold mb-2">CSS Classes</h3>
             <p className="text-xs text-muted-foreground mb-4">
               Apply CSS classes to selected elements using definition-driven controls.
             </p>
           </div>
 
           {/* Global ClassName Input */}
-          <div className="mb-4 space-y-2">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="classname-input" className="text-sm font-medium">Class Name</Label>
               {addedTokens.length > 0 && (
-                <span className="text-[10px] uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+                <span className="text-xs text-emerald-600 dark:text-emerald-400">
                   {addedTokens.length} new
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground -mt-1">
-              Add CSS classes to style this element. Classes defined in Global CSS will be available here.
-            </p>
-            <div className="rounded-sm border bg-background/50 px-2 py-1 font-mono text-[11px] leading-relaxed flex flex-wrap gap-1 min-h-[34px]">
+            <div className="rounded-sm border bg-background/50 px-2 py-1 font-mono text-xs leading-relaxed flex flex-wrap gap-1 min-h-[34px]">
               {classTokens.length === 0 && (
                 <span className="text-muted-foreground/60">(no classes)</span>
               )}
               {classTokens.map(token => (
                 <span
                   key={token + (addedTokens.includes(token) ? '-new' : '')}
-                  className={`px-1 py-0.5 rounded-sm border cursor-pointer select-none ${addedTokens.includes(token)
+                  className={`px-1.5 py-0.5 rounded-sm border cursor-pointer select-none ${addedTokens.includes(token)
                     ? 'bg-emerald-100/80 border-emerald-400 text-emerald-900 dark:bg-emerald-900/50 dark:text-emerald-200 dark:border-emerald-600 ring-1 ring-emerald-300/60'
                     : 'bg-muted/40 border-transparent hover:border-border/60'} transition-colors`}
                   title={addedTokens.includes(token) ? 'New this session (not yet applied to source)' : 'Click to remove this class'}
@@ -424,12 +481,30 @@ export const InspectorPanel: React.FC = () => {
                     setNewToken('');
                   }
                 }}
-                className="px-1 py-0.5 rounded-sm border bg-transparent outline-none text-[11px] min-w-[90px] placeholder:text-muted-foreground/70"
+                className="px-1.5 py-0.5 rounded-sm border bg-transparent outline-none text-xs min-w-[90px] placeholder:text-muted-foreground/70"
               />
             </div>
-            <p className="text-[10px] text-muted-foreground">
-              Green chips are new since last apply / selection change. Click any token to remove it (with confirm).
+            <p className="text-xs text-muted-foreground">
+              Green tokens are new since last apply / selection change. Click any token to remove it.
             </p>
+          </div>
+
+          {/* Modifiers Section */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Modifiers</Label>
+            <p className="text-xs text-muted-foreground">
+              Modifiers prefix all classes you add below. For example: hover:bg-blue-500
+            </p>
+            <ModifierStack
+              modifiers={activeModifierStack}
+              onRemoveModifier={handleRemoveModifier}
+              onUpdateModifier={handleUpdateModifier}
+              onClearAll={handleClearModifiers}
+            />
+            <ModifierBuilder
+              onAddModifier={handleAddModifier}
+              currentStack={activeModifierStack.map(m => m.name)}
+            />
           </div>
 
           {/* Search Bar */}
@@ -454,9 +529,15 @@ export const InspectorPanel: React.FC = () => {
                     {groupName} ({groupControls.length})
                   </AccordionTrigger>
                   <AccordionContent className="max-h-96 overflow-y-auto px-1 pb-1">
-                    {/* Flex column container for group controls - tight vertical rhythm */}
                     <div className="flex flex-col gap-0.5">
-                      <ClassNameEditor controls={groupControls} group={groupName} />
+                      {displayNode && groupControls.map((definition) => (
+                        <ClassNameEditor
+                          key={definition.category}
+                          definition={definition}
+                          selectedNode={displayNode}
+                          modifierPrefix={modifierPrefix}
+                        />
+                      ))}
                     </div>
                   </AccordionContent>
                 </AccordionItem>

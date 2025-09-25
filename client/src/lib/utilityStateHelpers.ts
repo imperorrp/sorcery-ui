@@ -1,6 +1,6 @@
 /**
  * Utility State Helpers Module
- * 
+ *
  * This module provides helper functions for managing utility class state
  * and generating className strings from structured utility state objects.
  * It serves as the central logic for combining managed utility classes

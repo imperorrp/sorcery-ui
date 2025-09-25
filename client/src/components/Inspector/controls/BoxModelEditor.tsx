@@ -13,6 +13,7 @@ interface BoxModelEditorProps {
     classes: Array<{ class: string; value: string }>;
   };
   selectedNode: SerializableElement;
+  modifierPrefix?: string;
 }
 
 /**
@@ -47,6 +48,7 @@ interface BoxModelEditorProps {
 export const BoxModelEditor: React.FC<BoxModelEditorProps> = ({
   definition,
   selectedNode,
+  modifierPrefix = '',
 }) => {
   const { updateUtilityClass } = useComponentStore();
   const [isLinked, setIsLinked] = useState(true);
@@ -152,6 +154,11 @@ export const BoxModelEditor: React.FC<BoxModelEditorProps> = ({
       if (updatedValues.all) {
         finalClass = `${prefix}-${updatedValues.all}`;
       }
+    }
+
+    // Apply modifier prefix if present
+    if (finalClass && modifierPrefix) {
+      finalClass = `${modifierPrefix}${finalClass}`;
     }
 
     updateUtilityClass(selectedNode.id, definition.category, finalClass);

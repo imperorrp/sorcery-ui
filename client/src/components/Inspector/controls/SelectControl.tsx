@@ -1,17 +1,32 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { useComponentStore } from '@/store/componentStore';
 import type { SerializableElement } from '@/store/componentStore';
+import datasets from '../../../lib/definitions/datasets.json';
+
+type DatasetOption = { class: string; value: string; label?: string };
+type DatasetsType = Record<string, DatasetOption[]>;
 
 interface SelectControlProps {
   definition: {
     category: string;
     label: string;
     description: string;
-    classes: Array<{ class: string; value: string; label?: string }>;
+    strategies: Array<{
+      type: 'list' | 'generative' | 'arbitrary';
+      classes?: Array<{ class: string; value: string; label?: string }>;
+      generative?: {
+        template: string;
+        dataset: string;
+      };
+      arbitrary?: {
+        template: string;
+      };
+    }>;
   };
   selectedNode: SerializableElement;
+  modifierPrefix?: string;
 }
 
 /**
@@ -48,8 +63,38 @@ interface SelectControlProps {
 export const SelectControl: React.FC<SelectControlProps> = ({
   definition,
   selectedNode,
+  modifierPrefix = ''
 }) => {
   const { updateUtilityClass } = useComponentStore();
+
+  // Resolve options from strategies
+  const options = useMemo(() => {
+    const allOptions: DatasetOption[] = [];
+
+    for (const strategy of definition.strategies) {
+      if (strategy.type === 'list' && strategy.classes) {
+        allOptions.push(...strategy.classes);
+      } else if (strategy.type === 'generative' && strategy.generative) {
+        const dataset = (datasets as DatasetsType)[strategy.generative.dataset];
+        if (dataset) {
+          const generatedOptions = dataset.map((item: DatasetOption) => {
+            // Apply the template to create the final class name
+            const finalClassName = strategy.generative!.template.replace('{value}', item.class);
+            
+            return {
+              class: finalClassName,
+              value: item.value,
+              label: item.label,
+            };
+          });
+          allOptions.push(...generatedOptions);
+        }
+      }
+      // Skip arbitrary strategies for dropdown options
+    }
+
+    return allOptions;
+  }, [definition.strategies]);
 
   // The state for this control is now stored directly in the node's utilityClassState
   const currentValue = selectedNode.utilityClassState?.[definition.category] || '';
@@ -65,13 +110,12 @@ export const SelectControl: React.FC<SelectControlProps> = ({
    * @returns {void}
    */
   const handleSelectionChange = (selectedClass: string) => {
-    // This is now simple, direct, and unambiguous.
-    // We are updating the category with the class or null to remove it.
-    updateUtilityClass(selectedNode.id, definition.category, selectedClass || null);
+    const finalClass = selectedClass ? modifierPrefix + selectedClass : null;
+    updateUtilityClass(selectedNode.id, definition.category, finalClass);
   };
 
   // Find the current label for display
-  const currentOption = definition.classes.find(cls => cls.class === currentValue);
+  const currentOption = options.find((cls: DatasetOption) => cls.class === currentValue);
 
   return (
     <div>
@@ -85,7 +129,7 @@ export const SelectControl: React.FC<SelectControlProps> = ({
           <DropdownMenuItem onClick={() => handleSelectionChange('')}>
             None
           </DropdownMenuItem>
-          {definition.classes.map((option) => (
+          {options.map((option: DatasetOption) => (
             <DropdownMenuItem
               key={option.class}
               onClick={() => handleSelectionChange(option.class)}

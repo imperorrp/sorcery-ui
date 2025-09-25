@@ -12,6 +12,7 @@ interface ToggleProps {
     classes: Array<{ class: string; value: string }>;
   };
   selectedNode: SerializableElement;
+  modifierPrefix?: string;
 }
 
 /**
@@ -49,6 +50,7 @@ interface ToggleProps {
 export const Toggle: React.FC<ToggleProps> = ({
   definition,
   selectedNode,
+  modifierPrefix = ''
 }) => {
   const { updateUtilityClass } = useComponentStore();
 
@@ -65,8 +67,9 @@ export const Toggle: React.FC<ToggleProps> = ({
    * @returns {void}
    */
   const handleToggle = () => {
-    const newClass = !isActive && definition.classes.length > 0 ? definition.classes[0].class : null;
-    updateUtilityClass(selectedNode.id, definition.category, newClass);
+    const baseClass = !isActive && definition.classes.length > 0 ? definition.classes[0].class : null;
+    const finalClass = baseClass ? modifierPrefix + baseClass : null;
+    updateUtilityClass(selectedNode.id, definition.category, finalClass);
   };
 
   return (

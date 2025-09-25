@@ -1,5 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ColorSwatchPicker } from '@/components/ui/color-swatch-picker';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useComponentStore } from '@/store/componentStore';
 import type { SerializableElement } from '@/store/componentStore';
 import datasets from '../../../lib/definitions/datasets.json';
@@ -9,9 +12,20 @@ interface SmartColorPickerProps {
     category: string;
     label: string;
     description: string;
-    classes: { "$ref": string } | Array<{ class: string; value: string; label?: string }>;
+    strategies: Array<{
+      type: 'list' | 'generative' | 'arbitrary';
+      classes?: Array<{ class: string; value?: string; label?: string }>;
+      generative?: {
+        template: string;
+        dataset: string;
+      };
+      arbitrary?: {
+        template: string;
+      };
+    }>;
   };
   selectedNode: SerializableElement;
+  modifierPrefix?: string;
 }
 
 /**
@@ -47,40 +61,55 @@ interface SmartColorPickerProps {
 export const SmartColorPicker: React.FC<SmartColorPickerProps> = ({
   definition,
   selectedNode,
+  modifierPrefix = ''
 }) => {
   const { updateUtilityClass } = useComponentStore();
+  const [customValue, setCustomValue] = useState('');
+  const [isCustomOpen, setIsCustomOpen] = useState(false);
 
-  // Resolve colors from $ref or use direct classes array
+  // Resolve colors from strategies
   const colors = useMemo(() => {
     /**
-     * Resolves color options from either a datasets.json reference or direct class array.
+     * Resolves color options from strategies array.
      * 
-     * This function handles the complexity of different color data sources, transforming
-     * them into a consistent format for the ColorSwatchPicker component. It supports
-     * both $ref references to external datasets and inline class definitions.
+     * This function processes the strategies array to extract color options,
+     * supporting both list and generative strategies for comprehensive color palettes.
      * 
-     * @returns {Array<{name: string, className: string, hex?: string}>} Array of color options with name, className, and optional hex value
+     * @returns {Array<{name: string, className: string, hex?: string}>} Array of color options
      */
-    if ('$ref' in definition.classes) {
-      // Load from datasets.json and transform to ColorOption format
-      const dataset = datasets[definition.classes.$ref as keyof typeof datasets];
-      if (Array.isArray(dataset)) {
-        return dataset.map(item => ({
+    const allColors: Array<{name: string, className: string, hex?: string}> = [];
+
+    for (const strategy of definition.strategies) {
+      if (strategy.type === 'list' && strategy.classes) {
+        // Add list strategy colors
+        const listColors = strategy.classes.map(item => ({
           name: item.label || item.class,
           className: item.class,
-          hex: item.value.startsWith('#') ? item.value : undefined
+          hex: item.value && item.value.startsWith('#') ? item.value : undefined
         }));
+        allColors.push(...listColors);
+      } else if (strategy.type === 'generative' && strategy.generative) {
+        // Add generative strategy colors from dataset
+        const dataset = datasets[strategy.generative.dataset as keyof typeof datasets];
+        if (Array.isArray(dataset)) {
+          const generatedColors = dataset.map((item: { class: string; value?: string; label?: string }) => {
+            // Apply the template to create the final class name
+            const finalClassName = strategy.generative!.template.replace('{value}', item.class);
+            
+            return {
+              name: item.label || item.class,
+              className: finalClassName,
+              hex: item.value && item.value.startsWith('#') ? item.value : undefined
+            };
+          });
+          allColors.push(...generatedColors);
+        }
       }
-      return [];
-    } else {
-      // Use direct classes array and transform to ColorOption format
-      return definition.classes.map(item => ({
-        name: item.label || item.class,
-        className: item.class,
-        hex: item.value.startsWith('#') ? item.value : undefined
-      }));
+      // Skip arbitrary strategies for color swatches
     }
-  }, [definition.classes]);
+
+    return allColors;
+  }, [definition.strategies]);
 
   // Find current color class from utility state
   const currentClass = useMemo(() => {
@@ -107,17 +136,91 @@ export const SmartColorPicker: React.FC<SmartColorPickerProps> = ({
    * @returns {void}
    */
   const handleColorChange = (colorClass: string) => {
-    updateUtilityClass(selectedNode.id, definition.category, colorClass || null);
+    const finalClass = colorClass ? modifierPrefix + colorClass : null;
+    updateUtilityClass(selectedNode.id, definition.category, finalClass);
+  };
+
+  /**
+   * Handles custom color input and applies arbitrary color value.
+   */
+  const handleCustomColor = () => {
+    if (customValue.trim()) {
+      const val = customValue.trim();
+      // Prefer arbitrary strategy template when present
+      const arbitraryStrategy = definition.strategies.find(
+        (s): s is { type: 'arbitrary'; arbitrary: { template: string } } => s.type === 'arbitrary' && !!s.arbitrary
+      );
+      const generativeStrategy = definition.strategies.find(
+        (s): s is { type: 'generative'; generative: { template: string; dataset: string } } =>
+          s.type === 'generative' && !!s.generative
+      );
+
+      let baseClass: string;
+      if (arbitraryStrategy) {
+        baseClass = arbitraryStrategy.arbitrary.template.replace('{value}', `[${val}]`);
+      } else if (generativeStrategy) {
+        baseClass = generativeStrategy.generative.template.replace('{value}', val);
+      } else {
+        // Fallback based on common category naming
+        const cat = definition.category.toLowerCase();
+        if (cat.includes('text')) baseClass = `text-[${val}]`;
+        else if (cat.includes('background')) baseClass = `bg-[${val}]`;
+        else if (cat.includes('border')) baseClass = `border-[${val}]`;
+        else if (cat.includes('outline')) baseClass = `outline-[${val}]`;
+        else if (cat.includes('caret')) baseClass = `caret-[${val}]`;
+        else baseClass = `[color:${val}]`;
+      }
+
+      const finalClass = modifierPrefix + baseClass;
+      updateUtilityClass(selectedNode.id, definition.category, finalClass);
+      setIsCustomOpen(false);
+      setCustomValue('');
+    }
   };
 
   return (
-    <div>
+    <div className="space-y-2">
       <ColorSwatchPicker
         value={currentClass}
         onValueChange={handleColorChange}
         colors={colors}
-        type={definition.category.includes('text') ? 'text' : 'background'}
+        previewKind={
+          definition.category.includes('text')
+            ? 'text'
+            : definition.category.includes('outline')
+            ? 'outline'
+            : definition.category.includes('caret')
+            ? 'caret'
+            : definition.category.includes('border')
+            ? 'border'
+            : 'background'
+        }
       />
+      
+      <Popover open={isCustomOpen} onOpenChange={setIsCustomOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="sm" className="w-full text-xs">
+            Custom...
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-3">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Custom Color</label>
+            <Input
+              value={customValue}
+              onChange={(e) => setCustomValue(e.target.value)}
+              placeholder="#ff0000, rgb(255,0,0), etc."
+              className="text-xs"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleCustomColor();
+              }}
+            />
+            <Button onClick={handleCustomColor} size="sm" className="w-full">
+              Apply
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };

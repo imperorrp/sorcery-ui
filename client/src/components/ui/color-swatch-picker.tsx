@@ -22,7 +22,11 @@ interface ColorSwatchPickerProps {
   onValueChange: (value: string) => void;
   colors: ColorOption[];
   className?: string;
-  type?: 'text' | 'background';
+  /**
+   * previewKind controls how the swatch is visually rendered so utilities that don't affect background directly
+   * (like outline-*, caret-*) can still be previewed.
+   */
+  previewKind?: 'text' | 'background' | 'outline' | 'caret' | 'border';
 }
 
 export const ColorSwatchPicker: React.FC<ColorSwatchPickerProps> = ({
@@ -30,8 +34,24 @@ export const ColorSwatchPicker: React.FC<ColorSwatchPickerProps> = ({
   onValueChange,
   colors,
   className,
-  type = 'background',
+  previewKind = 'background',
 }) => {
+  // Normalize a potentially modifier-prefixed class (e.g., hover:bg-red-500) for selection comparison
+  const normalize = (c?: string) => (c && c.includes(':') ? c.split(':').pop() || c : c) as string | undefined;
+  const normalizedValue = normalize(value);
+
+  // Build a visible preview element for caret colors by mapping to a background sample
+  const caretPreview = (className: string) => {
+    // Extract token after prefix (e.g., caret-red-500 -> red-500, caret-inherit -> inherit)
+    const token = className.replace(/^caret-/, '');
+    const bgClass = `bg-${token}`; // e.g., bg-red-500, bg-transparent, bg-current, bg-inherit
+    return (
+      <div className="w-full h-full bg-white flex items-center justify-center">
+        <div className={cn("w-[2px] h-4", bgClass)} />
+      </div>
+    );
+  };
+
   return (
     <TooltipProvider>
       <div className={cn("grid grid-cols-7 gap-1 p-1", className)}>
@@ -43,19 +63,29 @@ export const ColorSwatchPicker: React.FC<ColorSwatchPickerProps> = ({
                 size="sm"
                 className={cn(
                   "w-6 h-6 p-0 rounded border-2 hover:border-gray-400 transition-colors overflow-hidden",
-                  value === color.className && "border-blue-500 ring-1 ring-blue-500"
+                  normalizedValue === color.className && "border-blue-500 ring-1 ring-blue-500"
                 )}
                 onClick={() => onValueChange(color.className)}
               >
-                {type === 'text' ? (
+                {previewKind === 'text' && (
                   // For text colors, show a sample text with the color on white background
                   <div className="w-full h-full bg-white flex items-center justify-center">
-                    <span className={cn("text-xs font-bold", color.className)}>A</span>
+                    <span className={cn("text-[10px] font-bold", color.className)}>A</span>
                   </div>
-                ) : (
+                )}
+                {previewKind === 'background' && (
                   // For background colors, apply the color directly
                   <div className={cn("w-full h-full", color.className)} />
                 )}
+                {previewKind === 'outline' && (
+                  // For outline colors, render a box with a visible outline using the color class
+                  <div className={cn("w-full h-full bg-white", "outline-2 outline-offset-0", color.className)} />
+                )}
+                {previewKind === 'border' && (
+                  // For border colors, render a box with a visible border using the color class
+                  <div className={cn("w-full h-full bg-white", "border-2 border-solid", color.className)} />
+                )}
+                {previewKind === 'caret' && caretPreview(color.className)}
               </Button>
             </TooltipTrigger>
             <TooltipContent>

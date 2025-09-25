@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from './button';
+import { Popover, PopoverContent, PopoverTrigger } from './popover';
 
 /**
  * ColorPicker Component - A simple color picker UI component

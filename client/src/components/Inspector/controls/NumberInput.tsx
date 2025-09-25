@@ -13,6 +13,7 @@ interface NumberInputProps {
   selectedNode: SerializableElement;
   min?: number;
   max?: number;
+  modifierPrefix?: string;
 }
 
 /**
@@ -53,6 +54,7 @@ export const NumberInput: React.FC<NumberInputProps> = ({
   selectedNode,
   min,
   max,
+  modifierPrefix = '',
 }) => {
   const { updateUtilityClass } = useComponentStore();
 
@@ -78,7 +80,11 @@ export const NumberInput: React.FC<NumberInputProps> = ({
              */
             const value = e.target.value;
             const classValue = value ? `${definition.category}-${value}` : null;
-            updateUtilityClass(selectedNode.id, definition.category, classValue);
+            
+            // Apply modifier prefix if present
+            const finalClass = classValue && modifierPrefix ? `${modifierPrefix}${classValue}` : classValue;
+            
+            updateUtilityClass(selectedNode.id, definition.category, finalClass);
           }}
           className="text-xs w-20"
           min={min}

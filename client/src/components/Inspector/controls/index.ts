@@ -31,3 +31,4 @@ export { ShadowEditor } from './ShadowEditor';
 export { SmartSegmentedControl } from './SegmentedControl';
 export { SmartColorPicker as ColorPicker } from './ColorPicker';
 export { ControlRow } from './ControlRow';
+export { GradientEditor } from './GradientEditor';

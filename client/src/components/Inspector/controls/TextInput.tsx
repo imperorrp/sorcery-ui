@@ -11,6 +11,8 @@ interface TextInputProps {
     classes?: Array<{ class: string; value: string }>;
   };
   selectedNode: SerializableElement;
+  modifierPrefix?: string;
+  isArbitrary?: boolean;
 }
 
 /**
@@ -48,17 +50,31 @@ interface TextInputProps {
 export const TextInput: React.FC<TextInputProps> = ({
   definition,
   selectedNode,
+  modifierPrefix = '',
+  isArbitrary = false,
 }) => {
   const { updateUtilityClass } = useComponentStore();
 
   // Extract current value from utility state
-  const currentValue = selectedNode.utilityClassState?.[definition.category]?.split('-').slice(1).join('-') || '';
+  const currentValue = selectedNode.utilityClassState?.[definition.category];
+  let displayValue = '';
+
+  if (currentValue) {
+    if (isArbitrary) {
+      // For arbitrary values, extract the value from [brackets]
+      const match = currentValue.match(/\[([^\]]+)\]$/);
+      displayValue = match ? match[1] : '';
+    } else {
+      // For regular values, extract after the first dash
+      displayValue = currentValue.split('-').slice(1).join('-');
+    }
+  }
 
   return (
     <Input
       type="text"
-      placeholder="Enter value..."
-      value={currentValue}
+      placeholder={isArbitrary ? "Enter custom value..." : "Enter value..."}
+      value={displayValue}
       onChange={(e) => {
         /**
          * Handles text input changes and converts them to Tailwind utility classes.
@@ -70,8 +86,22 @@ export const TextInput: React.FC<TextInputProps> = ({
          * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event
          */
         const value = e.target.value.trim();
-        const classValue = value ? `${definition.category}-${value}` : null;
-        updateUtilityClass(selectedNode.id, definition.category, classValue);
+        let classValue = null;
+
+        if (value) {
+          if (isArbitrary) {
+            // For arbitrary values, wrap in square brackets
+            classValue = `${definition.category}-[${value}]`;
+          } else {
+            // For regular values, use dash separator
+            classValue = `${definition.category}-${value}`;
+          }
+        }
+        
+        // Apply modifier prefix if present
+        const finalClass = classValue && modifierPrefix ? `${modifierPrefix}${classValue}` : classValue;
+        
+        updateUtilityClass(selectedNode.id, definition.category, finalClass);
       }}
       className="text-xs"
     />

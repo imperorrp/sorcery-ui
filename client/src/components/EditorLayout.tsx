@@ -452,7 +452,7 @@ export const EditorLayout: React.FC = () => {
       </PanelGroup>
 
       {/* Floating Dock for Panel Controls */}
-      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+      <div className="fixed bottom-4 left-0 right-0 flex justify-center z-50">
         <FloatingDock
           items={[
             {

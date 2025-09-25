@@ -24,6 +24,7 @@ interface ShadowEditorProps {
     classes: Array<{ class: string; value: string }>;
   };
   selectedNode: SerializableElement;
+  modifierPrefix?: string;
 }
 
 /**
@@ -61,6 +62,7 @@ interface ShadowEditorProps {
 export const ShadowEditor: React.FC<ShadowEditorProps> = ({
   definition,
   selectedNode,
+  modifierPrefix = '',
 }) => {
   const { updateUtilityClass } = useComponentStore();
   const [shadows, setShadows] = useState<Shadow[]>([
@@ -250,7 +252,11 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
     });
 
     const finalClass = shadowClasses.length > 0 ? shadowClasses[0] : null;
-    updateUtilityClass(selectedNode.id, definition.category, finalClass);
+    
+    // Apply modifier prefix if present
+    const prefixedClass = finalClass && modifierPrefix ? `${modifierPrefix}${finalClass}` : finalClass;
+    
+    updateUtilityClass(selectedNode.id, definition.category, prefixedClass);
   };
 
   const currentShadow = shadows[0]; // For simplicity, focus on first shadow
@@ -306,7 +312,7 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
             value={currentShadow.color}
             onValueChange={(value) => updateShadow(0, { color: value })}
             colors={[...TEXT_COLORS, ...BACKGROUND_COLORS]}
-            type="background"
+            previewKind="background"
           />
         </div>
         <label className="flex items-center gap-1 text-[10px] text-muted-foreground mt-4">
