@@ -1,0 +1,8236 @@
+{
+  "accentColor": {
+    "label": "Accent Color",
+    "description": "Utilities for controlling the accented color of a form control.",
+    "docUrl": "https://tailwindcss.com/docs/accent-color",
+    "group": "Forms",
+    "control": {
+      "type": "ColorPicker"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "accent-inherit",
+            "label": "Inherit"
+          },
+          {
+            "class": "accent-current",
+            "label": "Current"
+          },
+          {
+            "class": "accent-transparent",
+            "label": "Transparent"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "accent-{value}",
+          "dataset": "colors"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "accent-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "alignContent": {
+    "label": "Align Content",
+    "description": "Utilities for controlling how rows are positioned in multi-row flex and grid containers.",
+    "docUrl": "https://tailwindcss.com/docs/align-content",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "content-normal",
+            "label": "Normal"
+          },
+          {
+            "class": "content-center",
+            "label": "Center"
+          },
+          {
+            "class": "content-start",
+            "label": "Start"
+          },
+          {
+            "class": "content-end",
+            "label": "End"
+          },
+          {
+            "class": "content-between",
+            "label": "Space Between"
+          },
+          {
+            "class": "content-around",
+            "label": "Space Around"
+          },
+          {
+            "class": "content-evenly",
+            "label": "Space Evenly"
+          },
+          {
+            "class": "content-baseline",
+            "label": "Baseline"
+          },
+          {
+            "class": "content-stretch",
+            "label": "Stretch"
+          }
+        ]
+      }
+    ]
+  },
+  "alignItems": {
+    "label": "Align Items",
+    "description": "Utilities for controlling how flex and grid items are positioned along a container's cross axis.",
+    "docUrl": "https://tailwindcss.com/docs/align-items",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "items-start",
+            "label": "Start"
+          },
+          {
+            "class": "items-end",
+            "label": "End"
+          },
+          {
+            "class": "items-end-safe",
+            "label": "End (Safe)"
+          },
+          {
+            "class": "items-center",
+            "label": "Center"
+          },
+          {
+            "class": "items-center-safe",
+            "label": "Center (Safe)"
+          },
+          {
+            "class": "items-baseline",
+            "label": "Baseline"
+          },
+          {
+            "class": "items-baseline-last",
+            "label": "Last Baseline"
+          },
+          {
+            "class": "items-stretch",
+            "label": "Stretch"
+          }
+        ]
+      }
+    ]
+  },
+  "alignSelf": {
+    "label": "Align Self",
+    "description": "Utilities for controlling how an individual flex or grid item is positioned along its container's cross axis.",
+    "docUrl": "https://tailwindcss.com/docs/align-self",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "self-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "self-start",
+            "label": "Start"
+          },
+          {
+            "class": "self-end",
+            "label": "End"
+          },
+          {
+            "class": "self-end-safe",
+            "label": "End Safe"
+          },
+          {
+            "class": "self-center",
+            "label": "Center"
+          },
+          {
+            "class": "self-center-safe",
+            "label": "Center Safe"
+          },
+          {
+            "class": "self-stretch",
+            "label": "Stretch"
+          },
+          {
+            "class": "self-baseline",
+            "label": "Baseline"
+          },
+          {
+            "class": "self-baseline-last",
+            "label": "Baseline Last"
+          }
+        ]
+      }
+    ]
+  },
+  "animation": {
+    "label": "Animation",
+    "description": "Utilities for animating elements with CSS animations.",
+    "docUrl": "https://tailwindcss.com/docs/animation",
+    "group": "Effects",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "animate-spin",
+            "label": "Spin"
+          },
+          {
+            "class": "animate-ping",
+            "label": "Ping"
+          },
+          {
+            "class": "animate-pulse",
+            "label": "Pulse"
+          },
+          {
+            "class": "animate-bounce",
+            "label": "Bounce"
+          },
+          {
+            "class": "animate-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "animate-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "appearance": {
+    "label": "Appearance",
+    "description": "Utilities for suppressing native form control styling.",
+    "docUrl": "https://tailwindcss.com/docs/appearance",
+    "group": "Interactivity",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "appearance-none",
+            "label": "None"
+          },
+          {
+            "class": "appearance-auto",
+            "label": "Auto"
+          }
+        ]
+      }
+    ]
+  },
+  "aspectRatio": {
+    "label": "Aspect Ratio",
+    "description": "Utilities for controlling the aspect ratio of an element.",
+    "docUrl": "https://tailwindcss.com/docs/aspect-ratio",
+    "group": "Layout",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "aspect-square",
+            "label": "Square"
+          },
+          {
+            "class": "aspect-video",
+            "label": "Video"
+          },
+          {
+            "class": "aspect-auto",
+            "label": "Auto"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "aspect-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "backdropBlur": {
+    "label": "Backdrop Blur",
+    "description": "Utilities for applying backdrop blur filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/backdrop-blur",
+    "group": "Filters",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "backdrop-blur-xs",
+            "label": "XS"
+          },
+          {
+            "class": "backdrop-blur-sm",
+            "label": "SM"
+          },
+          {
+            "class": "backdrop-blur-md",
+            "label": "MD"
+          },
+          {
+            "class": "backdrop-blur-lg",
+            "label": "LG"
+          },
+          {
+            "class": "backdrop-blur-xl",
+            "label": "XL"
+          },
+          {
+            "class": "backdrop-blur-2xl",
+            "label": "2XL"
+          },
+          {
+            "class": "backdrop-blur-3xl",
+            "label": "3XL"
+          },
+          {
+            "class": "backdrop-blur-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "backdrop-blur-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "backdropBrightness": {
+    "label": "Backdrop Brightness",
+    "description": "Utilities for applying backdrop brightness filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/backdrop-brightness",
+    "group": "Filters",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "backdrop-brightness-{value}",
+          "dataset": "brightness"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "backdrop-brightness-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "backdropContrast": {
+    "label": "Backdrop Contrast",
+    "description": "Utilities for applying backdrop contrast filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/backdrop-contrast",
+    "group": "Filters",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "backdrop-contrast-{value}",
+          "dataset": "contrast"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "backdrop-contrast-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "backdropGrayscale": {
+    "label": "Backdrop Grayscale",
+    "description": "Utilities for applying backdrop grayscale filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/backdrop-grayscale",
+    "group": "Effects",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "backdrop-grayscale",
+            "label": "100%"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "backdrop-grayscale-{value}",
+          "dataset": "grayscale"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "backdrop-grayscale-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "backdropHueRotate": {
+    "label": "Backdrop Hue Rotate",
+    "description": "Utilities for applying backdrop hue-rotate filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/backdrop-hue-rotate",
+    "group": "Filters",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "backdrop-hue-rotate-{value}",
+          "dataset": "hueRotate"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "-backdrop-hue-rotate-{value}",
+          "dataset": "hueRotate"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "backdrop-hue-rotate-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "backdropInvert": {
+    "label": "Backdrop Invert",
+    "description": "Utilities for applying backdrop invert filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/backdrop-filter-invert",
+    "group": "Filters",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "backdrop-invert",
+            "label": "Invert"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "backdrop-invert-{value}",
+          "dataset": "opacity"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "backdrop-invert-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "backdropOpacity": {
+    "label": "Backdrop Opacity",
+    "description": "Utilities for applying backdrop opacity filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/backdrop-opacity",
+    "group": "Effects",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "backdrop-opacity-{value}",
+          "dataset": "opacity"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "backdrop-opacity-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "backdropSaturate": {
+    "label": "Backdrop Saturate",
+    "description": "Utilities for applying backdrop saturation filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/backdrop-saturate",
+    "group": "Effects",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "backdrop-saturate-{value}",
+          "dataset": "saturate"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "backdrop-saturate-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "backdropSepia": {
+    "label": "Backdrop Sepia",
+    "description": "Utilities for applying backdrop sepia filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/backdrop-sepia",
+    "group": "Filters",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "backdrop-sepia",
+            "label": "Full"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "backdrop-sepia-{value}",
+          "dataset": "filterPercentages"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "backdrop-sepia-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "backdropFilter": {
+    "label": "Backdrop Filter",
+    "description": "Utilities for applying backdrop filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/backdrop-filter",
+    "group": "Filters",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "backdrop-filter-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "backdrop-filter-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "backfaceVisibility": {
+    "label": "Backface Visibility",
+    "description": "Utilities for controlling if an element's backface is visible.",
+    "docUrl": "https://tailwindcss.com/docs/backface-visibility",
+    "group": "Transforms",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "backface-hidden",
+            "label": "Hidden"
+          },
+          {
+            "class": "backface-visible",
+            "label": "Visible"
+          }
+        ]
+      }
+    ]
+  },
+  "backgroundAttachment": {
+    "label": "Background Attachment",
+    "description": "Utilities for controlling how a background image behaves when scrolling.",
+    "docUrl": "https://tailwindcss.com/docs/background-attachment",
+    "group": "Backgrounds",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "bg-fixed",
+            "label": "Fixed"
+          },
+          {
+            "class": "bg-local",
+            "label": "Local"
+          },
+          {
+            "class": "bg-scroll",
+            "label": "Scroll"
+          }
+        ]
+      }
+    ]
+  },
+  "backgroundBlendMode": {
+    "label": "Background Blend Mode",
+    "description": "Utilities for controlling how an element's background image should blend with its background color.",
+    "docUrl": "https://tailwindcss.com/docs/background-blend-mode",
+    "group": "Backgrounds",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "bg-blend-normal",
+            "label": "Normal"
+          },
+          {
+            "class": "bg-blend-multiply",
+            "label": "Multiply"
+          },
+          {
+            "class": "bg-blend-screen",
+            "label": "Screen"
+          },
+          {
+            "class": "bg-blend-overlay",
+            "label": "Overlay"
+          },
+          {
+            "class": "bg-blend-darken",
+            "label": "Darken"
+          },
+          {
+            "class": "bg-blend-lighten",
+            "label": "Lighten"
+          },
+          {
+            "class": "bg-blend-color-dodge",
+            "label": "Color Dodge"
+          },
+          {
+            "class": "bg-blend-color-burn",
+            "label": "Color Burn"
+          },
+          {
+            "class": "bg-blend-hard-light",
+            "label": "Hard Light"
+          },
+          {
+            "class": "bg-blend-soft-light",
+            "label": "Soft Light"
+          },
+          {
+            "class": "bg-blend-difference",
+            "label": "Difference"
+          },
+          {
+            "class": "bg-blend-exclusion",
+            "label": "Exclusion"
+          },
+          {
+            "class": "bg-blend-hue",
+            "label": "Hue"
+          },
+          {
+            "class": "bg-blend-saturation",
+            "label": "Saturation"
+          },
+          {
+            "class": "bg-blend-color",
+            "label": "Color"
+          },
+          {
+            "class": "bg-blend-luminosity",
+            "label": "Luminosity"
+          }
+        ]
+      }
+    ]
+  },
+  "backgroundClip": {
+    "label": "Background Clip",
+    "description": "Utilities for controlling the bounding box of an element's background.",
+    "docUrl": "https://tailwindcss.com/docs/background-clip",
+    "group": "Backgrounds",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "bg-clip-border",
+            "label": "Border"
+          },
+          {
+            "class": "bg-clip-padding",
+            "label": "Padding"
+          },
+          {
+            "class": "bg-clip-content",
+            "label": "Content"
+          },
+          {
+            "class": "bg-clip-text",
+            "label": "Text"
+          }
+        ]
+      }
+    ]
+  },
+  "backgroundColor": {
+    "label": "Background Color",
+    "description": "Utilities for controlling an element's background color.",
+    "docUrl": "https://tailwindcss.com/docs/background-color",
+    "group": "Backgrounds",
+    "control": {
+      "type": "ColorPicker"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "bg-inherit",
+            "label": "Inherit"
+          },
+          {
+            "class": "bg-current",
+            "label": "Current"
+          },
+          {
+            "class": "bg-transparent",
+            "label": "Transparent"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "bg-{value}",
+          "dataset": "colors"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "bg-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "backgroundImage": {
+    "label": "Background Image",
+    "description": "Utilities for controlling an element's background image.",
+    "docUrl": "https://tailwindcss.com/docs/background-image",
+    "group": "Backgrounds",
+    "control": {
+      "type": "GradientEditor"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "bg-none",
+            "label": "None"
+          },
+          {
+            "class": "bg-linear-to-t",
+            "label": "Linear to Top"
+          },
+          {
+            "class": "bg-linear-to-tr",
+            "label": "Linear to Top Right"
+          },
+          {
+            "class": "bg-linear-to-r",
+            "label": "Linear to Right"
+          },
+          {
+            "class": "bg-linear-to-br",
+            "label": "Linear to Bottom Right"
+          },
+          {
+            "class": "bg-linear-to-b",
+            "label": "Linear to Bottom"
+          },
+          {
+            "class": "bg-linear-to-bl",
+            "label": "Linear to Bottom Left"
+          },
+          {
+            "class": "bg-linear-to-l",
+            "label": "Linear to Left"
+          },
+          {
+            "class": "bg-linear-to-tl",
+            "label": "Linear to Top Left"
+          },
+          {
+            "class": "bg-radial",
+            "label": "Radial"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "bg-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "backgroundOrigin": {
+    "label": "Background Origin",
+    "description": "Utilities for controlling how an element's background is positioned relative to borders, padding, and content.",
+    "docUrl": "https://tailwindcss.com/docs/background-origin",
+    "group": "Backgrounds",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "bg-origin-border",
+            "label": "Border Box"
+          },
+          {
+            "class": "bg-origin-padding",
+            "label": "Padding Box"
+          },
+          {
+            "class": "bg-origin-content",
+            "label": "Content Box"
+          }
+        ]
+      }
+    ]
+  },
+  "backgroundPosition": {
+    "label": "Background Position",
+    "description": "Utilities for controlling the position of an element's background image.",
+    "docUrl": "https://tailwindcss.com/docs/background-position",
+    "group": "Backgrounds",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "bg-top-left",
+            "label": "Top Left"
+          },
+          {
+            "class": "bg-top",
+            "label": "Top"
+          },
+          {
+            "class": "bg-top-right",
+            "label": "Top Right"
+          },
+          {
+            "class": "bg-left",
+            "label": "Left"
+          },
+          {
+            "class": "bg-center",
+            "label": "Center"
+          },
+          {
+            "class": "bg-right",
+            "label": "Right"
+          },
+          {
+            "class": "bg-bottom-left",
+            "label": "Bottom Left"
+          },
+          {
+            "class": "bg-bottom",
+            "label": "Bottom"
+          },
+          {
+            "class": "bg-bottom-right",
+            "label": "Bottom Right"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "bg-position-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "backgroundRepeat": {
+    "label": "Background Repeat",
+    "description": "Utilities for controlling the repetition of an element's background image.",
+    "docUrl": "https://tailwindcss.com/docs/background-repeat",
+    "group": "Backgrounds",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "bg-repeat",
+            "label": "Repeat"
+          },
+          {
+            "class": "bg-repeat-x",
+            "label": "Repeat X"
+          },
+          {
+            "class": "bg-repeat-y",
+            "label": "Repeat Y"
+          },
+          {
+            "class": "bg-repeat-space",
+            "label": "Space"
+          },
+          {
+            "class": "bg-repeat-round",
+            "label": "Round"
+          },
+          {
+            "class": "bg-no-repeat",
+            "label": "No Repeat"
+          }
+        ]
+      }
+    ]
+  },
+  "backgroundSize": {
+    "label": "Background Size",
+    "description": "Utilities for controlling the background size of an element's background image.",
+    "docUrl": "https://tailwindcss.com/docs/background-size",
+    "group": "Backgrounds",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "bg-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "bg-cover",
+            "label": "Cover"
+          },
+          {
+            "class": "bg-contain",
+            "label": "Contain"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "bg-size-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "borderCollapse": {
+    "label": "Border Collapse",
+    "description": "Utilities for controlling whether table borders should collapse or be separated.",
+    "docUrl": "https://tailwindcss.com/docs/border-collapse",
+    "group": "Tables",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "border-collapse",
+            "label": "Collapse"
+          },
+          {
+            "class": "border-separate",
+            "label": "Separate"
+          }
+        ]
+      }
+    ]
+  },
+  "borderColor": {
+    "label": "Border Color",
+    "description": "Utilities for controlling the color of an element's borders.",
+    "docUrl": "https://tailwindcss.com/docs/border-color",
+    "group": "Borders",
+    "control": {
+      "type": "ColorPicker"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "border-inherit",
+            "label": "Inherit"
+          },
+          {
+            "class": "border-current",
+            "label": "Current Color"
+          },
+          {
+            "class": "border-transparent",
+            "label": "Transparent"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "border-{value}",
+          "dataset": "colors"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "border-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true,
+    "structuralVariants": [
+      {
+        "label": "Horizontal Axis",
+        "template": "border-x-{value}"
+      },
+      {
+        "label": "Vertical Axis",
+        "template": "border-y-{value}"
+      },
+      {
+        "label": "Start Side (Logical)",
+        "template": "border-s-{value}"
+      },
+      {
+        "label": "End Side (Logical)",
+        "template": "border-e-{value}"
+      },
+      {
+        "label": "Top Only",
+        "template": "border-t-{value}"
+      },
+      {
+        "label": "Right Only",
+        "template": "border-r-{value}"
+      },
+      {
+        "label": "Bottom Only",
+        "template": "border-b-{value}"
+      },
+      {
+        "label": "Left Only",
+        "template": "border-l-{value}"
+      },
+      {
+        "label": "Dividers Between Children",
+        "template": "divide-{value}"
+      }
+    ]
+  },
+  "borderRadius": {
+    "label": "Border Radius",
+    "description": "Utilities for controlling the border radius of an element.",
+    "docUrl": "https://tailwindcss.com/docs/border-radius",
+    "group": "Borders",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "rounded-{value}",
+          "dataset": "radius"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "rounded-{value}"
+        }
+      }
+    ],
+    "structuralVariants": [
+      {
+        "label": "Start",
+        "template": "rounded-s-{value}"
+      },
+      {
+        "label": "End",
+        "template": "rounded-e-{value}"
+      },
+      {
+        "label": "Top",
+        "template": "rounded-t-{value}"
+      },
+      {
+        "label": "Right",
+        "template": "rounded-r-{value}"
+      },
+      {
+        "label": "Bottom",
+        "template": "rounded-b-{value}"
+      },
+      {
+        "label": "Left",
+        "template": "rounded-l-{value}"
+      },
+      {
+        "label": "Start-Start",
+        "template": "rounded-ss-{value}"
+      },
+      {
+        "label": "Start-End",
+        "template": "rounded-se-{value}"
+      },
+      {
+        "label": "End-End",
+        "template": "rounded-ee-{value}"
+      },
+      {
+        "label": "End-Start",
+        "template": "rounded-es-{value}"
+      },
+      {
+        "label": "Top-Left",
+        "template": "rounded-tl-{value}"
+      },
+      {
+        "label": "Top-Right",
+        "template": "rounded-tr-{value}"
+      },
+      {
+        "label": "Bottom-Right",
+        "template": "rounded-br-{value}"
+      },
+      {
+        "label": "Bottom-Left",
+        "template": "rounded-bl-{value}"
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "borderSpacing": {
+    "label": "Border Spacing",
+    "description": "Utilities for controlling the spacing between table borders.",
+    "docUrl": "https://tailwindcss.com/docs/border-spacing",
+    "group": "Borders",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "border-spacing-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "border-spacing-{value}"
+        }
+      }
+    ],
+    "structuralVariants": [
+      {
+        "label": "Horizontal Axis",
+        "template": "border-spacing-x-{value}"
+      },
+      {
+        "label": "Vertical Axis",
+        "template": "border-spacing-y-{value}"
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "borderStyle": {
+    "label": "Border Style",
+    "description": "Utilities for controlling the style of an element's borders.",
+    "docUrl": "https://tailwindcss.com/docs/border-style",
+    "group": "Borders",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "border-solid",
+            "label": "Solid"
+          },
+          {
+            "class": "border-dashed",
+            "label": "Dashed"
+          },
+          {
+            "class": "border-dotted",
+            "label": "Dotted"
+          },
+          {
+            "class": "border-double",
+            "label": "Double"
+          },
+          {
+            "class": "border-hidden",
+            "label": "Hidden"
+          },
+          {
+            "class": "border-none",
+            "label": "None"
+          }
+        ]
+      }
+    ]
+  },
+  "borderWidth": {
+    "label": "Border Width",
+    "description": "Utilities for controlling the width of an element's borders.",
+    "docUrl": "https://tailwindcss.com/docs/border-width",
+    "group": "Borders",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "border-{value}",
+          "dataset": "borderWidth"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "border-{value}"
+        }
+      }
+    ],
+    "structuralVariants": [
+      {
+        "label": "Horizontal Axis",
+        "template": "border-x-{value}"
+      },
+      {
+        "label": "Vertical Axis",
+        "template": "border-y-{value}"
+      },
+      {
+        "label": "Logical Start",
+        "template": "border-s-{value}"
+      },
+      {
+        "label": "Logical End",
+        "template": "border-e-{value}"
+      },
+      {
+        "label": "Top Only",
+        "template": "border-t-{value}"
+      },
+      {
+        "label": "Right Only",
+        "template": "border-r-{value}"
+      },
+      {
+        "label": "Bottom Only",
+        "template": "border-b-{value}"
+      },
+      {
+        "label": "Left Only",
+        "template": "border-l-{value}"
+      },
+      {
+        "label": "Divide Horizontal",
+        "template": "divide-x-{value}"
+      },
+      {
+        "label": "Divide Vertical",
+        "template": "divide-y-{value}"
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "boxDecorationBreak": {
+    "label": "Box Decoration Break",
+    "description": "Utilities for controlling how element fragments should be rendered across multiple lines, columns, or pages.",
+    "docUrl": "https://tailwindcss.com/docs/box-decoration-break",
+    "group": "Layout",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "box-decoration-clone",
+            "label": "Clone"
+          },
+          {
+            "class": "box-decoration-slice",
+            "label": "Slice"
+          }
+        ]
+      }
+    ]
+  },
+  "boxShadow": {
+    "label": "Box Shadow",
+    "description": "Utilities for controlling the box shadow of an element.",
+    "docUrl": "https://tailwindcss.com/docs/box-shadow",
+    "group": "Effects",
+    "control": {
+      "type": "ShadowEditor"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "shadow-2xs",
+            "label": "2 Extra Small Shadow"
+          },
+          {
+            "class": "shadow-xs",
+            "label": "Extra Small Shadow"
+          },
+          {
+            "class": "shadow-sm",
+            "label": "Small Shadow"
+          },
+          {
+            "class": "shadow-md",
+            "label": "Medium Shadow"
+          },
+          {
+            "class": "shadow-lg",
+            "label": "Large Shadow"
+          },
+          {
+            "class": "shadow-xl",
+            "label": "Extra Large Shadow"
+          },
+          {
+            "class": "shadow-2xl",
+            "label": "2 Extra Large Shadow"
+          },
+          {
+            "class": "shadow-none",
+            "label": "No Shadow"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "shadow-{value}"
+        }
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "shadow-inherit",
+            "label": "Shadow Color: Inherit"
+          },
+          {
+            "class": "shadow-current",
+            "label": "Shadow Color: Current"
+          },
+          {
+            "class": "shadow-transparent",
+            "label": "Shadow Color: Transparent"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "shadow-{value}",
+          "dataset": "colors"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "shadow-(color:{value})"
+        }
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "inset-shadow-2xs",
+            "label": "Inset 2 Extra Small Shadow"
+          },
+          {
+            "class": "inset-shadow-xs",
+            "label": "Inset Extra Small Shadow"
+          },
+          {
+            "class": "inset-shadow-sm",
+            "label": "Inset Small Shadow"
+          },
+          {
+            "class": "inset-shadow-none",
+            "label": "No Inset Shadow"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "inset-shadow-{value}"
+        }
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "inset-shadow-inherit",
+            "label": "Inset Shadow Color: Inherit"
+          },
+          {
+            "class": "inset-shadow-current",
+            "label": "Inset Shadow Color: Current"
+          },
+          {
+            "class": "inset-shadow-transparent",
+            "label": "Inset Shadow Color: Transparent"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "inset-shadow-{value}",
+          "dataset": "colors"
+        }
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "ring",
+            "label": "Default Ring (1px)"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "ring-{value}",
+          "dataset": "ringWidth"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "ring-{value}"
+        }
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "ring-inherit",
+            "label": "Ring Color: Inherit"
+          },
+          {
+            "class": "ring-current",
+            "label": "Ring Color: Current"
+          },
+          {
+            "class": "ring-transparent",
+            "label": "Ring Color: Transparent"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "ring-{value}",
+          "dataset": "colors"
+        }
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "inset-ring",
+            "label": "Default Inset Ring (1px)"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "inset-ring-{value}",
+          "dataset": "ringWidth"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "inset-ring-{value}"
+        }
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "inset-ring-inherit",
+            "label": "Inset Ring Color: Inherit"
+          },
+          {
+            "class": "inset-ring-current",
+            "label": "Inset Ring Color: Current"
+          },
+          {
+            "class": "inset-ring-transparent",
+            "label": "Inset Ring Color: Transparent"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "inset-ring-{value}",
+          "dataset": "colors"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "boxSizing": {
+    "label": "Box Sizing",
+    "description": "Utilities for controlling how the browser should calculate an element's total size.",
+    "docUrl": "https://tailwindcss.com/docs/box-sizing",
+    "group": "Layout",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "box-border",
+            "label": "Border Box"
+          },
+          {
+            "class": "box-content",
+            "label": "Content Box"
+          }
+        ]
+      }
+    ]
+  },
+  "breakAfter": {
+    "label": "Break After",
+    "description": "Utilities for controlling how a column or page should break after an element.",
+    "docUrl": "https://tailwindcss.com/docs/break-after",
+    "group": "Layout",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "break-after-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "break-after-avoid",
+            "label": "Avoid"
+          },
+          {
+            "class": "break-after-all",
+            "label": "All"
+          },
+          {
+            "class": "break-after-avoid-page",
+            "label": "Avoid Page"
+          },
+          {
+            "class": "break-after-page",
+            "label": "Page"
+          },
+          {
+            "class": "break-after-left",
+            "label": "Left"
+          },
+          {
+            "class": "break-after-right",
+            "label": "Right"
+          },
+          {
+            "class": "break-after-column",
+            "label": "Column"
+          }
+        ]
+      }
+    ]
+  },
+  "breakBefore": {
+    "label": "Break Before",
+    "description": "Utilities for controlling how a column or page should break before an element.",
+    "docUrl": "https://tailwindcss.com/docs/break-before",
+    "group": "Layout",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "break-before-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "break-before-avoid",
+            "label": "Avoid"
+          },
+          {
+            "class": "break-before-all",
+            "label": "All"
+          },
+          {
+            "class": "break-before-avoid-page",
+            "label": "Avoid Page"
+          },
+          {
+            "class": "break-before-page",
+            "label": "Page"
+          },
+          {
+            "class": "break-before-left",
+            "label": "Left"
+          },
+          {
+            "class": "break-before-right",
+            "label": "Right"
+          },
+          {
+            "class": "break-before-column",
+            "label": "Column"
+          }
+        ]
+      }
+    ]
+  },
+  "breakInside": {
+    "label": "Break Inside",
+    "description": "Utilities for controlling how a column or page should break within an element.",
+    "docUrl": "https://tailwindcss.com/docs/break-inside",
+    "group": "Layout",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "break-inside-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "break-inside-avoid",
+            "label": "Avoid"
+          },
+          {
+            "class": "break-inside-avoid-page",
+            "label": "Avoid Page"
+          },
+          {
+            "class": "break-inside-avoid-column",
+            "label": "Avoid Column"
+          }
+        ]
+      }
+    ]
+  },
+  "captionSide": {
+    "label": "Caption Side",
+    "description": "Utilities for controlling the alignment of a caption element inside of a table.",
+    "docUrl": "https://tailwindcss.com/docs/caption-side",
+    "group": "Tables",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "caption-top",
+            "label": "Top"
+          },
+          {
+            "class": "caption-bottom",
+            "label": "Bottom"
+          }
+        ]
+      }
+    ]
+  },
+  "caretColor": {
+    "label": "Caret Color",
+    "description": "Utilities for controlling the color of the text input cursor.",
+    "docUrl": "https://tailwindcss.com/docs/caret-color",
+    "group": "Interactivity",
+    "control": {
+      "type": "ColorPicker"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "caret-inherit",
+            "label": "Inherit"
+          },
+          {
+            "class": "caret-current",
+            "label": "Current"
+          },
+          {
+            "class": "caret-transparent",
+            "label": "Transparent"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "caret-{value}",
+          "dataset": "colors"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "caret-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "clear": {
+    "label": "Clear",
+    "description": "Utilities for controlling the wrapping of content around an element.",
+    "docUrl": "https://tailwindcss.com/docs/clear",
+    "group": "Layout",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "clear-left",
+            "label": "Left"
+          },
+          {
+            "class": "clear-right",
+            "label": "Right"
+          },
+          {
+            "class": "clear-both",
+            "label": "Both"
+          },
+          {
+            "class": "clear-start",
+            "label": "Start (Logical)"
+          },
+          {
+            "class": "clear-end",
+            "label": "End (Logical)"
+          },
+          {
+            "class": "clear-none",
+            "label": "None"
+          }
+        ]
+      }
+    ]
+  },
+  "colorScheme": {
+    "label": "Color Scheme",
+    "description": "Utilities for controlling the color scheme of an element.",
+    "docUrl": "https://tailwindcss.com/docs/color-scheme",
+    "group": "Appearance",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "scheme-normal",
+            "label": "Normal"
+          },
+          {
+            "class": "scheme-dark",
+            "label": "Dark"
+          },
+          {
+            "class": "scheme-light",
+            "label": "Light"
+          },
+          {
+            "class": "scheme-light-dark",
+            "label": "Light Dark"
+          },
+          {
+            "class": "scheme-only-dark",
+            "label": "Only Dark"
+          },
+          {
+            "class": "scheme-only-light",
+            "label": "Only Light"
+          }
+        ]
+      }
+    ]
+  },
+  "textColor": {
+    "label": "Text Color",
+    "description": "Utilities for controlling the text color of an element.",
+    "docUrl": "https://tailwindcss.com/docs/text-color",
+    "group": "Typography",
+    "control": {
+      "type": "ColorPicker"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "text-inherit",
+            "label": "Inherit"
+          },
+          {
+            "class": "text-current",
+            "label": "Current"
+          },
+          {
+            "class": "text-transparent",
+            "label": "Transparent"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "text-{value}",
+          "dataset": "colors"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "text-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "columns": {
+    "label": "Columns",
+    "description": "Utilities for controlling the number of columns within an element.",
+    "docUrl": "https://tailwindcss.com/docs/columns",
+    "group": "Layout",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "columns-1",
+            "label": "1 Column"
+          },
+          {
+            "class": "columns-2",
+            "label": "2 Columns"
+          },
+          {
+            "class": "columns-3",
+            "label": "3 Columns"
+          },
+          {
+            "class": "columns-4",
+            "label": "4 Columns"
+          },
+          {
+            "class": "columns-5",
+            "label": "5 Columns"
+          },
+          {
+            "class": "columns-6",
+            "label": "6 Columns"
+          },
+          {
+            "class": "columns-7",
+            "label": "7 Columns"
+          },
+          {
+            "class": "columns-8",
+            "label": "8 Columns"
+          },
+          {
+            "class": "columns-9",
+            "label": "9 Columns"
+          },
+          {
+            "class": "columns-10",
+            "label": "10 Columns"
+          },
+          {
+            "class": "columns-11",
+            "label": "11 Columns"
+          },
+          {
+            "class": "columns-12",
+            "label": "12 Columns"
+          },
+          {
+            "class": "columns-3xs",
+            "label": "3XS (16rem)"
+          },
+          {
+            "class": "columns-2xs",
+            "label": "2XS (18rem)"
+          },
+          {
+            "class": "columns-xs",
+            "label": "XS (20rem)"
+          },
+          {
+            "class": "columns-sm",
+            "label": "SM (24rem)"
+          },
+          {
+            "class": "columns-md",
+            "label": "MD (28rem)"
+          },
+          {
+            "class": "columns-lg",
+            "label": "LG (32rem)"
+          },
+          {
+            "class": "columns-xl",
+            "label": "XL (36rem)"
+          },
+          {
+            "class": "columns-2xl",
+            "label": "2XL (42rem)"
+          },
+          {
+            "class": "columns-3xl",
+            "label": "3XL (48rem)"
+          },
+          {
+            "class": "columns-4xl",
+            "label": "4XL (56rem)"
+          },
+          {
+            "class": "columns-5xl",
+            "label": "5XL (64rem)"
+          },
+          {
+            "class": "columns-6xl",
+            "label": "6XL (72rem)"
+          },
+          {
+            "class": "columns-7xl",
+            "label": "7XL (80rem)"
+          },
+          {
+            "class": "columns-auto",
+            "label": "Auto"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "columns-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "content": {
+    "label": "Content",
+    "description": "Utilities for controlling the content of the before and after pseudo-elements.",
+    "docUrl": "https://tailwindcss.com/docs/content",
+    "group": "Pseudo Elements",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "content-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "content-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "content-({value})"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "cursor": {
+    "label": "Cursor",
+    "description": "Utilities for controlling the cursor style when hovering over an element.",
+    "docUrl": "https://tailwindcss.com/docs/cursor",
+    "group": "Interactivity",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "cursor-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "cursor-default",
+            "label": "Default"
+          },
+          {
+            "class": "cursor-pointer",
+            "label": "Pointer"
+          },
+          {
+            "class": "cursor-wait",
+            "label": "Wait"
+          },
+          {
+            "class": "cursor-text",
+            "label": "Text"
+          },
+          {
+            "class": "cursor-move",
+            "label": "Move"
+          },
+          {
+            "class": "cursor-help",
+            "label": "Help"
+          },
+          {
+            "class": "cursor-not-allowed",
+            "label": "Not Allowed"
+          },
+          {
+            "class": "cursor-none",
+            "label": "None"
+          },
+          {
+            "class": "cursor-context-menu",
+            "label": "Context Menu"
+          },
+          {
+            "class": "cursor-progress",
+            "label": "Progress"
+          },
+          {
+            "class": "cursor-cell",
+            "label": "Cell"
+          },
+          {
+            "class": "cursor-crosshair",
+            "label": "Crosshair"
+          },
+          {
+            "class": "cursor-vertical-text",
+            "label": "Vertical Text"
+          },
+          {
+            "class": "cursor-alias",
+            "label": "Alias"
+          },
+          {
+            "class": "cursor-copy",
+            "label": "Copy"
+          },
+          {
+            "class": "cursor-no-drop",
+            "label": "No Drop"
+          },
+          {
+            "class": "cursor-grab",
+            "label": "Grab"
+          },
+          {
+            "class": "cursor-grabbing",
+            "label": "Grabbing"
+          },
+          {
+            "class": "cursor-all-scroll",
+            "label": "All Scroll"
+          },
+          {
+            "class": "cursor-col-resize",
+            "label": "Col Resize"
+          },
+          {
+            "class": "cursor-row-resize",
+            "label": "Row Resize"
+          },
+          {
+            "class": "cursor-n-resize",
+            "label": "N Resize"
+          },
+          {
+            "class": "cursor-e-resize",
+            "label": "E Resize"
+          },
+          {
+            "class": "cursor-s-resize",
+            "label": "S Resize"
+          },
+          {
+            "class": "cursor-w-resize",
+            "label": "W Resize"
+          },
+          {
+            "class": "cursor-ne-resize",
+            "label": "NE Resize"
+          },
+          {
+            "class": "cursor-nw-resize",
+            "label": "NW Resize"
+          },
+          {
+            "class": "cursor-se-resize",
+            "label": "SE Resize"
+          },
+          {
+            "class": "cursor-sw-resize",
+            "label": "SW Resize"
+          },
+          {
+            "class": "cursor-ew-resize",
+            "label": "EW Resize"
+          },
+          {
+            "class": "cursor-ns-resize",
+            "label": "NS Resize"
+          },
+          {
+            "class": "cursor-nesw-resize",
+            "label": "NESW Resize"
+          },
+          {
+            "class": "cursor-nwse-resize",
+            "label": "NWSE Resize"
+          },
+          {
+            "class": "cursor-zoom-in",
+            "label": "Zoom In"
+          },
+          {
+            "class": "cursor-zoom-out",
+            "label": "Zoom Out"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "cursor-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "display": {
+    "label": "Display",
+    "description": "Utilities for controlling the display box type of an element.",
+    "docUrl": "https://tailwindcss.com/docs/display",
+    "group": "Layout",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "inline",
+            "label": "Inline"
+          },
+          {
+            "class": "block",
+            "label": "Block"
+          },
+          {
+            "class": "inline-block",
+            "label": "Inline Block"
+          },
+          {
+            "class": "flow-root",
+            "label": "Flow Root"
+          },
+          {
+            "class": "flex",
+            "label": "Flex"
+          },
+          {
+            "class": "inline-flex",
+            "label": "Inline Flex"
+          },
+          {
+            "class": "grid",
+            "label": "Grid"
+          },
+          {
+            "class": "inline-grid",
+            "label": "Inline Grid"
+          },
+          {
+            "class": "contents",
+            "label": "Contents"
+          },
+          {
+            "class": "table",
+            "label": "Table"
+          },
+          {
+            "class": "inline-table",
+            "label": "Inline Table"
+          },
+          {
+            "class": "table-caption",
+            "label": "Table Caption"
+          },
+          {
+            "class": "table-cell",
+            "label": "Table Cell"
+          },
+          {
+            "class": "table-column",
+            "label": "Table Column"
+          },
+          {
+            "class": "table-column-group",
+            "label": "Table Column Group"
+          },
+          {
+            "class": "table-footer-group",
+            "label": "Table Footer Group"
+          },
+          {
+            "class": "table-header-group",
+            "label": "Table Header Group"
+          },
+          {
+            "class": "table-row-group",
+            "label": "Table Row Group"
+          },
+          {
+            "class": "table-row",
+            "label": "Table Row"
+          },
+          {
+            "class": "list-item",
+            "label": "List Item"
+          },
+          {
+            "class": "hidden",
+            "label": "Hidden"
+          },
+          {
+            "class": "sr-only",
+            "label": "Screen Reader Only"
+          },
+          {
+            "class": "not-sr-only",
+            "label": "Not Screen Reader Only"
+          }
+        ]
+      }
+    ]
+  },
+  "fieldSizing": {
+    "label": "Field Sizing",
+    "description": "Utilities for controlling the sizing of form controls.",
+    "docUrl": "https://tailwindcss.com/docs/field-sizing",
+    "group": "Layout",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "field-sizing-fixed",
+            "label": "Fixed"
+          },
+          {
+            "class": "field-sizing-content",
+            "label": "Content"
+          }
+        ]
+      }
+    ]
+  },
+  "fill": {
+    "label": "Fill",
+    "description": "Utilities for styling the fill of SVG elements.",
+    "docUrl": "https://tailwindcss.com/docs/fill",
+    "group": "SVG",
+    "control": {
+      "type": "ColorPicker"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "fill-none",
+            "label": "None"
+          },
+          {
+            "class": "fill-inherit",
+            "label": "Inherit"
+          },
+          {
+            "class": "fill-current",
+            "label": "Current"
+          },
+          {
+            "class": "fill-transparent",
+            "label": "Transparent"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "fill-{value}",
+          "dataset": "colors"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "fill-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "blur": {
+    "label": "Blur",
+    "description": "Utilities for applying blur filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/blur",
+    "group": "Effects",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "blur-xs",
+            "label": "Extra Small"
+          },
+          {
+            "class": "blur-sm",
+            "label": "Small"
+          },
+          {
+            "class": "blur-md",
+            "label": "Medium"
+          },
+          {
+            "class": "blur-lg",
+            "label": "Large"
+          },
+          {
+            "class": "blur-xl",
+            "label": "Extra Large"
+          },
+          {
+            "class": "blur-2xl",
+            "label": "2XL"
+          },
+          {
+            "class": "blur-3xl",
+            "label": "3XL"
+          },
+          {
+            "class": "blur-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "blur-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "brightness": {
+    "label": "Brightness",
+    "description": "Utilities for applying brightness filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/brightness",
+    "group": "Filters",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "brightness-{value}",
+          "dataset": "brightness"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "brightness-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "filterContrast": {
+    "label": "Filter: Contrast",
+    "description": "Utilities for applying contrast filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/filter-contrast",
+    "group": "Effects",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "contrast-50",
+            "label": "50%"
+          },
+          {
+            "class": "contrast-100",
+            "label": "100%"
+          },
+          {
+            "class": "contrast-125",
+            "label": "125%"
+          },
+          {
+            "class": "contrast-200",
+            "label": "200%"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "contrast-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "dropShadow": {
+    "label": "Drop Shadow",
+    "description": "Utilities for applying drop-shadow filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/drop-shadow",
+    "group": "Effects",
+    "control": {
+      "type": "ShadowEditor"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "drop-shadow-xs",
+            "label": "Extra Small"
+          },
+          {
+            "class": "drop-shadow-sm",
+            "label": "Small"
+          },
+          {
+            "class": "drop-shadow-md",
+            "label": "Medium"
+          },
+          {
+            "class": "drop-shadow-lg",
+            "label": "Large"
+          },
+          {
+            "class": "drop-shadow-xl",
+            "label": "Extra Large"
+          },
+          {
+            "class": "drop-shadow-2xl",
+            "label": "2X Large"
+          },
+          {
+            "class": "drop-shadow-none",
+            "label": "None"
+          },
+          {
+            "class": "drop-shadow-inherit",
+            "label": "Inherit (Color)"
+          },
+          {
+            "class": "drop-shadow-current",
+            "label": "Current (Color)"
+          },
+          {
+            "class": "drop-shadow-transparent",
+            "label": "Transparent (Color)"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "drop-shadow-{value}",
+          "dataset": "colors"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "drop-shadow-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "grayscale": {
+    "label": "Grayscale",
+    "description": "Utilities for applying grayscale filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/grayscale",
+    "group": "Filters",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "grayscale-0",
+            "label": "0%"
+          },
+          {
+            "class": "grayscale-25",
+            "label": "25%"
+          },
+          {
+            "class": "grayscale-50",
+            "label": "50%"
+          },
+          {
+            "class": "grayscale",
+            "label": "100%"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "grayscale-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "hueRotate": {
+    "label": "Hue Rotate",
+    "description": "Utilities for applying hue-rotate filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/hue-rotate",
+    "group": "Filters",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "hue-rotate-15",
+            "label": "15°"
+          },
+          {
+            "class": "hue-rotate-90",
+            "label": "90°"
+          },
+          {
+            "class": "hue-rotate-180",
+            "label": "180°"
+          },
+          {
+            "class": "hue-rotate-270",
+            "label": "270°"
+          },
+          {
+            "class": "-hue-rotate-15",
+            "label": "-15°"
+          },
+          {
+            "class": "-hue-rotate-45",
+            "label": "-45°"
+          },
+          {
+            "class": "-hue-rotate-90",
+            "label": "-90°"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "hue-rotate-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "invert": {
+    "label": "Invert Filter",
+    "description": "Utilities for applying invert filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/invert",
+    "group": "Filters",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "invert",
+            "label": "100%"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "invert-{value}",
+          "dataset": "numeric"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "invert-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "saturate": {
+    "label": "Saturate",
+    "description": "Utilities for applying saturation filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/saturate",
+    "group": "Effects",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "saturate-0",
+            "label": "0%"
+          },
+          {
+            "class": "saturate-50",
+            "label": "50%"
+          },
+          {
+            "class": "saturate-100",
+            "label": "100%"
+          },
+          {
+            "class": "saturate-150",
+            "label": "150%"
+          },
+          {
+            "class": "saturate-200",
+            "label": "200%"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "saturate-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "sepiaFilter": {
+    "label": "Sepia Filter",
+    "description": "Utilities for applying sepia filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/sepia",
+    "group": "Effects",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "sepia-0",
+            "label": "No Sepia (0%)"
+          },
+          {
+            "class": "sepia-50",
+            "label": "Sepia 50%"
+          },
+          {
+            "class": "sepia",
+            "label": "Sepia 100%"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "sepia-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "filter": {
+    "label": "Filter",
+    "description": "Utilities for applying filters to an element.",
+    "docUrl": "https://tailwindcss.com/docs/filter",
+    "group": "Effects",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "filter-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "filter-({value})"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "filter-[{value}]"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "flexBasis": {
+    "label": "Flex Basis",
+    "description": "Utilities for controlling the initial size of flex items.",
+    "docUrl": "https://tailwindcss.com/docs/flex-basis",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "basis-full",
+            "label": "Full"
+          },
+          {
+            "class": "basis-auto",
+            "label": "Auto"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "basis-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "basis-{value}",
+          "dataset": "fractions"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "basis-{value}",
+          "dataset": "container"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "basis-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "flexDirection": {
+    "label": "Flex Direction",
+    "description": "Utilities for controlling the direction of flex items.",
+    "docUrl": "https://tailwindcss.com/docs/flex-direction",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "flex-row",
+            "label": "Row"
+          },
+          {
+            "class": "flex-row-reverse",
+            "label": "Row Reversed"
+          },
+          {
+            "class": "flex-col",
+            "label": "Column"
+          },
+          {
+            "class": "flex-col-reverse",
+            "label": "Column Reversed"
+          }
+        ]
+      }
+    ]
+  },
+  "flexGrow": {
+    "label": "Flex Grow",
+    "description": "Utilities for controlling how flex items grow.",
+    "docUrl": "https://tailwindcss.com/docs/flex-grow",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "grow",
+            "label": "Grow (1)"
+          },
+          {
+            "class": "grow-0",
+            "label": "Don't Grow (0)"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "grow-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "flexShrink": {
+    "label": "Flex Shrink",
+    "description": "Utilities for controlling how flex items shrink.",
+    "docUrl": "https://tailwindcss.com/docs/flex-shrink",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "shrink",
+            "label": "Default (1)"
+          },
+          {
+            "class": "shrink-0",
+            "label": "None (0)"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "shrink-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "flexWrap": {
+    "label": "Flex Wrap",
+    "description": "Utilities for controlling how flex items wrap.",
+    "docUrl": "https://tailwindcss.com/docs/flex-wrap",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "flex-nowrap",
+            "label": "No Wrap"
+          },
+          {
+            "class": "flex-wrap",
+            "label": "Wrap"
+          },
+          {
+            "class": "flex-wrap-reverse",
+            "label": "Wrap Reverse"
+          }
+        ]
+      }
+    ]
+  },
+  "flex": {
+    "label": "Flex",
+    "description": "Utilities for controlling how flex items both grow and shrink.",
+    "docUrl": "https://tailwindcss.com/docs/flex",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "flex-1",
+            "label": "Grow & Shrink (Ignore Initial)"
+          },
+          {
+            "class": "flex-auto",
+            "label": "Grow & Shrink (Consider Initial)"
+          },
+          {
+            "class": "flex-initial",
+            "label": "Shrink Only (Consider Initial)"
+          },
+          {
+            "class": "flex-none",
+            "label": "None (Fixed Size)"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "flex-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "float": {
+    "label": "Float",
+    "description": "Utilities for controlling the wrapping of content around an element.",
+    "docUrl": "https://tailwindcss.com/docs/float",
+    "group": "Layout",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "float-right",
+            "label": "Right"
+          },
+          {
+            "class": "float-left",
+            "label": "Left"
+          },
+          {
+            "class": "float-start",
+            "label": "Start"
+          },
+          {
+            "class": "float-end",
+            "label": "End"
+          },
+          {
+            "class": "float-none",
+            "label": "None"
+          }
+        ]
+      }
+    ]
+  },
+  "fontFamily": {
+    "label": "Font Family",
+    "description": "Utilities for controlling the font family of an element.",
+    "docUrl": "https://tailwindcss.com/docs/font-family",
+    "group": "Typography",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "font-sans",
+            "label": "Sans"
+          },
+          {
+            "class": "font-serif",
+            "label": "Serif"
+          },
+          {
+            "class": "font-mono",
+            "label": "Mono"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "font-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "fontSize": {
+    "label": "Font Size",
+    "description": "Utilities for controlling the font size of an element.",
+    "docUrl": "https://tailwindcss.com/docs/font-size",
+    "group": "Typography",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "text-xs",
+            "label": "XS"
+          },
+          {
+            "class": "text-sm",
+            "label": "SM"
+          },
+          {
+            "class": "text-base",
+            "label": "Base"
+          },
+          {
+            "class": "text-lg",
+            "label": "LG"
+          },
+          {
+            "class": "text-xl",
+            "label": "XL"
+          },
+          {
+            "class": "text-2xl",
+            "label": "2XL"
+          },
+          {
+            "class": "text-3xl",
+            "label": "3XL"
+          },
+          {
+            "class": "text-4xl",
+            "label": "4XL"
+          },
+          {
+            "class": "text-5xl",
+            "label": "5XL"
+          },
+          {
+            "class": "text-6xl",
+            "label": "6XL"
+          },
+          {
+            "class": "text-7xl",
+            "label": "7XL"
+          },
+          {
+            "class": "text-8xl",
+            "label": "8XL"
+          },
+          {
+            "class": "text-9xl",
+            "label": "9XL"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "text-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "fontSmoothing": {
+    "label": "Font Smoothing",
+    "description": "Utilities for controlling the font smoothing of an element.",
+    "docUrl": "https://tailwindcss.com/docs/font-smoothing",
+    "group": "Typography",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "antialiased",
+            "label": "Antialiased"
+          },
+          {
+            "class": "subpixel-antialiased",
+            "label": "Subpixel Antialiased"
+          }
+        ]
+      }
+    ]
+  },
+  "fontStretch": {
+    "label": "Font Stretch",
+    "description": "Utilities for selecting the width of a font face.",
+    "docUrl": "https://tailwindcss.com/docs/font-stretch",
+    "group": "Typography",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "font-stretch-ultra-condensed",
+            "label": "Ultra Condensed"
+          },
+          {
+            "class": "font-stretch-extra-condensed",
+            "label": "Extra Condensed"
+          },
+          {
+            "class": "font-stretch-condensed",
+            "label": "Condensed"
+          },
+          {
+            "class": "font-stretch-semi-condensed",
+            "label": "Semi Condensed"
+          },
+          {
+            "class": "font-stretch-normal",
+            "label": "Normal"
+          },
+          {
+            "class": "font-stretch-semi-expanded",
+            "label": "Semi Expanded"
+          },
+          {
+            "class": "font-stretch-expanded",
+            "label": "Expanded"
+          },
+          {
+            "class": "font-stretch-extra-expanded",
+            "label": "Extra Expanded"
+          },
+          {
+            "class": "font-stretch-ultra-expanded",
+            "label": "Ultra Expanded"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "font-stretch-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "fontStyle": {
+    "label": "Font Style",
+    "description": "Utilities for controlling the style of text.",
+    "docUrl": "https://tailwindcss.com/docs/font-style",
+    "group": "Typography",
+    "control": {
+      "type": "Toggle"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "italic",
+            "label": "Italic"
+          },
+          {
+            "class": "not-italic",
+            "label": "Not Italic"
+          }
+        ]
+      }
+    ]
+  },
+  "fontVariantNumeric": {
+    "label": "Font Variant Numeric",
+    "description": "Utilities for controlling the variant of numbers.",
+    "docUrl": "https://tailwindcss.com/docs/font-variant-numeric",
+    "group": "Typography",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "normal-nums",
+            "label": "Normal"
+          },
+          {
+            "class": "ordinal",
+            "label": "Ordinal"
+          },
+          {
+            "class": "slashed-zero",
+            "label": "Slashed Zero"
+          },
+          {
+            "class": "lining-nums",
+            "label": "Lining Numbers"
+          },
+          {
+            "class": "oldstyle-nums",
+            "label": "Old-style Numbers"
+          },
+          {
+            "class": "proportional-nums",
+            "label": "Proportional Numbers"
+          },
+          {
+            "class": "tabular-nums",
+            "label": "Tabular Numbers"
+          },
+          {
+            "class": "diagonal-fractions",
+            "label": "Diagonal Fractions"
+          },
+          {
+            "class": "stacked-fractions",
+            "label": "Stacked Fractions"
+          }
+        ]
+      }
+    ]
+  },
+  "fontWeight": {
+    "label": "Font Weight",
+    "description": "Utilities for controlling the font weight of an element.",
+    "docUrl": "https://tailwindcss.com/docs/font-weight",
+    "group": "Typography",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "font-thin",
+            "label": "Thin (100)"
+          },
+          {
+            "class": "font-extralight",
+            "label": "Extra Light (200)"
+          },
+          {
+            "class": "font-light",
+            "label": "Light (300)"
+          },
+          {
+            "class": "font-normal",
+            "label": "Normal (400)"
+          },
+          {
+            "class": "font-medium",
+            "label": "Medium (500)"
+          },
+          {
+            "class": "font-semibold",
+            "label": "Semi Bold (600)"
+          },
+          {
+            "class": "font-bold",
+            "label": "Bold (700)"
+          },
+          {
+            "class": "font-extrabold",
+            "label": "Extra Bold (800)"
+          },
+          {
+            "class": "font-black",
+            "label": "Black (900)"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "font-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "forcedColorAdjust": {
+    "label": "Forced Color Adjust",
+    "description": "Utilities for opting in and out of forced colors.",
+    "docUrl": "https://tailwindcss.com/docs/forced-color-adjust",
+    "group": "Accessibility",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "forced-color-adjust-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "forced-color-adjust-none",
+            "label": "None"
+          }
+        ]
+      }
+    ]
+  },
+  "gap": {
+    "label": "Gap",
+    "description": "Utilities for controlling gutters between grid and flexbox items.",
+    "docUrl": "https://tailwindcss.com/docs/gap",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "gap-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "gap-{value}"
+        }
+      }
+    ],
+    "structuralVariants": [
+      {
+        "label": "Column Gap",
+        "strategies": [
+          {
+            "type": "generative",
+            "generative": {
+              "template": "gap-x-{value}",
+              "dataset": "spacing"
+            }
+          },
+          {
+            "type": "arbitrary",
+            "arbitrary": {
+              "template": "gap-x-{value}"
+            }
+          }
+        ]
+      },
+      {
+        "label": "Row Gap",
+        "strategies": [
+          {
+            "type": "generative",
+            "generative": {
+              "template": "gap-y-{value}",
+              "dataset": "spacing"
+            }
+          },
+          {
+            "type": "arbitrary",
+            "arbitrary": {
+              "template": "gap-y-{value}"
+            }
+          }
+        ]
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "gridAutoColumns": {
+    "label": "Grid Auto Columns",
+    "description": "Utilities for controlling the size of implicitly-created grid columns.",
+    "docUrl": "https://tailwindcss.com/docs/grid-auto-columns",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "auto-cols-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "auto-cols-min",
+            "label": "Min Content"
+          },
+          {
+            "class": "auto-cols-max",
+            "label": "Max Content"
+          },
+          {
+            "class": "auto-cols-fr",
+            "label": "1fr"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "auto-cols-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "gridAutoFlow": {
+    "label": "Grid Auto Flow",
+    "description": "Utilities for controlling how elements in a grid are auto-placed.",
+    "docUrl": "https://tailwindcss.com/docs/grid-auto-flow",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "grid-flow-row",
+            "label": "Row"
+          },
+          {
+            "class": "grid-flow-col",
+            "label": "Column"
+          },
+          {
+            "class": "grid-flow-dense",
+            "label": "Dense"
+          },
+          {
+            "class": "grid-flow-row-dense",
+            "label": "Row Dense"
+          },
+          {
+            "class": "grid-flow-col-dense",
+            "label": "Column Dense"
+          }
+        ]
+      }
+    ]
+  },
+  "gridAutoRows": {
+    "label": "Grid Auto Rows",
+    "description": "Utilities for controlling the size of implicitly-created grid rows.",
+    "docUrl": "https://tailwindcss.com/docs/grid-auto-rows",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "auto-rows-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "auto-rows-min",
+            "label": "Min Content"
+          },
+          {
+            "class": "auto-rows-max",
+            "label": "Max Content"
+          },
+          {
+            "class": "auto-rows-fr",
+            "label": "Fractional (1fr)"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "auto-rows-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "gridColumn": {
+    "label": "Grid Column",
+    "description": "Utilities for controlling how elements are sized and placed across grid columns.",
+    "docUrl": "https://tailwindcss.com/docs/grid-column",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "col-span-full",
+            "label": "Span Full"
+          },
+          {
+            "class": "col-start-auto",
+            "label": "Start Auto"
+          },
+          {
+            "class": "col-end-auto",
+            "label": "End Auto"
+          },
+          {
+            "class": "col-auto",
+            "label": "Column Auto"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "col-span-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "col-start-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "col-end-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "col-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "gridRow": {
+    "label": "Grid Row",
+    "description": "Utilities for controlling how elements are sized and placed across grid rows.",
+    "docUrl": "https://tailwindcss.com/docs/grid-row",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "row-span-full",
+            "label": "Span Full"
+          },
+          {
+            "class": "row-start-auto",
+            "label": "Start Auto"
+          },
+          {
+            "class": "row-end-auto",
+            "label": "End Auto"
+          },
+          {
+            "class": "row-auto",
+            "label": "Row Auto"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "row-span-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "row-start-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "row-end-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "row-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "gridTemplateColumns": {
+    "label": "Grid Template Columns",
+    "description": "Utilities for specifying the columns in a grid layout.",
+    "docUrl": "https://tailwindcss.com/docs/grid-template-columns",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "grid-cols-1",
+            "label": "1 Column"
+          },
+          {
+            "class": "grid-cols-2",
+            "label": "2 Columns"
+          },
+          {
+            "class": "grid-cols-3",
+            "label": "3 Columns"
+          },
+          {
+            "class": "grid-cols-4",
+            "label": "4 Columns"
+          },
+          {
+            "class": "grid-cols-5",
+            "label": "5 Columns"
+          },
+          {
+            "class": "grid-cols-6",
+            "label": "6 Columns"
+          },
+          {
+            "class": "grid-cols-7",
+            "label": "7 Columns"
+          },
+          {
+            "class": "grid-cols-8",
+            "label": "8 Columns"
+          },
+          {
+            "class": "grid-cols-9",
+            "label": "9 Columns"
+          },
+          {
+            "class": "grid-cols-10",
+            "label": "10 Columns"
+          },
+          {
+            "class": "grid-cols-11",
+            "label": "11 Columns"
+          },
+          {
+            "class": "grid-cols-12",
+            "label": "12 Columns"
+          },
+          {
+            "class": "grid-cols-none",
+            "label": "None"
+          },
+          {
+            "class": "grid-cols-subgrid",
+            "label": "Subgrid"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "grid-cols-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "gridTemplateRows": {
+    "label": "Grid Template Rows",
+    "description": "Utilities for specifying the rows in a grid layout.",
+    "docUrl": "https://tailwindcss.com/docs/grid-template-rows",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "grid-rows-{value}",
+          "dataset": "gridTemplateRows"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "grid-rows-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "height": {
+    "label": "Height",
+    "description": "Utilities for setting the height of an element.",
+    "docUrl": "https://tailwindcss.com/docs/height",
+    "group": "Sizing",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "h-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "h-{value}",
+          "dataset": "fractions"
+        }
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "h-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "h-px",
+            "label": "1px"
+          },
+          {
+            "class": "h-full",
+            "label": "Full"
+          },
+          {
+            "class": "h-screen",
+            "label": "Screen"
+          },
+          {
+            "class": "h-dvh",
+            "label": "Dynamic Viewport Height"
+          },
+          {
+            "class": "h-dvw",
+            "label": "Dynamic Viewport Width"
+          },
+          {
+            "class": "h-lvh",
+            "label": "Large Viewport Height"
+          },
+          {
+            "class": "h-lvw",
+            "label": "Large Viewport Width"
+          },
+          {
+            "class": "h-svh",
+            "label": "Small Viewport Height"
+          },
+          {
+            "class": "h-svw",
+            "label": "Small Viewport Width"
+          },
+          {
+            "class": "h-min",
+            "label": "Min Content"
+          },
+          {
+            "class": "h-max",
+            "label": "Max Content"
+          },
+          {
+            "class": "h-fit",
+            "label": "Fit Content"
+          },
+          {
+            "class": "h-lh",
+            "label": "Line Height Unit"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "h-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "hyphens": {
+    "label": "Hyphens",
+    "description": "Utilities for controlling how words should be hyphenated.",
+    "docUrl": "https://tailwindcss.com/docs/hyphens",
+    "group": "Typography",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "hyphens-none",
+            "label": "None"
+          },
+          {
+            "class": "hyphens-manual",
+            "label": "Manual"
+          },
+          {
+            "class": "hyphens-auto",
+            "label": "Auto"
+          }
+        ]
+      }
+    ]
+  },
+  "isolation": {
+    "label": "Isolation",
+    "description": "Utilities for controlling whether an element should explicitly create a new stacking context.",
+    "docUrl": "https://tailwindcss.com/docs/isolation",
+    "group": "Layout",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "isolate",
+            "label": "Isolate"
+          },
+          {
+            "class": "isolation-auto",
+            "label": "Auto"
+          }
+        ]
+      }
+    ]
+  },
+  "justifyContent": {
+    "label": "Justify Content",
+    "description": "Utilities for controlling how flex and grid items are positioned along a container's main axis.",
+    "docUrl": "https://tailwindcss.com/docs/justify-content",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "justify-start",
+            "label": "Start"
+          },
+          {
+            "class": "justify-end",
+            "label": "End"
+          },
+          {
+            "class": "justify-end-safe",
+            "label": "End Safe"
+          },
+          {
+            "class": "justify-center",
+            "label": "Center"
+          },
+          {
+            "class": "justify-center-safe",
+            "label": "Center Safe"
+          },
+          {
+            "class": "justify-between",
+            "label": "Space Between"
+          },
+          {
+            "class": "justify-around",
+            "label": "Space Around"
+          },
+          {
+            "class": "justify-evenly",
+            "label": "Space Evenly"
+          },
+          {
+            "class": "justify-stretch",
+            "label": "Stretch"
+          },
+          {
+            "class": "justify-baseline",
+            "label": "Baseline"
+          },
+          {
+            "class": "justify-normal",
+            "label": "Normal"
+          }
+        ]
+      }
+    ]
+  },
+  "justifyItems": {
+    "label": "Justify Items",
+    "description": "Utilities for controlling how grid items are aligned along their inline axis.",
+    "docUrl": "https://tailwindcss.com/docs/justify-items",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "justify-items-start",
+            "label": "Start"
+          },
+          {
+            "class": "justify-items-end",
+            "label": "End"
+          },
+          {
+            "class": "justify-items-end-safe",
+            "label": "End (Safe)"
+          },
+          {
+            "class": "justify-items-center",
+            "label": "Center"
+          },
+          {
+            "class": "justify-items-center-safe",
+            "label": "Center (Safe)"
+          },
+          {
+            "class": "justify-items-stretch",
+            "label": "Stretch"
+          },
+          {
+            "class": "justify-items-normal",
+            "label": "Normal"
+          }
+        ]
+      }
+    ]
+  },
+  "justifySelf": {
+    "label": "Justify Self",
+    "description": "Utilities for controlling how an individual grid item is aligned along its inline axis.",
+    "docUrl": "https://tailwindcss.com/docs/justify-self",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "justify-self-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "justify-self-start",
+            "label": "Start"
+          },
+          {
+            "class": "justify-self-center",
+            "label": "Center"
+          },
+          {
+            "class": "justify-self-center-safe",
+            "label": "Center (Safe)"
+          },
+          {
+            "class": "justify-self-end",
+            "label": "End"
+          },
+          {
+            "class": "justify-self-end-safe",
+            "label": "End (Safe)"
+          },
+          {
+            "class": "justify-self-stretch",
+            "label": "Stretch"
+          }
+        ]
+      }
+    ]
+  },
+  "letterSpacing": {
+    "label": "Letter Spacing",
+    "description": "Utilities for controlling the tracking, or letter spacing, of an element.",
+    "docUrl": "https://tailwindcss.com/docs/letter-spacing",
+    "group": "Typography",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "tracking-tighter",
+            "label": "Tighter"
+          },
+          {
+            "class": "tracking-tight",
+            "label": "Tight"
+          },
+          {
+            "class": "tracking-normal",
+            "label": "Normal"
+          },
+          {
+            "class": "tracking-wide",
+            "label": "Wide"
+          },
+          {
+            "class": "tracking-wider",
+            "label": "Wider"
+          },
+          {
+            "class": "tracking-widest",
+            "label": "Widest"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "tracking-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "lineClamp": {
+    "label": "Line Clamp",
+    "description": "Utilities for clamping text to a specific number of lines.",
+    "docUrl": "https://tailwindcss.com/docs/line-clamp",
+    "group": "Typography",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "line-clamp-none",
+            "label": "None"
+          },
+          {
+            "class": "line-clamp-1",
+            "label": "1 Line"
+          },
+          {
+            "class": "line-clamp-2",
+            "label": "2 Lines"
+          },
+          {
+            "class": "line-clamp-3",
+            "label": "3 Lines"
+          },
+          {
+            "class": "line-clamp-4",
+            "label": "4 Lines"
+          },
+          {
+            "class": "line-clamp-5",
+            "label": "5 Lines"
+          },
+          {
+            "class": "line-clamp-6",
+            "label": "6 Lines"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "line-clamp-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "lineHeight": {
+    "label": "Line Height",
+    "description": "Utilities for controlling the leading, or line height, of an element.",
+    "docUrl": "https://tailwindcss.com/docs/line-height",
+    "group": "Typography",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "leading-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "leading-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "leading-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "listStyleImage": {
+    "label": "List Style Image",
+    "description": "Utilities for controlling the marker images for list items.",
+    "docUrl": "https://tailwindcss.com/docs/list-style-image",
+    "group": "Lists",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "list-image-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "list-image-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "listStylePosition": {
+    "label": "List Style Position",
+    "description": "Utilities for controlling the position of bullets and numbers in lists.",
+    "docUrl": "https://tailwindcss.com/docs/list-style-position",
+    "group": "Typography",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "list-inside",
+            "label": "Inside"
+          },
+          {
+            "class": "list-outside",
+            "label": "Outside"
+          }
+        ]
+      }
+    ],
+    "supportsArbitrary": false
+  },
+  "listStyleType": {
+    "label": "List Style Type",
+    "description": "Utilities for controlling the marker style of a list.",
+    "docUrl": "https://tailwindcss.com/docs/list-style-type",
+    "group": "Lists",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "list-disc",
+            "label": "Disc"
+          },
+          {
+            "class": "list-decimal",
+            "label": "Decimal"
+          },
+          {
+            "class": "list-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "list-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "margin": {
+    "label": "Margin",
+    "description": "Utilities for controlling an element's margin.",
+    "docUrl": "https://tailwindcss.com/docs/margin",
+    "group": "Spacing",
+    "control": {
+      "type": "BoxModelEditor"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "{value}",
+          "dataset": "positioning"
+        }
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "auto",
+            "label": "Auto"
+          },
+          {
+            "class": "px",
+            "label": "1px"
+          },
+          {
+            "class": "-px",
+            "label": "-1px"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "{value}"
+        }
+      }
+    ],
+    "structuralVariants": [
+      {
+        "label": "All Sides",
+        "template": "m-{value}"
+      },
+      {
+        "label": "Horizontal",
+        "template": "mx-{value}"
+      },
+      {
+        "label": "Vertical",
+        "template": "my-{value}"
+      },
+      {
+        "label": "Top",
+        "template": "mt-{value}"
+      },
+      {
+        "label": "Right",
+        "template": "mr-{value}"
+      },
+      {
+        "label": "Bottom",
+        "template": "mb-{value}"
+      },
+      {
+        "label": "Left",
+        "template": "ml-{value}"
+      },
+      {
+        "label": "Start (Logical)",
+        "template": "ms-{value}"
+      },
+      {
+        "label": "End (Logical)",
+        "template": "me-{value}"
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "maskClip": {
+    "label": "Mask Clip",
+    "description": "Utilities for controlling the bounding box of an element's mask.",
+    "docUrl": "https://tailwindcss.com/docs/mask-clip",
+    "group": "Effects",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "mask-clip-border",
+            "label": "Border"
+          },
+          {
+            "class": "mask-clip-padding",
+            "label": "Padding"
+          },
+          {
+            "class": "mask-clip-content",
+            "label": "Content"
+          },
+          {
+            "class": "mask-clip-fill",
+            "label": "Fill"
+          },
+          {
+            "class": "mask-clip-stroke",
+            "label": "Stroke"
+          },
+          {
+            "class": "mask-clip-view",
+            "label": "View"
+          },
+          {
+            "class": "mask-no-clip",
+            "label": "No Clip"
+          }
+        ]
+      }
+    ]
+  },
+  "maskComposite": {
+    "label": "Mask Composite",
+    "description": "Utilities for controlling how multiple masks are combined together.",
+    "docUrl": "https://tailwindcss.com/docs/mask-composite",
+    "group": "Effects",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "mask-add",
+            "label": "Add"
+          },
+          {
+            "class": "mask-subtract",
+            "label": "Subtract"
+          },
+          {
+            "class": "mask-intersect",
+            "label": "Intersect"
+          },
+          {
+            "class": "mask-exclude",
+            "label": "Exclude"
+          }
+        ]
+      }
+    ]
+  },
+  "maskImage": {
+    "label": "Mask Image",
+    "description": "Utilities for controlling an element's mask image.",
+    "docUrl": "https://tailwindcss.com/docs/mask-image",
+    "group": "Effects",
+    "control": {
+      "type": "GradientEditor"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "mask-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "mask-circle",
+            "label": "Circle"
+          },
+          {
+            "class": "mask-ellipse",
+            "label": "Ellipse"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "mask-radial-closest-corner",
+            "label": "Closest Corner"
+          },
+          {
+            "class": "mask-radial-closest-side",
+            "label": "Closest Side"
+          },
+          {
+            "class": "mask-radial-farthest-corner",
+            "label": "Farthest Corner"
+          },
+          {
+            "class": "mask-radial-farthest-side",
+            "label": "Farthest Side"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "mask-radial-at-top-left",
+            "label": "Top Left"
+          },
+          {
+            "class": "mask-radial-at-top",
+            "label": "Top"
+          },
+          {
+            "class": "mask-radial-at-top-right",
+            "label": "Top Right"
+          },
+          {
+            "class": "mask-radial-at-left",
+            "label": "Left"
+          },
+          {
+            "class": "mask-radial-at-center",
+            "label": "Center"
+          },
+          {
+            "class": "mask-radial-at-right",
+            "label": "Right"
+          },
+          {
+            "class": "mask-radial-at-bottom-left",
+            "label": "Bottom Left"
+          },
+          {
+            "class": "mask-radial-at-bottom",
+            "label": "Bottom"
+          },
+          {
+            "class": "mask-radial-at-bottom-right",
+            "label": "Bottom Right"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-linear-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "-mask-linear-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-linear-from-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-linear-to-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-t-from-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-t-to-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-r-from-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-r-to-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-b-from-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-b-to-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-l-from-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-l-to-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-y-from-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-y-to-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-x-from-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-x-to-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-radial-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-radial-from-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-radial-to-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-conic-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "-mask-conic-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-conic-from-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-conic-to-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "maskMode": {
+    "label": "Mask Mode",
+    "description": "Utilities for controlling an element's mask mode.",
+    "docUrl": "https://tailwindcss.com/docs/mask-mode",
+    "group": "Effects",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "mask-alpha",
+            "label": "Alpha"
+          },
+          {
+            "class": "mask-luminance",
+            "label": "Luminance"
+          },
+          {
+            "class": "mask-match",
+            "label": "Match Source"
+          }
+        ]
+      }
+    ]
+  },
+  "maskOrigin": {
+    "label": "Mask Origin",
+    "description": "Utilities for controlling how an element's mask image is positioned relative to borders, padding, and content.",
+    "docUrl": "https://tailwindcss.com/docs/mask-origin",
+    "group": "Effects",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "mask-origin-border",
+            "label": "Border"
+          },
+          {
+            "class": "mask-origin-padding",
+            "label": "Padding"
+          },
+          {
+            "class": "mask-origin-content",
+            "label": "Content"
+          },
+          {
+            "class": "mask-origin-fill",
+            "label": "Fill"
+          },
+          {
+            "class": "mask-origin-stroke",
+            "label": "Stroke"
+          },
+          {
+            "class": "mask-origin-view",
+            "label": "View"
+          }
+        ]
+      }
+    ]
+  },
+  "maskPosition": {
+    "label": "Mask Position",
+    "description": "Utilities for controlling the position of an element's mask image.",
+    "docUrl": "https://tailwindcss.com/docs/mask-position",
+    "group": "Effects",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "mask-top-left",
+            "label": "Top Left"
+          },
+          {
+            "class": "mask-top",
+            "label": "Top"
+          },
+          {
+            "class": "mask-top-right",
+            "label": "Top Right"
+          },
+          {
+            "class": "mask-left",
+            "label": "Left"
+          },
+          {
+            "class": "mask-center",
+            "label": "Center"
+          },
+          {
+            "class": "mask-right",
+            "label": "Right"
+          },
+          {
+            "class": "mask-bottom-left",
+            "label": "Bottom Left"
+          },
+          {
+            "class": "mask-bottom",
+            "label": "Bottom"
+          },
+          {
+            "class": "mask-bottom-right",
+            "label": "Bottom Right"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-position-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "maskRepeat": {
+    "label": "Mask Repeat",
+    "description": "Utilities for controlling the repetition of an element's mask image.",
+    "docUrl": "https://tailwindcss.com/docs/mask-repeat",
+    "group": "Effects",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "mask-repeat",
+            "label": "Repeat"
+          },
+          {
+            "class": "mask-no-repeat",
+            "label": "No Repeat"
+          },
+          {
+            "class": "mask-repeat-x",
+            "label": "Repeat X"
+          },
+          {
+            "class": "mask-repeat-y",
+            "label": "Repeat Y"
+          },
+          {
+            "class": "mask-repeat-space",
+            "label": "Space"
+          },
+          {
+            "class": "mask-repeat-round",
+            "label": "Round"
+          }
+        ]
+      }
+    ]
+  },
+  "maskSize": {
+    "label": "Mask Size",
+    "description": "Utilities for controlling the size of an element's mask image.",
+    "docUrl": "https://tailwindcss.com/docs/mask-size",
+    "group": "Masks",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "mask-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "mask-cover",
+            "label": "Cover"
+          },
+          {
+            "class": "mask-contain",
+            "label": "Contain"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "mask-size-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "maskType": {
+    "label": "Mask Type",
+    "description": "Utilities for controlling how an SVG mask is interpreted.",
+    "docUrl": "https://tailwindcss.com/docs/mask-type",
+    "group": "Masks",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "mask-type-alpha",
+            "label": "Alpha"
+          },
+          {
+            "class": "mask-type-luminance",
+            "label": "Luminance"
+          }
+        ]
+      }
+    ]
+  },
+  "maxHeight": {
+    "label": "Max Height",
+    "description": "Utilities for setting the maximum height of an element.",
+    "docUrl": "https://tailwindcss.com/docs/max-height",
+    "group": "Sizing",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "max-h-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "max-h-{value}",
+          "dataset": "fractions"
+        }
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "max-h-none",
+            "label": "None"
+          },
+          {
+            "class": "max-h-px",
+            "label": "1px"
+          },
+          {
+            "class": "max-h-full",
+            "label": "Full (100%)"
+          },
+          {
+            "class": "max-h-screen",
+            "label": "Screen (100vh)"
+          },
+          {
+            "class": "max-h-dvh",
+            "label": "Dynamic Viewport Height"
+          },
+          {
+            "class": "max-h-dvw",
+            "label": "Dynamic Viewport Width"
+          },
+          {
+            "class": "max-h-lvh",
+            "label": "Large Viewport Height"
+          },
+          {
+            "class": "max-h-lvw",
+            "label": "Large Viewport Width"
+          },
+          {
+            "class": "max-h-svh",
+            "label": "Small Viewport Height"
+          },
+          {
+            "class": "max-h-svw",
+            "label": "Small Viewport Width"
+          },
+          {
+            "class": "max-h-min",
+            "label": "Min Content"
+          },
+          {
+            "class": "max-h-max",
+            "label": "Max Content"
+          },
+          {
+            "class": "max-h-fit",
+            "label": "Fit Content"
+          },
+          {
+            "class": "max-h-lh",
+            "label": "Line Height (1lh)"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "max-h-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "maxWidth": {
+    "label": "Max Width",
+    "description": "Utilities for setting the maximum width of an element.",
+    "docUrl": "https://tailwindcss.com/docs/max-width",
+    "group": "Sizing",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "max-w-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "max-w-{value}",
+          "dataset": "fractions"
+        }
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "max-w-3xs",
+            "label": "3XS (16rem)"
+          },
+          {
+            "class": "max-w-2xs",
+            "label": "2XS (18rem)"
+          },
+          {
+            "class": "max-w-xs",
+            "label": "XS (20rem)"
+          },
+          {
+            "class": "max-w-sm",
+            "label": "SM (24rem)"
+          },
+          {
+            "class": "max-w-md",
+            "label": "MD (28rem)"
+          },
+          {
+            "class": "max-w-lg",
+            "label": "LG (32rem)"
+          },
+          {
+            "class": "max-w-xl",
+            "label": "XL (36rem)"
+          },
+          {
+            "class": "max-w-2xl",
+            "label": "2XL (42rem)"
+          },
+          {
+            "class": "max-w-3xl",
+            "label": "3XL (48rem)"
+          },
+          {
+            "class": "max-w-4xl",
+            "label": "4XL (56rem)"
+          },
+          {
+            "class": "max-w-5xl",
+            "label": "5XL (64rem)"
+          },
+          {
+            "class": "max-w-6xl",
+            "label": "6XL (72rem)"
+          },
+          {
+            "class": "max-w-7xl",
+            "label": "7XL (80rem)"
+          },
+          {
+            "class": "max-w-none",
+            "label": "None"
+          },
+          {
+            "class": "max-w-px",
+            "label": "1px"
+          },
+          {
+            "class": "max-w-full",
+            "label": "Full"
+          },
+          {
+            "class": "max-w-dvw",
+            "label": "Dynamic Viewport Width"
+          },
+          {
+            "class": "max-w-dvh",
+            "label": "Dynamic Viewport Height"
+          },
+          {
+            "class": "max-w-lvw",
+            "label": "Large Viewport Width"
+          },
+          {
+            "class": "max-w-lvh",
+            "label": "Large Viewport Height"
+          },
+          {
+            "class": "max-w-svw",
+            "label": "Small Viewport Width"
+          },
+          {
+            "class": "max-w-svh",
+            "label": "Small Viewport Height"
+          },
+          {
+            "class": "max-w-screen",
+            "label": "Screen"
+          },
+          {
+            "class": "max-w-min",
+            "label": "Min Content"
+          },
+          {
+            "class": "max-w-max",
+            "label": "Max Content"
+          },
+          {
+            "class": "max-w-fit",
+            "label": "Fit Content"
+          },
+          {
+            "class": "container",
+            "label": "Container"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "max-w-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "minHeight": {
+    "label": "Min-Height",
+    "description": "Utilities for setting the minimum height of an element.",
+    "docUrl": "https://tailwindcss.com/docs/min-height",
+    "group": "Sizing",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "min-h-px",
+            "label": "1px"
+          },
+          {
+            "class": "min-h-full",
+            "label": "Full (100%)"
+          },
+          {
+            "class": "min-h-screen",
+            "label": "Screen (100vh)"
+          },
+          {
+            "class": "min-h-dvh",
+            "label": "Dynamic Viewport Height"
+          },
+          {
+            "class": "min-h-dvw",
+            "label": "Dynamic Viewport Width"
+          },
+          {
+            "class": "min-h-lvh",
+            "label": "Large Viewport Height"
+          },
+          {
+            "class": "min-h-lvw",
+            "label": "Large Viewport Width"
+          },
+          {
+            "class": "min-h-svw",
+            "label": "Small Viewport Width"
+          },
+          {
+            "class": "min-h-svh",
+            "label": "Small Viewport Height"
+          },
+          {
+            "class": "min-h-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "min-h-min",
+            "label": "Min-Content"
+          },
+          {
+            "class": "min-h-max",
+            "label": "Max-Content"
+          },
+          {
+            "class": "min-h-fit",
+            "label": "Fit-Content"
+          },
+          {
+            "class": "min-h-lh",
+            "label": "Line Height"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "min-h-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "min-h-{value}",
+          "dataset": "fractions"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "min-h-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "minWidth": {
+    "label": "Min-Width",
+    "description": "Utilities for setting the minimum width of an element.",
+    "docUrl": "https://tailwindcss.com/docs/min-width",
+    "group": "Sizing",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "min-w-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "min-w-{value}",
+          "dataset": "fractions"
+        }
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "min-w-3xs",
+            "label": "3XS"
+          },
+          {
+            "class": "min-w-2xs",
+            "label": "2XS"
+          },
+          {
+            "class": "min-w-xs",
+            "label": "XS"
+          },
+          {
+            "class": "min-w-sm",
+            "label": "SM"
+          },
+          {
+            "class": "min-w-md",
+            "label": "MD"
+          },
+          {
+            "class": "min-w-lg",
+            "label": "LG"
+          },
+          {
+            "class": "min-w-xl",
+            "label": "XL"
+          },
+          {
+            "class": "min-w-2xl",
+            "label": "2XL"
+          },
+          {
+            "class": "min-w-3xl",
+            "label": "3XL"
+          },
+          {
+            "class": "min-w-4xl",
+            "label": "4XL"
+          },
+          {
+            "class": "min-w-5xl",
+            "label": "5XL"
+          },
+          {
+            "class": "min-w-6xl",
+            "label": "6XL"
+          },
+          {
+            "class": "min-w-7xl",
+            "label": "7XL"
+          },
+          {
+            "class": "min-w-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "min-w-px",
+            "label": "1px"
+          },
+          {
+            "class": "min-w-full",
+            "label": "Full"
+          },
+          {
+            "class": "min-w-screen",
+            "label": "Screen"
+          },
+          {
+            "class": "min-w-dvw",
+            "label": "Dynamic Viewport Width"
+          },
+          {
+            "class": "min-w-dvh",
+            "label": "Dynamic Viewport Height"
+          },
+          {
+            "class": "min-w-lvw",
+            "label": "Large Viewport Width"
+          },
+          {
+            "class": "min-w-lvh",
+            "label": "Large Viewport Height"
+          },
+          {
+            "class": "min-w-svw",
+            "label": "Small Viewport Width"
+          },
+          {
+            "class": "min-w-svh",
+            "label": "Small Viewport Height"
+          },
+          {
+            "class": "min-w-min",
+            "label": "Min Content"
+          },
+          {
+            "class": "min-w-max",
+            "label": "Max Content"
+          },
+          {
+            "class": "min-w-fit",
+            "label": "Fit Content"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "min-w-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "mixBlendMode": {
+    "label": "Mix Blend Mode",
+    "description": "Utilities for controlling how an element should blend with the background.",
+    "docUrl": "https://tailwindcss.com/docs/mix-blend-mode",
+    "group": "Effects",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "mix-blend-normal",
+            "label": "Normal"
+          },
+          {
+            "class": "mix-blend-multiply",
+            "label": "Multiply"
+          },
+          {
+            "class": "mix-blend-screen",
+            "label": "Screen"
+          },
+          {
+            "class": "mix-blend-overlay",
+            "label": "Overlay"
+          },
+          {
+            "class": "mix-blend-darken",
+            "label": "Darken"
+          },
+          {
+            "class": "mix-blend-lighten",
+            "label": "Lighten"
+          },
+          {
+            "class": "mix-blend-color-dodge",
+            "label": "Color Dodge"
+          },
+          {
+            "class": "mix-blend-color-burn",
+            "label": "Color Burn"
+          },
+          {
+            "class": "mix-blend-hard-light",
+            "label": "Hard Light"
+          },
+          {
+            "class": "mix-blend-soft-light",
+            "label": "Soft Light"
+          },
+          {
+            "class": "mix-blend-difference",
+            "label": "Difference"
+          },
+          {
+            "class": "mix-blend-exclusion",
+            "label": "Exclusion"
+          },
+          {
+            "class": "mix-blend-hue",
+            "label": "Hue"
+          },
+          {
+            "class": "mix-blend-saturation",
+            "label": "Saturation"
+          },
+          {
+            "class": "mix-blend-color",
+            "label": "Color"
+          },
+          {
+            "class": "mix-blend-luminosity",
+            "label": "Luminosity"
+          },
+          {
+            "class": "mix-blend-plus-darker",
+            "label": "Plus Darker"
+          },
+          {
+            "class": "mix-blend-plus-lighter",
+            "label": "Plus Lighter"
+          }
+        ]
+      }
+    ]
+  },
+  "objectFit": {
+    "label": "Object Fit",
+    "description": "Utilities for controlling how a replaced element's content should be resized.",
+    "docUrl": "https://tailwindcss.com/docs/object-fit",
+    "group": "Layout",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "object-contain",
+            "label": "Contain"
+          },
+          {
+            "class": "object-cover",
+            "label": "Cover"
+          },
+          {
+            "class": "object-fill",
+            "label": "Fill"
+          },
+          {
+            "class": "object-none",
+            "label": "None"
+          },
+          {
+            "class": "object-scale-down",
+            "label": "Scale Down"
+          }
+        ]
+      }
+    ]
+  },
+  "objectPosition": {
+    "label": "Object Position",
+    "description": "Utilities for controlling how a replaced element's content should be positioned within its container.",
+    "docUrl": "https://tailwindcss.com/docs/object-position",
+    "group": "Layout",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "object-top-left",
+            "label": "Top Left"
+          },
+          {
+            "class": "object-top",
+            "label": "Top"
+          },
+          {
+            "class": "object-top-right",
+            "label": "Top Right"
+          },
+          {
+            "class": "object-left",
+            "label": "Left"
+          },
+          {
+            "class": "object-center",
+            "label": "Center"
+          },
+          {
+            "class": "object-right",
+            "label": "Right"
+          },
+          {
+            "class": "object-bottom-left",
+            "label": "Bottom Left"
+          },
+          {
+            "class": "object-bottom",
+            "label": "Bottom"
+          },
+          {
+            "class": "object-bottom-right",
+            "label": "Bottom Right"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "object-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "opacity": {
+    "label": "Opacity",
+    "description": "Utilities for controlling the opacity of an element.",
+    "docUrl": "https://tailwindcss.com/docs/opacity",
+    "group": "Effects",
+    "control": {
+      "type": "Slider"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "opacity-{value}",
+          "dataset": "opacity"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "opacity-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "order": {
+    "label": "Order",
+    "description": "Utilities for controlling the order of flex and grid items.",
+    "docUrl": "https://tailwindcss.com/docs/order",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "order-first",
+            "label": "First"
+          },
+          {
+            "class": "order-last",
+            "label": "Last"
+          },
+          {
+            "class": "order-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "order-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "outlineColor": {
+    "label": "Outline Color",
+    "description": "Utilities for controlling the color of an element's outline.",
+    "docUrl": "https://tailwindcss.com/docs/outline-color",
+    "group": "Effects",
+    "control": {
+      "type": "ColorPicker"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "outline-inherit",
+            "label": "Inherit"
+          },
+          {
+            "class": "outline-current",
+            "label": "Current"
+          },
+          {
+            "class": "outline-transparent",
+            "label": "Transparent"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "outline-{value}",
+          "dataset": "colors"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "outline-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "outlineOffset": {
+    "label": "Outline Offset",
+    "description": "Utilities for controlling the offset of an element's outline.",
+    "docUrl": "https://tailwindcss.com/docs/outline-offset",
+    "group": "Interactivity",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "outline-offset-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "-outline-offset-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "outline-offset-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "outlineStyle": {
+    "label": "Outline Style",
+    "description": "Utilities for controlling the style of an element's outline.",
+    "docUrl": "https://tailwindcss.com/docs/outline-style",
+    "group": "Borders",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "outline-solid",
+            "label": "Solid"
+          },
+          {
+            "class": "outline-dashed",
+            "label": "Dashed"
+          },
+          {
+            "class": "outline-dotted",
+            "label": "Dotted"
+          },
+          {
+            "class": "outline-double",
+            "label": "Double"
+          },
+          {
+            "class": "outline-none",
+            "label": "None"
+          },
+          {
+            "class": "outline-hidden",
+            "label": "Hidden"
+          }
+        ]
+      }
+    ]
+  },
+  "outlineWidth": {
+    "label": "Outline Width",
+    "description": "Utilities for controlling the width of an element's outline.",
+    "docUrl": "https://tailwindcss.com/docs/outline-width",
+    "group": "Effects",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "outline",
+            "label": "Default (1px)"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "outline-{value}",
+          "dataset": "borderWidths"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "outline-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "overflowWrap": {
+    "label": "Overflow Wrap",
+    "description": "Utilities for controlling line breaks within words in an overflowing element.",
+    "docUrl": "https://tailwindcss.com/docs/overflow-wrap",
+    "group": "Typography",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "wrap-break-word",
+            "label": "Break Word"
+          },
+          {
+            "class": "wrap-anywhere",
+            "label": "Anywhere"
+          },
+          {
+            "class": "wrap-normal",
+            "label": "Normal"
+          }
+        ]
+      }
+    ]
+  },
+  "overflow": {
+    "label": "Overflow",
+    "description": "Utilities for controlling how an element handles content that is too large for the container.",
+    "docUrl": "https://tailwindcss.com/docs/overflow",
+    "group": "Layout",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "overflow-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "overflow-hidden",
+            "label": "Hidden"
+          },
+          {
+            "class": "overflow-clip",
+            "label": "Clip"
+          },
+          {
+            "class": "overflow-visible",
+            "label": "Visible"
+          },
+          {
+            "class": "overflow-scroll",
+            "label": "Scroll"
+          }
+        ]
+      }
+    ],
+    "structuralVariants": [
+      {
+        "label": "Horizontal Axis",
+        "template": "overflow-x-{value}"
+      },
+      {
+        "label": "Vertical Axis",
+        "template": "overflow-y-{value}"
+      }
+    ]
+  },
+  "overscrollBehavior": {
+    "label": "Overscroll Behavior",
+    "description": "Utilities for controlling how the browser behaves when reaching the boundary of a scrolling area.",
+    "docUrl": "https://tailwindcss.com/docs/overscroll-behavior",
+    "group": "Interactivity",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "overscroll-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "overscroll-contain",
+            "label": "Contain"
+          },
+          {
+            "class": "overscroll-none",
+            "label": "None"
+          }
+        ]
+      }
+    ],
+    "structuralVariants": [
+      {
+        "label": "Horizontal Axis",
+        "template": "overscroll-x-{value}"
+      },
+      {
+        "label": "Vertical Axis",
+        "template": "overscroll-y-{value}"
+      }
+    ]
+  },
+  "padding": {
+    "label": "Padding",
+    "description": "Utilities for controlling an element's padding.",
+    "docUrl": "https://tailwindcss.com/docs/padding",
+    "group": "Spacing",
+    "control": {
+      "type": "BoxModelEditor"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "p-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "p-{value}"
+        }
+      }
+    ],
+    "structuralVariants": [
+      {
+        "label": "Top",
+        "template": "pt-{value}"
+      },
+      {
+        "label": "Right",
+        "template": "pr-{value}"
+      },
+      {
+        "label": "Bottom",
+        "template": "pb-{value}"
+      },
+      {
+        "label": "Left",
+        "template": "pl-{value}"
+      },
+      {
+        "label": "Horizontal",
+        "template": "px-{value}"
+      },
+      {
+        "label": "Vertical",
+        "template": "py-{value}"
+      },
+      {
+        "label": "Start (Logical)",
+        "template": "ps-{value}"
+      },
+      {
+        "label": "End (Logical)",
+        "template": "pe-{value}"
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "perspectiveOrigin": {
+    "label": "Perspective Origin",
+    "description": "Utilities for controlling an element's perspective origin when placed in 3D space.",
+    "docUrl": "https://tailwindcss.com/docs/perspective-origin",
+    "group": "Transforms",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "perspective-origin-center",
+            "label": "Center"
+          },
+          {
+            "class": "perspective-origin-top",
+            "label": "Top"
+          },
+          {
+            "class": "perspective-origin-top-right",
+            "label": "Top Right"
+          },
+          {
+            "class": "perspective-origin-right",
+            "label": "Right"
+          },
+          {
+            "class": "perspective-origin-bottom-right",
+            "label": "Bottom Right"
+          },
+          {
+            "class": "perspective-origin-bottom",
+            "label": "Bottom"
+          },
+          {
+            "class": "perspective-origin-bottom-left",
+            "label": "Bottom Left"
+          },
+          {
+            "class": "perspective-origin-left",
+            "label": "Left"
+          },
+          {
+            "class": "perspective-origin-top-left",
+            "label": "Top Left"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "perspective-origin-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "perspective": {
+    "label": "Perspective",
+    "description": "Utilities for controlling an element's perspective when placed in 3D space.",
+    "docUrl": "https://tailwindcss.com/docs/perspective",
+    "group": "Transforms",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "perspective-dramatic",
+            "label": "Dramatic"
+          },
+          {
+            "class": "perspective-near",
+            "label": "Near"
+          },
+          {
+            "class": "perspective-normal",
+            "label": "Normal"
+          },
+          {
+            "class": "perspective-midrange",
+            "label": "Midrange"
+          },
+          {
+            "class": "perspective-distant",
+            "label": "Distant"
+          },
+          {
+            "class": "perspective-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "perspective-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "placeContent": {
+    "label": "Place Content",
+    "description": "Utilities for controlling how content is justified and aligned at the same time.",
+    "docUrl": "https://tailwindcss.com/docs/place-content",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "place-content-center",
+            "label": "Center"
+          },
+          {
+            "class": "place-content-center-safe",
+            "label": "Center Safe"
+          },
+          {
+            "class": "place-content-start",
+            "label": "Start"
+          },
+          {
+            "class": "place-content-end",
+            "label": "End"
+          },
+          {
+            "class": "place-content-end-safe",
+            "label": "End Safe"
+          },
+          {
+            "class": "place-content-between",
+            "label": "Space Between"
+          },
+          {
+            "class": "place-content-around",
+            "label": "Space Around"
+          },
+          {
+            "class": "place-content-evenly",
+            "label": "Space Evenly"
+          },
+          {
+            "class": "place-content-baseline",
+            "label": "Baseline"
+          },
+          {
+            "class": "place-content-stretch",
+            "label": "Stretch"
+          }
+        ]
+      }
+    ]
+  },
+  "placeItems": {
+    "label": "Place Items",
+    "description": "Utilities for controlling how items are justified and aligned at the same time.",
+    "docUrl": "https://tailwindcss.com/docs/place-items",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "place-items-start",
+            "label": "Start"
+          },
+          {
+            "class": "place-items-end",
+            "label": "End"
+          },
+          {
+            "class": "place-items-end-safe",
+            "label": "End (Safe)"
+          },
+          {
+            "class": "place-items-center",
+            "label": "Center"
+          },
+          {
+            "class": "place-items-center-safe",
+            "label": "Center (Safe)"
+          },
+          {
+            "class": "place-items-baseline",
+            "label": "Baseline"
+          },
+          {
+            "class": "place-items-stretch",
+            "label": "Stretch"
+          }
+        ]
+      }
+    ]
+  },
+  "placeSelf": {
+    "label": "Place Self",
+    "description": "Utilities for controlling how an individual item is justified and aligned at the same time.",
+    "docUrl": "https://tailwindcss.com/docs/place-self",
+    "group": "Flexbox & Grid",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "place-self-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "place-self-start",
+            "label": "Start"
+          },
+          {
+            "class": "place-self-end",
+            "label": "End"
+          },
+          {
+            "class": "place-self-end-safe",
+            "label": "End (safe)"
+          },
+          {
+            "class": "place-self-center",
+            "label": "Center"
+          },
+          {
+            "class": "place-self-center-safe",
+            "label": "Center (safe)"
+          },
+          {
+            "class": "place-self-stretch",
+            "label": "Stretch"
+          }
+        ]
+      }
+    ]
+  },
+  "pointerEvents": {
+    "label": "Pointer Events",
+    "description": "Utilities for controlling whether an element responds to pointer events.",
+    "docUrl": "https://tailwindcss.com/docs/pointer-events",
+    "group": "Interactivity",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "pointer-events-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "pointer-events-none",
+            "label": "None"
+          }
+        ]
+      }
+    ]
+  },
+  "position": {
+    "label": "Position",
+    "description": "Utilities for controlling how an element is positioned in the document.",
+    "docUrl": "https://tailwindcss.com/docs/position",
+    "group": "Layout",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "static",
+            "label": "Static"
+          },
+          {
+            "class": "fixed",
+            "label": "Fixed"
+          },
+          {
+            "class": "absolute",
+            "label": "Absolute"
+          },
+          {
+            "class": "relative",
+            "label": "Relative"
+          },
+          {
+            "class": "sticky",
+            "label": "Sticky"
+          }
+        ]
+      }
+    ]
+  },
+  "resize": {
+    "label": "Resize",
+    "description": "Utilities for controlling how an element can be resized.",
+    "docUrl": "https://tailwindcss.com/docs/resize",
+    "group": "Interactivity",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "resize-none",
+            "label": "None"
+          },
+          {
+            "class": "resize",
+            "label": "Both"
+          },
+          {
+            "class": "resize-y",
+            "label": "Vertical"
+          },
+          {
+            "class": "resize-x",
+            "label": "Horizontal"
+          }
+        ]
+      }
+    ]
+  },
+  "rotate": {
+    "label": "Rotate",
+    "description": "Utilities for rotating elements.",
+    "docUrl": "https://tailwindcss.com/docs/rotate",
+    "group": "Transforms",
+    "control": {
+      "type": "TransformEditor"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "rotate-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "rotate-{value}",
+          "dataset": "rotate"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "rotate-{value}"
+        }
+      }
+    ],
+    "structuralVariants": [
+      {
+        "label": "X Axis",
+        "template": "rotate-x-{value}"
+      },
+      {
+        "label": "Y Axis",
+        "template": "rotate-y-{value}"
+      },
+      {
+        "label": "Z Axis",
+        "template": "rotate-z-{value}"
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "scale": {
+    "label": "Scale",
+    "description": "Utilities for scaling elements.",
+    "docUrl": "https://tailwindcss.com/docs/scale",
+    "group": "Transforms",
+    "control": {
+      "type": "TransformEditor"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "scale-none",
+            "label": "None"
+          },
+          {
+            "class": "scale-3d",
+            "label": "3D"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "scale-{value}",
+          "dataset": "scale"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "-scale-{value}",
+          "dataset": "scale"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "scale-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "scrollBehavior": {
+    "label": "Scroll Behavior",
+    "description": "Utilities for controlling the scroll behavior of an element.",
+    "docUrl": "https://tailwindcss.com/docs/scroll-behavior",
+    "group": "Interactivity",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "scroll-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "scroll-smooth",
+            "label": "Smooth"
+          }
+        ]
+      }
+    ]
+  },
+  "scrollMargin": {
+    "label": "Scroll Margin",
+    "description": "Utilities for controlling the scroll offset around items in a snap container.",
+    "docUrl": "https://tailwindcss.com/docs/scroll-margin",
+    "group": "Scrolling",
+    "control": {
+      "type": "BoxModelEditor"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "scroll-m-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "scroll-m-{value}"
+        }
+      }
+    ],
+    "structuralVariants": [
+      {
+        "label": "All Sides",
+        "template": "scroll-m-{value}"
+      },
+      {
+        "label": "Horizontal Axis",
+        "template": "scroll-mx-{value}"
+      },
+      {
+        "label": "Vertical Axis",
+        "template": "scroll-my-{value}"
+      },
+      {
+        "label": "Inline Start",
+        "template": "scroll-ms-{value}"
+      },
+      {
+        "label": "Inline End",
+        "template": "scroll-me-{value}"
+      },
+      {
+        "label": "Top Only",
+        "template": "scroll-mt-{value}"
+      },
+      {
+        "label": "Right Only",
+        "template": "scroll-mr-{value}"
+      },
+      {
+        "label": "Bottom Only",
+        "template": "scroll-mb-{value}"
+      },
+      {
+        "label": "Left Only",
+        "template": "scroll-ml-{value}"
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "scrollPadding": {
+    "label": "Scroll Padding",
+    "description": "Utilities for controlling an element's scroll offset within a snap container.",
+    "docUrl": "https://tailwindcss.com/docs/scroll-padding",
+    "group": "Scrolling",
+    "control": {
+      "type": "BoxModelEditor"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "scroll-p-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "scroll-p-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true,
+    "structuralVariants": [
+      {
+        "label": "Horizontal Axis",
+        "template": "scroll-px-{value}"
+      },
+      {
+        "label": "Vertical Axis",
+        "template": "scroll-py-{value}"
+      },
+      {
+        "label": "Inline Start",
+        "template": "scroll-ps-{value}"
+      },
+      {
+        "label": "Inline End",
+        "template": "scroll-pe-{value}"
+      },
+      {
+        "label": "Top",
+        "template": "scroll-pt-{value}"
+      },
+      {
+        "label": "Right",
+        "template": "scroll-pr-{value}"
+      },
+      {
+        "label": "Bottom",
+        "template": "scroll-pb-{value}"
+      },
+      {
+        "label": "Left",
+        "template": "scroll-pl-{value}"
+      }
+    ]
+  },
+  "scrollSnapAlign": {
+    "label": "Scroll Snap Align",
+    "description": "Utilities for controlling the scroll snap alignment of an element.",
+    "docUrl": "https://tailwindcss.com/docs/scroll-snap-align",
+    "group": "Scrolling",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "snap-start",
+            "label": "Start"
+          },
+          {
+            "class": "snap-end",
+            "label": "End"
+          },
+          {
+            "class": "snap-center",
+            "label": "Center"
+          },
+          {
+            "class": "snap-align-none",
+            "label": "None"
+          }
+        ]
+      }
+    ],
+    "supportsArbitrary": false
+  },
+  "scrollSnapStop": {
+    "label": "Scroll Snap Stop",
+    "description": "Utilities for controlling whether you can skip past possible snap positions.",
+    "docUrl": "https://tailwindcss.com/docs/scroll-snap-stop",
+    "group": "Interactivity",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "snap-normal",
+            "label": "Normal"
+          },
+          {
+            "class": "snap-always",
+            "label": "Always"
+          }
+        ]
+      }
+    ]
+  },
+  "scrollSnapType": {
+    "label": "Scroll Snap Type",
+    "description": "Utilities for controlling how strictly snap points are enforced in a snap container.",
+    "docUrl": "https://tailwindcss.com/docs/scroll-snap-type",
+    "group": "Interactivity",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "snap-none",
+            "label": "None"
+          },
+          {
+            "class": "snap-x",
+            "label": "X Axis"
+          },
+          {
+            "class": "snap-y",
+            "label": "Y Axis"
+          },
+          {
+            "class": "snap-both",
+            "label": "Both Axes"
+          },
+          {
+            "class": "snap-mandatory",
+            "label": "Mandatory"
+          },
+          {
+            "class": "snap-proximity",
+            "label": "Proximity"
+          }
+        ]
+      }
+    ]
+  },
+  "skew": {
+    "label": "Skew",
+    "description": "Utilities for skewing elements with transform.",
+    "docUrl": "https://tailwindcss.com/docs/skew",
+    "group": "Transforms",
+    "control": {
+      "type": "TransformEditor"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "skew-{value}",
+          "dataset": "skew"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "-skew-{value}",
+          "dataset": "skew"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "skew-{value}"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "skew-x-{value}",
+          "dataset": "skew"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "-skew-x-{value}",
+          "dataset": "skew"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "skew-x-{value}"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "skew-y-{value}",
+          "dataset": "skew"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "-skew-y-{value}",
+          "dataset": "skew"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "skew-y-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "strokeWidth": {
+    "label": "Stroke Width",
+    "description": "Utilities for styling the stroke width of SVG elements.",
+    "docUrl": "https://tailwindcss.com/docs/stroke-width",
+    "group": "SVG",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "stroke-{value}",
+          "dataset": "strokeWidth"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "stroke-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "stroke": {
+    "label": "Stroke Color",
+    "description": "Utilities for styling the stroke of SVG elements.",
+    "docUrl": "https://tailwindcss.com/docs/stroke",
+    "group": "SVG",
+    "control": {
+      "type": "ColorPicker"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "stroke-none",
+            "label": "None"
+          },
+          {
+            "class": "stroke-inherit",
+            "label": "Inherit"
+          },
+          {
+            "class": "stroke-current",
+            "label": "Current Color"
+          },
+          {
+            "class": "stroke-transparent",
+            "label": "Transparent"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "stroke-{value}",
+          "dataset": "colors"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "stroke-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "tableLayout": {
+    "label": "Table Layout",
+    "description": "Utilities for controlling the table layout algorithm.",
+    "docUrl": "https://tailwindcss.com/docs/table-layout",
+    "group": "Tables",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "table-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "table-fixed",
+            "label": "Fixed"
+          }
+        ]
+      }
+    ]
+  },
+  "textAlign": {
+    "label": "Text Align",
+    "description": "Utilities for controlling the alignment of text.",
+    "docUrl": "https://tailwindcss.com/docs/text-align",
+    "group": "Typography",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "text-left",
+            "label": "Left"
+          },
+          {
+            "class": "text-center",
+            "label": "Center"
+          },
+          {
+            "class": "text-right",
+            "label": "Right"
+          },
+          {
+            "class": "text-justify",
+            "label": "Justify"
+          },
+          {
+            "class": "text-start",
+            "label": "Start"
+          },
+          {
+            "class": "text-end",
+            "label": "End"
+          }
+        ]
+      }
+    ]
+  },
+  "textDecorationColor": {
+    "label": "Text Decoration Color",
+    "description": "Utilities for controlling the color of text decorations.",
+    "docUrl": "https://tailwindcss.com/docs/text-decoration-color",
+    "group": "Typography",
+    "control": {
+      "type": "ColorPicker"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "decoration-inherit",
+            "label": "Inherit"
+          },
+          {
+            "class": "decoration-current",
+            "label": "Current"
+          },
+          {
+            "class": "decoration-transparent",
+            "label": "Transparent"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "decoration-{value}",
+          "dataset": "colors"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "decoration-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "textDecorationLine": {
+    "label": "Text Decoration Line",
+    "description": "Utilities for controlling the decoration of text.",
+    "docUrl": "https://tailwindcss.com/docs/text-decoration-line",
+    "group": "Typography",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "underline",
+            "label": "Underline"
+          },
+          {
+            "class": "overline",
+            "label": "Overline"
+          },
+          {
+            "class": "line-through",
+            "label": "Line Through"
+          },
+          {
+            "class": "no-underline",
+            "label": "None"
+          }
+        ]
+      }
+    ]
+  },
+  "textDecorationStyle": {
+    "label": "Text Decoration Style",
+    "description": "Utilities for controlling the style of text decorations.",
+    "docUrl": "https://tailwindcss.com/docs/text-decoration-style",
+    "group": "Typography",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "decoration-solid",
+            "label": "Solid"
+          },
+          {
+            "class": "decoration-double",
+            "label": "Double"
+          },
+          {
+            "class": "decoration-dotted",
+            "label": "Dotted"
+          },
+          {
+            "class": "decoration-dashed",
+            "label": "Dashed"
+          },
+          {
+            "class": "decoration-wavy",
+            "label": "Wavy"
+          }
+        ]
+      }
+    ]
+  },
+  "textDecorationThickness": {
+    "label": "Text Decoration Thickness",
+    "description": "Utilities for controlling the thickness of text decorations.",
+    "docUrl": "https://tailwindcss.com/docs/text-decoration-thickness",
+    "group": "Typography",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "decoration-1",
+            "label": "1"
+          },
+          {
+            "class": "decoration-2",
+            "label": "2"
+          },
+          {
+            "class": "decoration-4",
+            "label": "4"
+          },
+          {
+            "class": "decoration-from-font",
+            "label": "From Font"
+          },
+          {
+            "class": "decoration-auto",
+            "label": "Auto"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "decoration-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "textIndent": {
+    "label": "Text Indent",
+    "description": "Utilities for controlling the amount of empty space shown before text in a block.",
+    "docUrl": "https://tailwindcss.com/docs/text-indent",
+    "group": "Typography",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "indent-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "indent-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "textOverflow": {
+    "label": "Text Overflow",
+    "description": "Utilities for controlling how the text of an element overflows.",
+    "docUrl": "https://tailwindcss.com/docs/text-overflow",
+    "group": "Typography",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "truncate",
+            "label": "Truncate"
+          },
+          {
+            "class": "text-ellipsis",
+            "label": "Ellipsis"
+          },
+          {
+            "class": "text-clip",
+            "label": "Clip"
+          }
+        ]
+      }
+    ]
+  },
+  "textShadow": {
+    "label": "Text Shadow",
+    "description": "Utilities for controlling the shadow of a text element.",
+    "docUrl": "https://tailwindcss.com/docs/text-shadow",
+    "group": "Effects",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "text-shadow-2xs",
+            "label": "2XS"
+          },
+          {
+            "class": "text-shadow-xs",
+            "label": "XS"
+          },
+          {
+            "class": "text-shadow-sm",
+            "label": "SM"
+          },
+          {
+            "class": "text-shadow-md",
+            "label": "MD"
+          },
+          {
+            "class": "text-shadow-lg",
+            "label": "LG"
+          },
+          {
+            "class": "text-shadow-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "text-shadow-inherit",
+            "label": "Inherit Color"
+          },
+          {
+            "class": "text-shadow-current",
+            "label": "Current Color"
+          },
+          {
+            "class": "text-shadow-transparent",
+            "label": "Transparent Color"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "text-shadow-{value}",
+          "dataset": "colors"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "text-shadow-{value}"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "text-shadow-({value})"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "text-shadow-(color:{value})"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "textTransform": {
+    "label": "Text Transform",
+    "description": "Utilities for controlling the capitalization of text.",
+    "docUrl": "https://tailwindcss.com/docs/text-transform",
+    "group": "Typography",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "uppercase",
+            "label": "Uppercase"
+          },
+          {
+            "class": "lowercase",
+            "label": "Lowercase"
+          },
+          {
+            "class": "capitalize",
+            "label": "Capitalize"
+          },
+          {
+            "class": "normal-case",
+            "label": "Normal Case"
+          }
+        ]
+      }
+    ]
+  },
+  "textUnderlineOffset": {
+    "label": "Text Underline Offset",
+    "description": "Utilities for controlling the offset of a text underline.",
+    "docUrl": "https://tailwindcss.com/docs/text-underline-offset",
+    "group": "Typography",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "underline-offset-auto",
+            "label": "Auto"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "underline-offset-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "textWrap": {
+    "label": "Text Wrap",
+    "description": "Utilities for controlling how text wraps within an element.",
+    "docUrl": "https://tailwindcss.com/docs/text-wrap",
+    "group": "Typography",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "text-wrap",
+            "label": "Wrap"
+          },
+          {
+            "class": "text-nowrap",
+            "label": "No Wrap"
+          },
+          {
+            "class": "text-balance",
+            "label": "Balance"
+          },
+          {
+            "class": "text-pretty",
+            "label": "Pretty"
+          }
+        ]
+      }
+    ]
+  },
+  "topRightBottomLeft": {
+    "label": "Top / Right / Bottom / Left",
+    "description": "Utilities for controlling the placement of positioned elements.",
+    "docUrl": "https://tailwindcss.com/docs/top-right-bottom-left",
+    "group": "Layout",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "{value}"
+        }
+      }
+    ],
+    "structuralVariants": [
+      {
+        "label": "All Sides",
+        "template": "inset-{value}"
+      },
+      {
+        "label": "Horizontal",
+        "template": "inset-x-{value}"
+      },
+      {
+        "label": "Vertical",
+        "template": "inset-y-{value}"
+      },
+      {
+        "label": "Start (Logical)",
+        "template": "start-{value}"
+      },
+      {
+        "label": "End (Logical)",
+        "template": "end-{value}"
+      },
+      {
+        "label": "Top",
+        "template": "top-{value}"
+      },
+      {
+        "label": "Right",
+        "template": "right-{value}"
+      },
+      {
+        "label": "Bottom",
+        "template": "bottom-{value}"
+      },
+      {
+        "label": "Left",
+        "template": "left-{value}"
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "touchAction": {
+    "label": "Touch Action",
+    "description": "Utilities for controlling how an element can be scrolled and zoomed on touchscreens.",
+    "docUrl": "https://tailwindcss.com/docs/touch-action",
+    "group": "Interactivity",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "touch-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "touch-none",
+            "label": "None"
+          },
+          {
+            "class": "touch-pan-x",
+            "label": "Pan X"
+          },
+          {
+            "class": "touch-pan-left",
+            "label": "Pan Left"
+          },
+          {
+            "class": "touch-pan-right",
+            "label": "Pan Right"
+          },
+          {
+            "class": "touch-pan-y",
+            "label": "Pan Y"
+          },
+          {
+            "class": "touch-pan-up",
+            "label": "Pan Up"
+          },
+          {
+            "class": "touch-pan-down",
+            "label": "Pan Down"
+          },
+          {
+            "class": "touch-pinch-zoom",
+            "label": "Pinch Zoom"
+          },
+          {
+            "class": "touch-manipulation",
+            "label": "Manipulation"
+          }
+        ]
+      }
+    ]
+  },
+  "transformOrigin": {
+    "label": "Transform Origin",
+    "description": "Utilities for specifying the origin for an element's transformations.",
+    "docUrl": "https://tailwindcss.com/docs/transform-origin",
+    "group": "Transforms",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "origin-center",
+            "label": "Center"
+          },
+          {
+            "class": "origin-top",
+            "label": "Top"
+          },
+          {
+            "class": "origin-top-right",
+            "label": "Top Right"
+          },
+          {
+            "class": "origin-right",
+            "label": "Right"
+          },
+          {
+            "class": "origin-bottom-right",
+            "label": "Bottom Right"
+          },
+          {
+            "class": "origin-bottom",
+            "label": "Bottom"
+          },
+          {
+            "class": "origin-bottom-left",
+            "label": "Bottom Left"
+          },
+          {
+            "class": "origin-left",
+            "label": "Left"
+          },
+          {
+            "class": "origin-top-left",
+            "label": "Top Left"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "origin-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "transformStyle": {
+    "label": "Transform Style",
+    "description": "Utilities for controlling if an elements children are placed in 3D space.",
+    "docUrl": "https://tailwindcss.com/docs/transform-style",
+    "group": "Transforms",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "transform-3d",
+            "label": "3D"
+          },
+          {
+            "class": "transform-flat",
+            "label": "Flat"
+          }
+        ]
+      }
+    ]
+  },
+  "transform": {
+    "label": "Transform",
+    "description": "Utilities for transforming elements.",
+    "docUrl": "https://tailwindcss.com/docs/transform",
+    "group": "Transforms",
+    "control": {
+      "type": "TransformEditor"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "transform-none",
+            "label": "None"
+          },
+          {
+            "class": "transform-gpu",
+            "label": "GPU Acceleration"
+          },
+          {
+            "class": "transform-cpu",
+            "label": "CPU Rendering"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "transform-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "transitionBehavior": {
+    "label": "Transition Behavior",
+    "description": "Utilities to control the behavior of CSS transitions.",
+    "docUrl": "https://tailwindcss.com/docs/transition-behavior",
+    "group": "Transitions & Animation",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "transition-normal",
+            "label": "Normal"
+          },
+          {
+            "class": "transition-discrete",
+            "label": "Discrete"
+          }
+        ]
+      }
+    ]
+  },
+  "transitionDelay": {
+    "label": "Transition Delay",
+    "description": "Utilities for controlling the delay of CSS transitions.",
+    "docUrl": "https://tailwindcss.com/docs/transition-delay",
+    "group": "Transitions & Animation",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "delay-{value}",
+          "dataset": "transitionDelay"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "delay-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "transitionDuration": {
+    "label": "Transition Duration",
+    "description": "Utilities for controlling the duration of CSS transitions.",
+    "docUrl": "https://tailwindcss.com/docs/transition-duration",
+    "group": "Transitions & Animation",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "duration-{value}",
+          "dataset": "transitionDuration"
+        }
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "duration-initial",
+            "label": "Initial"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "duration-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "transitionProperty": {
+    "label": "Transition Property",
+    "description": "Utilities for controlling which CSS properties transition.",
+    "docUrl": "https://tailwindcss.com/docs/transition-property",
+    "group": "Transitions",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "transition",
+            "label": "Default Properties"
+          },
+          {
+            "class": "transition-all",
+            "label": "All"
+          },
+          {
+            "class": "transition-colors",
+            "label": "Colors"
+          },
+          {
+            "class": "transition-opacity",
+            "label": "Opacity"
+          },
+          {
+            "class": "transition-shadow",
+            "label": "Shadow"
+          },
+          {
+            "class": "transition-transform",
+            "label": "Transform"
+          },
+          {
+            "class": "transition-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "transition-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "transitionTimingFunction": {
+    "label": "Transition Timing Function",
+    "description": "Utilities for controlling the easing of CSS transitions.",
+    "docUrl": "https://tailwindcss.com/docs/transition-timing-function",
+    "group": "Transitions & Animation",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "ease-linear",
+            "label": "Linear"
+          },
+          {
+            "class": "ease-in",
+            "label": "In"
+          },
+          {
+            "class": "ease-out",
+            "label": "Out"
+          },
+          {
+            "class": "ease-in-out",
+            "label": "In-Out"
+          },
+          {
+            "class": "ease-initial",
+            "label": "Initial"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "ease-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "translate": {
+    "label": "Translate",
+    "description": "Utilities for translating elements.",
+    "docUrl": "https://tailwindcss.com/docs/translate",
+    "group": "Transforms",
+    "control": {
+      "type": "TransformEditor"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "translate-none",
+            "label": "None"
+          }
+        ]
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "translate-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "translate-{value}"
+        }
+      }
+    ],
+    "structuralVariants": [
+      {
+        "label": "X-Axis",
+        "template": "translate-x-{value}"
+      },
+      {
+        "label": "Y-Axis",
+        "template": "translate-y-{value}"
+      },
+      {
+        "label": "Z-Axis",
+        "template": "translate-z-{value}"
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "userSelect": {
+    "label": "User Select",
+    "description": "Utilities for controlling whether the user can select text in an element.",
+    "docUrl": "https://tailwindcss.com/docs/user-select",
+    "group": "Interactivity",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "select-none",
+            "label": "None"
+          },
+          {
+            "class": "select-text",
+            "label": "Text"
+          },
+          {
+            "class": "select-all",
+            "label": "All"
+          },
+          {
+            "class": "select-auto",
+            "label": "Auto"
+          }
+        ]
+      }
+    ]
+  },
+  "verticalAlign": {
+    "label": "Vertical Align",
+    "description": "Utilities for controlling the vertical alignment of an inline or table-cell box.",
+    "docUrl": "https://tailwindcss.com/docs/vertical-align",
+    "group": "Layout",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "align-baseline",
+            "label": "Baseline"
+          },
+          {
+            "class": "align-top",
+            "label": "Top"
+          },
+          {
+            "class": "align-middle",
+            "label": "Middle"
+          },
+          {
+            "class": "align-bottom",
+            "label": "Bottom"
+          },
+          {
+            "class": "align-text-top",
+            "label": "Text Top"
+          },
+          {
+            "class": "align-text-bottom",
+            "label": "Text Bottom"
+          },
+          {
+            "class": "align-sub",
+            "label": "Sub"
+          },
+          {
+            "class": "align-super",
+            "label": "Super"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "align-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "visibility": {
+    "label": "Visibility",
+    "description": "Utilities for controlling the visibility of an element.",
+    "docUrl": "https://tailwindcss.com/docs/visibility",
+    "group": "Layout",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "visible",
+            "label": "Visible"
+          },
+          {
+            "class": "invisible",
+            "label": "Invisible"
+          },
+          {
+            "class": "collapse",
+            "label": "Collapse"
+          }
+        ]
+      }
+    ]
+  },
+  "whiteSpace": {
+    "label": "White Space",
+    "description": "Utilities for controlling an element's white-space property.",
+    "docUrl": "https://tailwindcss.com/docs/white-space",
+    "group": "Typography",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "whitespace-normal",
+            "label": "Normal"
+          },
+          {
+            "class": "whitespace-nowrap",
+            "label": "No Wrap"
+          },
+          {
+            "class": "whitespace-pre",
+            "label": "Pre"
+          },
+          {
+            "class": "whitespace-pre-line",
+            "label": "Pre Line"
+          },
+          {
+            "class": "whitespace-pre-wrap",
+            "label": "Pre Wrap"
+          },
+          {
+            "class": "whitespace-break-spaces",
+            "label": "Break Spaces"
+          }
+        ]
+      }
+    ]
+  },
+  "width": {
+    "label": "Width",
+    "description": "Utilities for setting the width of an element.",
+    "docUrl": "https://tailwindcss.com/docs/width",
+    "group": "Layout",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "generative",
+        "generative": {
+          "template": "w-{value}",
+          "dataset": "spacing"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "w-{value}",
+          "dataset": "fractions"
+        }
+      },
+      {
+        "type": "generative",
+        "generative": {
+          "template": "w-{value}",
+          "dataset": "containers"
+        }
+      },
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "w-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "w-px",
+            "label": "1px"
+          },
+          {
+            "class": "w-full",
+            "label": "Full"
+          },
+          {
+            "class": "w-screen",
+            "label": "100vw"
+          },
+          {
+            "class": "w-dvw",
+            "label": "100dvw"
+          },
+          {
+            "class": "w-dvh",
+            "label": "100dvh"
+          },
+          {
+            "class": "w-lvw",
+            "label": "100lvw"
+          },
+          {
+            "class": "w-lvh",
+            "label": "100lvh"
+          },
+          {
+            "class": "w-svw",
+            "label": "100svw"
+          },
+          {
+            "class": "w-svh",
+            "label": "100svh"
+          },
+          {
+            "class": "w-min",
+            "label": "Min Content"
+          },
+          {
+            "class": "w-max",
+            "label": "Max Content"
+          },
+          {
+            "class": "w-fit",
+            "label": "Fit Content"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "w-{value}"
+        }
+      }
+    ],
+    "structuralVariants": [
+      {
+        "label": "Width & Height",
+        "template": "size-{value}",
+        "strategies": [
+          {
+            "type": "generative",
+            "generative": {
+              "template": "size-{value}",
+              "dataset": "spacing"
+            }
+          },
+          {
+            "type": "generative",
+            "generative": {
+              "template": "size-{value}",
+              "dataset": "fractions"
+            }
+          },
+          {
+            "type": "list",
+            "classes": [
+              {
+                "class": "size-auto",
+                "label": "Auto"
+              },
+              {
+                "class": "size-px",
+                "label": "1px"
+              },
+              {
+                "class": "size-full",
+                "label": "Full"
+              },
+              {
+                "class": "size-dvw",
+                "label": "100dvw"
+              },
+              {
+                "class": "size-dvh",
+                "label": "100dvh"
+              },
+              {
+                "class": "size-lvw",
+                "label": "100lvw"
+              },
+              {
+                "class": "size-lvh",
+                "label": "100lvh"
+              },
+              {
+                "class": "size-svw",
+                "label": "100svw"
+              },
+              {
+                "class": "size-svh",
+                "label": "100svh"
+              },
+              {
+                "class": "size-min",
+                "label": "Min Content"
+              },
+              {
+                "class": "size-max",
+                "label": "Max Content"
+              },
+              {
+                "class": "size-fit",
+                "label": "Fit Content"
+              }
+            ]
+          },
+          {
+            "type": "arbitrary",
+            "arbitrary": {
+              "template": "size-{value}"
+            }
+          }
+        ]
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "willChange": {
+    "label": "Will Change",
+    "description": "Utilities for optimizing upcoming animations of elements that are expected to change.",
+    "docUrl": "https://tailwindcss.com/docs/will-change",
+    "group": "Transitions & Animation",
+    "control": {
+      "type": "Select"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "will-change-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "will-change-scroll",
+            "label": "Scroll Position"
+          },
+          {
+            "class": "will-change-contents",
+            "label": "Contents"
+          },
+          {
+            "class": "will-change-transform",
+            "label": "Transform"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "will-change-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  },
+  "wordBreak": {
+    "label": "Word Break",
+    "description": "Utilities for controlling word breaks in an element.",
+    "docUrl": "https://tailwindcss.com/docs/word-break",
+    "group": "Typography",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "break-normal",
+            "label": "Normal"
+          },
+          {
+            "class": "break-all",
+            "label": "Break All"
+          },
+          {
+            "class": "break-keep",
+            "label": "Break Keep"
+          }
+        ]
+      }
+    ]
+  },
+  "zIndex": {
+    "label": "Z-Index",
+    "description": "Utilities for controlling the stack order of an element.",
+    "docUrl": "https://tailwindcss.com/docs/z-index",
+    "group": "Layout",
+    "control": {
+      "type": "SizeInput"
+    },
+    "strategies": [
+      {
+        "type": "list",
+        "classes": [
+          {
+            "class": "z-auto",
+            "label": "Auto"
+          },
+          {
+            "class": "z-0",
+            "label": "0"
+          },
+          {
+            "class": "z-10",
+            "label": "10"
+          },
+          {
+            "class": "z-20",
+            "label": "20"
+          },
+          {
+            "class": "z-30",
+            "label": "30"
+          },
+          {
+            "class": "z-40",
+            "label": "40"
+          },
+          {
+            "class": "z-50",
+            "label": "50"
+          }
+        ]
+      },
+      {
+        "type": "arbitrary",
+        "arbitrary": {
+          "template": "z-{value}"
+        }
+      }
+    ],
+    "supportsArbitrary": true
+  }
+}
