@@ -91,6 +91,12 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 - [ ] Transition to a shareable URL structure (`/editor/:id`).
 - [ ] Begin design of a plugin-based architecture for third-party extensions.
 
+### Miscellaneous: 
+
+- [ ] Move the dock to a bar on the left of the screen. 
+- [ ] Display relevant Tailwind modifiers/utilities based on a brief AI call with info on what the user
+      wants in natural language passed to the AI. With an optional "see all" button to just show the user everything. 
+
 ## 4. Current Status & Progress
 
 **Phase 0: ✅ COMPLETED**

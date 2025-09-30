@@ -33,121 +33,304 @@ const apiTableRegex = /<ApiTable[\s\S]*?>/;
 
 // This is the heart of the script.
 const PROMPT_TEMPLATE = `
-You are a meticulous Design System Architect. Your sole task is to analyze Tailwind CSS documentation and convert it into a highly structured, precise JSON object that will be used to build a visual inspector UI. Adhere strictly to the provided schemas and data dictionary.
-
-First, you MUST use the following **UI Control Design System** to decide which UI to specify for each utility.
-
---- UI CONTROL DESIGN SYSTEM (Your Toolbox) ---
-- 'Select': A dropdown. Use for 5+ named options (e.g., font-weight).
-- 'SegmentedControl': A visual button group. Use for 2-5 iconic, mutually exclusive options (e.g., text-align).
-- 'BoxModelEditor': The 4-field editor with a "link" icon. Use ONLY for \`padding\` and \`margin\`.
-- 'SizeInput': A text input with theme autocomplete. Use for \`width\`, \`height\`, \`font-size\`, \`gap\`.
-- 'ColorPicker': A color picker with theme swatches. Use for ANY solid color property.
-- 'GradientEditor': A specialized UI for creating gradients. Use for \`background-image\` with gradients.
-- 'Slider': A slider for a numeric range. Use for properties like \`opacity\`, \`blur\`, \`brightness\`.
-- 'ShadowEditor': A composite control for \`box-shadow\` and \`drop-shadow\`.
-- 'TransformEditor': A composite control for \`rotate\`, \`scale\`, \`skew\`, \`translate\`.
-- 'Toggle': An on/off switch. Use for single, boolean-like classes (e.g., 'italic', 'underline').
----
-
-Next, you MUST generate a JSON object that strictly conforms to this **Data Dictionary** (UPDATED TO SUPPORT MULTIPLE STRATEGIES):
+You are a deterministic, hyper-prescriptive code-to-schema transpiler. Your sole task is to analyze the MDX source code for Tailwind CSS documentation, specifically the JavaScript logic that generates the \`<ApiTable>\` component's \`rows\` prop, and convert it into a highly structured JSON object. You must follow these rules without deviation or interpretation.
 
 ---
-**Data Dictionary: Your Schema and Definitions**
+### **Data Source Primer**
+
+Before you begin, understand that you are generating a schema that will be used in conjunction with a static file named \`suggestions.json\`. This file contains the default value scales that Tailwind CSS provides. Your schema will *reference* these scales by name.
+
+**Known Suggestion Sources in \`suggestions.json\`:**
+- \`spacing\`: The default numeric spacing scale (0, 0.5, 1, ..., 96).
+- \`fractions\`: Common fractional values (1/2, 1/3, 2/3, etc.).
+- \`zIndex\`: Z-index values (0, 10, 20, ..., auto).
+- \`order\`: Flex order values (1, 2, 3, ..., first, last, none).
+- \`gridColumnSpan\`: Grid column span values (1, 2, 3, ..., full).
+- \`gridColumnStart\`: Grid column start positions (1, 2, 3, ..., auto).
+- \`gridColumnEnd\`: Grid column end positions (1, 2, 3, ..., auto).
+- \`gridRowSpan\`: Grid row span values (1, 2, 3, ..., full).
+- \`gridRowStart\`: Grid row start positions (1, 2, 3, ..., auto).
+- \`gridRowEnd\`: Grid row end positions (1, 2, 3, ..., auto).
+- \`lineClamp\`: Line clamp values (1, 2, 3, ..., none).
+- \`columns\`: Column count values (1, 2, 3, ..., auto, 3xs, 2xs, xs, sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl, 6xl, 7xl).
+- \`scale\`: Scale values (0, 50, 75, 90, 95, 100, 105, 110, 125, 150).
+- \`rotate\`: Rotation angles (0, 1, 2, 3, 6, 12, 45, 90, 180).
+- \`skew\`: Skew angles (0, 1, 2, 3, 6, 12).
+- \`transitionDelay\`: Transition delay values (0, 75, 100, 150, 200, 300, 500, 700, 1000).
+- \`transitionDuration\`: Transition duration values (0, 75, 100, 150, 200, 300, 500, 700, 1000, initial).
+- \`brightness\`: Brightness filter values (0, 50, 75, 90, 95, 100, 105, 110, 125, 150, 200).
+- \`contrast\`: Contrast filter values (0, 50, 75, 100, 125, 150, 200).
+- \`grayscale\`: Grayscale filter values (0, 25, 50, 75, 100).
+- \`hueRotate\`: Hue rotation filter values (0, 15, 30, 60, 90, 180).
+- \`invert\`: Invert filter values (0, 25, 50, 75, 100).
+- \`saturate\`: Saturation filter values (0, 50, 100, 150, 200).
+- \`sepia\`: Sepia filter values (0, 50, 100).
+- \`opacity\`: Opacity values (0, 5, 10, ..., 100).
+- \`ringWidth\`: Ring width values (0, 1, 2, 4, 8).
+- \`ringOffsetWidth\`: Ring offset width values (0, 1, 2, 4, 8).
+- \`outlineWidth\`: Outline width values (0, 1, 2, 4, 8).
+- \`outlineOffset\`: Outline offset values (0, 1, 2, 4, 8).
+- \`textUnderlineOffset\`: Text underline offset values (0, 1, 2, 4, 8, auto).
+- \`textDecorationThickness\`: Text decoration thickness values (0, 1, 2, 4, 8, auto, from-font).
+- \`colors\`: The entire default Tailwind color palette.
+
+
+---
+### **UI Control Selection Rules**
+
+You MUST select a \`control.type\` based on the following hierarchy:
+
+1.  **\`ColorPicker\`**: Use ONLY for utilities whose primary purpose is to apply a solid color from the theme (i.e., those that map over the \`colors\` object).
+2.  **\`ComboBoxWithSlider\`**: This is the **default and most important** control. Use it for ANY utility that combines a set of suggested values (from a scale) with an option for arbitrary user input. This applies to almost all size, position, and numeric utilities like \`width\`, \`height\`, \`blur\`, \`rotate\`, etc.
+3.  **\`Select\`**: Use ONLY for utilities that have a small, finite list of keyword options and **NO** numeric scale or arbitrary value support. Example: \`text-align\`.
+4.  **\`Toggle\`**: Use ONLY for utilities with a single on/off class. Example: \`italic\`.
+5.  **Specialized Controls**: Use \`BoxModelEditor\`, \`ShadowEditor\`, \`GradientEditor\` for their specific, designated utilities.
+    'BoxModelEditor': Use ONLY for \`padding\` and \`margin\`.
+    'ShadowEditor': Use for \`box-shadow\` and \`drop-shadow\`.
+    'GradientEditor': Use for \`background-image\` when it involves gradients.
+6. **\`SegmentedControl\`**: Use ONLY for utilities with 2-5 iconic, mutually exclusive options (e.g., \`text-align\`, \`place-items\`).
+7. **\`Toggle\`**: Use ONLY for single, boolean-like classes (e.g., \`italic\`, \`underline\`).
+8. **\`Slider\`**: Use ONLY for utilities that map over a numeric scale and do NOT support arbitrary values (e.g., \`opacity\`, \`blur\`).
+
+---
+### **The Definitive Schema and Parsing Rulebook**
+
+You MUST generate a JSON object where each key is the utility's camelCase name. Each utility object MUST conform to this schema:
+
 
 *   **label**: (string) The human-friendly name for the UI section (e.g., "Border Color").
 *   **description**: (string) The concise one-sentence explanation from the top of the doc file.
 *   **docUrl**: (string) The full URL to the documentation page (e.g., "https://tailwindcss.com/docs/border-color").
-*   **group**: (string) The accordion group this belongs to (e.g., "Borders", "Spacing", "Layout").
-*   **control**: (object) Describes the UI.
-        *   type: (string) The name of the UI control to use (e.g., 'ColorPicker', 'Select', 'SegmentedControl').
-*   **strategies**: (array) CRITICAL. An ordered list of strategy objects. A utility may expose one or multiple strategies simultaneously (for example a fixed list AND arbitrary values). Each strategy object has a type plus fields required by that type. Supported strategy types:
-    *   list: Use when there is a finite, explicit set of discrete utility classes shown in the docs. REQUIRED FIELD: classes.
-    *   generative: Use when the docs clearly show programmatic construction from a theme dataset (e.g., \`Object.entries(colors)\`). Look for patterns like \`...Object.entries(colors).map(([name, value]) => [\`bg-\${name}\`, ...])\` in the ApiTable rows. REQUIRED FIELD: generative.template and generative.dataset.
-    *   arbitrary: Use when the docs show arbitrary value placeholders via a row ending in \`-[]\` or \`-()\` (e.g., \`aspect-[]\`, \`w-[]\`, \`bg-[...]\`). REQUIRED FIELD: arbitrary.template.        Strategy Object Shapes:
-        *   For type list:
-                { "type": "list", "classes": [ { "class": "content-center", "label": "Center" }, ... ] }
-        *   For type generative:
-                { "type": "generative", "generative": { "template": "bg-{value}", "dataset": "colors" } }
-        *   For type arbitrary:
-                { "type": "arbitrary", "arbitrary": { "template": "aspect-{value}" } }
+*   **group**: (string) The accordion group this belongs to. You MUST use one of these EXACT group names:
+    - "Layout" (aspect-ratio, columns, break-after, break-before, break-inside, box-decoration-break, box-sizing, display, float, clear, isolation, object-fit, object-position, overflow, overscroll-behavior, position, top/right/bottom/left, visibility, z-index)
+    - "Flexbox & Grid" (flex-basis, flex-direction, flex-wrap, flex, flex-grow, flex-shrink, order, grid-template-columns, grid-column, grid-template-rows, grid-row, grid-auto-flow, grid-auto-columns, grid-auto-rows, gap, justify-content, justify-items, justify-self, align-content, align-items, align-self, place-content, place-items, place-self)
+    - "Spacing" (padding, margin)
+    - "Sizing" (width, min-width, max-width, height, min-height, max-height)
+    - "Typography" (font-family, font-size, font-smoothing, font-style, font-weight, font-stretch, font-variant-numeric, letter-spacing, line-clamp, line-height, list-style-image, list-style-position, list-style-type, text-align, color, text-decoration-line, text-decoration-color, text-decoration-style, text-decoration-thickness, text-underline-offset, text-transform, text-overflow, text-wrap, text-indent, vertical-align, white-space, word-break, overflow-wrap, hyphens, content)
+    - "Backgrounds" (background-attachment, background-clip, background-color, background-image, background-origin, background-position, background-repeat, background-size)
+    - "Borders" (border-radius, border-width, border-color, border-style, outline-width, outline-color, outline-style, outline-offset)
+    - "Effects" (box-shadow, text-shadow, opacity, mix-blend-mode, background-blend-mode, mask-clip, mask-composite, mask-image, mask-mode, mask-origin, mask-position, mask-repeat, mask-size, mask-type)
+    - "Filters" (filter, blur, brightness, contrast, drop-shadow, grayscale, hue-rotate, invert, saturate, sepia, backdrop-filter)
+    - "Tables" (border-collapse, border-spacing, table-layout, caption-side)
+    - "Transitions & Animation" (transition-property, transition-behavior, transition-duration, transition-timing-function, transition-delay, animation)
+    - "Transforms" (backface-visibility, perspective, perspective-origin, rotate, scale, skew, transform, transform-origin, transform-style, translate)
+    - "Interactivity" (accent-color, appearance, caret-color, color-scheme, cursor, field-sizing, pointer-events, resize, scroll-behavior, scroll-margin, scroll-padding, scroll-snap-align, scroll-snap-stop, scroll-snap-type, touch-action, user-select, will-change)
+    - "SVG" (fill, stroke, stroke-width)
+    - "Accessibility" (forced-color-adjust) 
+    
 
-        NOTES:
-        * If both a finite list and arbitrary form exist, include BOTH a list and an arbitrary strategy objects (in that order).
-        * If arbitrary values ALSO share the same theme dataset pattern (rare), still model them as two strategies: one generative, one arbitrary.
-        * The placeholder in any template MUST be exactly "{value}".
-        * Do NOT merge fundamentally different patterns into one strategy.
-*   **structuralVariants**: (array, optional) Use this ONLY if the utility has different forms for different sides or axes (e.g., border-t, border-x). Each object must have:
-        *   label: (string) A human-friendly name for the UI (e.g., "Top Only", "Horizontal Axis").
-        *   template: (string) The class template for this specific variant (e.g., "border-t-{value}").
-*   **supportsArbitrary**: (boolean, optional) Set to true if ANY ApiTable row ends with \`-[]\` or \`-()\` (i.e., an arbitrary strategy is present). When you emit an arbitrary strategy this should be true.
+*   **\`notes\`**: (string) Concise, helpful tips and notes extracted from the documentation prose.
+*   **\`control\`**: (object) A UI hint containing only one key:
+    *  **\`type\`**: (string) The name of the UI control selected from the rules above.
+*   **\`variants\`**: (array) This array represents the **prefixes** of a utility, derived from a \`.flatMap(...)\`. If there's no \`flatMap\`, or no multiple prefixes/variants, you will create a single variant. Each object in this array MUST have:
+    *   **\`label\`**: (string) The human-friendly name (e.g., "All Sides", "Top Only").
+    *   **\`prefix\`**: (string) The class prefix (e.g., \`m-\`, \`mt-\`).
+    *   **\`template\`**: (string) The class template for this specific variant (e.g., "border-t-{value}").
+    *   **\`supportsNegative\`**: (boolean) Set to \`true\` if the MDX code shows a negative version of the prefix.
+*   **\`valueSets\`**: (array) This array describes the valid **suffixes** for the class. Each object in the array defines a category of valid values and MUST have a \`type\`.
+
+    *   **\`{ "type": "list", "options": [...] }\`**: For a finite list of keyword options (e.g., \`auto\`, \`full\`). The \`options\` array contains objects like \`{ "class": "auto", "label": "auto" }, { "class": "content-center", "label": "Center" }\`.
+
+    *   **\`{ "type": "suggestions", "source": "...", "examples": "[...]" }\`**: This is for values that come from a default scale. The \`source\` string **MUST** be one of the known keys from \`suggestions.json\` (e.g., \`"spacing"\`, \`"fractions"\`, \`"rotate"\`). You will determine the correct source by analyzing the MDX code. For example, if you see \`calc(var(--spacing) * <number>)\` or a list of spacing numbers, the source is \`"spacing"\`. If you see a list of rotation degrees, the source is \`"rotate"\`. Add the examples mentioned in the MDX doc file in "examples" array. 
+
+    *   **\`{ "type": "arbitrary", "typeHint": "...", "placeholder":"..." }\`**: For arbitrary \`-[<value>]\` or \`-(<custom-property>)\` values (e.g., \`aspect-[]\`, \`w-[]\`, \`bg-[...]\`). The \`typeHint\` should be inferred from the MDX file context. The placeholder should be a concise, helpful example/examples of valid arbitrary value/s, derived from the documentation's examples or context (e.g., "1.5rem", "16/9", "15deg").
 
 ---
-**Example 1: Utility with a single list strategy**
-*FILE CONTENT:* (Content of align-content.mdx)
-*YOUR OUTPUT:*
-\`\`\`json
+Example 1: Utility with a single list strategy
+FILE CONTENT: (Content of align-content.mdx)
+YOUR OUTPUT:
+code
+JSON
 {
-    "alignContent": {
-        "label": "Align Content", "description": "...", "docUrl": "...", "group": "Flexbox & Grid",
-        "control": { "type": "SegmentedControl" },
-        "strategies": [
-            {
-                "type": "list",
-                "classes": [
-                    { "class": "content-center", "label": "Center" },
-                    { "class": "content-start", "label": "Start" }
-                ]
-            }
-        ]
-    }
-}
-\`\`\`
-
-**Example 2: Utility with a single generative strategy (dataset-driven)**
-*FILE CONTENT:* (Content of background-color.mdx, showing "...Object.entries(colors).map(([name, value]) => [ \`bg-\${name}\`, ... ])")
-*YOUR OUTPUT:*
-\`\`\`json
-{
-  "backgroundColor": {
-    "label": "Background Color", "description": "...", "docUrl": "...", "group": "Backgrounds",
-    "control": { "type": "ColorPicker" },
-    "strategies": [
+  "alignContent": {
+    "label": "Align Content",
+    "description": "Utilities for controlling how rows are positioned in multi-row flex and grid containers.",
+    "docUrl": "https://tailwindcss.com/docs/align-content",
+    "group": "Flexbox & Grid",
+    "notes": "This utility controls the spacing between and around content items along the cross-axis of a container. It only has an effect on multi-row or multi-column flex/grid containers. For single-line alignment, use 'Align Items' instead.",
+    "control": {
+      "type": "Select"
+    },
+    "variants": [
       {
-        "type": "generative",
-        "generative": { "template": "bg-{value}", "dataset": "colors" }
+        "label": "Content",
+        "prefix": "content-",
+        "template": "{value}",
+        "supportsNegative": false
+      }
+    ],
+    "valueSets": [
+      {
+        "type": "list",
+        "options": [
+          { "class": "normal", "label": "Normal" },
+          { "class": "center", "label": "Center" },
+          { "class": "start", "label": "Start" },
+          { "class": "end", "label": "End" },
+          { "class": "between", "label": "Between" },
+          { "class": "around", "label": "Around" },
+          { "class": "evenly", "label": "Evenly" },
+          { "class": "baseline", "label": "Baseline" },
+          { "class": "stretch", "label": "Stretch" }
+        ]
       }
     ]
   }
 }
-\`\`\`**Example 3: Utility with BOTH list and arbitrary strategies**
-*INPUT:* (Content of aspect-ratio.mdx, which contains \`<ApiTable rows={[ ["aspect-square", ...], ["aspect-video", ...], ["aspect-[]", ...] ]} />\`)
-*OUTPUT:*
-\`\`\`json
+
+Example 2: Utility with a color theme strategy
+FILE CONTENT: (Content of background-color.mdx, showing "...Object.entries(colors).map(([name, value]) => ...
+YOUR OUTPUT:
+code
+JSON
 {
-    "aspectRatio": {
-        "label": "Aspect Ratio",
-        "description": "Utilities for controlling the aspect ratio of an element.",
-        "docUrl": "https://tailwindcss.com/docs/aspect-ratio",
-        "group": "Layout",
-        "control": { "type": "Select" },
-        "strategies": [
-            {
-                "type": "list",
-                "classes": [
-                    { "class": "aspect-square", "label": "Square" },
-                    { "class": "aspect-video", "label": "Video" }
-                ]
-            },
-            {
-                "type": "arbitrary",
-                "arbitrary": { "template": "aspect-{value}" }
-            }
-        ],
-        "supportsArbitrary": true
-    }
+  "backgroundColor": {
+    "label": "Background Color",
+    "description": "Utilities for controlling an element's background color.",
+    "docUrl": "https://tailwindcss.com/docs/background-color",
+    "group": "Backgrounds",
+    "notes": "Background color utilities are generated from your theme's \`colors\` object. You can add an opacity modifier to any background color by adding a forward slash followed by a percentage value (0-100). For example, \`bg-red-500/50\` applies a 50% opacity to the red-500 color.",
+    "control": {
+      "type": "ColorPicker",
+    },
+    "variants": [
+      {
+        "label": "Default",
+        "prefix": "bg-",
+        "template": "bg-{value}",
+        "supportsNegative": false
+      }
+    ],
+    "valueSets": [
+      {
+        "type": "list",
+        "options": [
+          { "class": "inherit", "label": "Inherit" },
+          { "class": "current", "label": "Current" },
+          { "class": "transparent", "label": "Transparent" }
+        ]
+      },
+      {
+        "type": "suggestions",
+        "source": "colors",
+        "examples": ["red-500", "blue-500", "slate-800/50"]
+      },
+      {
+        "type": "arbitrary",
+        "typeHint": "color",
+        "placeholder": "#bada55"
+      }
+    ]
+  }
 }
-\`\`\`
+
+Example 3: Utility with list, suggestions, and arbitrary strategies
+INPUT: (Content of aspect-ratio.mdx, which contains <ApiTable rows={[ ["aspect-square", ...], ["aspect-video", ...], ["aspect-auto", ...], ["aspect-[<value>]", ...] ]} />)
+OUTPUT:
+code
+JSON
+{
+  "aspectRatio": {
+    "label": "Aspect Ratio",
+    "description": "Utilities for controlling the aspect ratio of an element.",
+    "docUrl": "https://tailwindcss.com/docs/aspect-ratio",
+    "group": "Layout",
+    "notes": "Sets the preferred aspect ratio for an element. This is useful for sizing videos or images. \n- Use keywords like \`square\` (1/1) and \`video\` (16/9). \n- For arbitrary ratios, use the format \`width/height\` inside the brackets, for example \`[4/3]\`.",
+    "control": {
+      "type": "ComboBoxWithSlider",
+    },
+    "variants": [
+      {
+        "label": "Default",
+        "prefix": "aspect-",
+        "template": "aspect-{value}",
+        "supportsNegative": false
+      }
+    ],
+    "valueSets": [
+      {
+        "type": "list",
+        "options": [
+          { "class": "auto", "label": "Auto" },
+          { "class": "square", "label": "Square (1/1)" },
+          { "class": "video", "label": "Video (16/9)" }
+        ]
+      },
+       {
+        "type": "suggestions",
+        "source": "ratios",
+        "examples": ["3/2"]
+      },
+      {
+        "type": "arbitrary",
+        "typeHint": "ratio",
+        "placeholder": "3/2"
+      }
+    ]
+  }
+}
+
+Example 4: Utility with multiple variants and a numeric suggestion scale
+INPUT: (Content of rotate.mdx, which contains multiple .flatMap calls for 2D and 3D rotations)
+OUTPUT:
+code
+JSON
+{
+  "rotate": {
+    "label": "Rotate",
+    "description": "Utilities for rotating elements.",
+    "docUrl": "https://tailwindcss.com/docs/rotate",
+    "group": "Transforms",
+    "notes": "Rotates an element in 2D or 3D space. Key points:\n- Default unit is degrees (\`deg\`).\n- Use negative values for counter-clockwise rotation (e.g., \`-rotate-45\`).\n- Use the X, Y, or Z variants (\`rotate-x-\`, \`rotate-y-\`) to rotate around a specific axis in 3D space.\n- Arbitrary values can use other units like \`rad\`, \`grad\`, or \`turn\`.",
+    "control": {
+      "type": "ComboBoxWithSlider",
+    },
+    "variants": [
+      {
+        "label": "Rotate (2D)",
+        "prefix": "rotate-",
+        "template": "rotate-{value}",
+        "supportsNegative": true
+      },
+      {
+        "label": "Rotate X",
+        "prefix": "rotate-x-",
+        "template": "rotate-x-{value}",
+        "supportsNegative": true
+      },
+      {
+        "label": "Rotate Y",
+        "prefix": "rotate-y-",
+        "template": "rotate-y-{value}",
+        "supportsNegative": true
+      },
+      {
+        "label": "Rotate Z",
+        "prefix": "rotate-z-",
+        "template": "rotate-z-{value}",
+        "supportsNegative": true
+      }
+    ],
+    "valueSets": [
+      {
+        "type": "list",
+        "options": [
+          { "class": "none", "label": "None" }
+        ]
+      },
+      {
+        "type": "suggestions",
+        "source": "rotate",
+        "examples": ["45", "90", "-90", "210"]
+      },
+      {
+        "type": "arbitrary",
+        "typeHint": "angle",
+        "placeholder": "15deg"
+      }
+    ]
+  }
+}
 
 ---
 **Your Task:** Analyze the following file content. Be precise. Follow the data dictionary and examples perfectly. Generate ONLY the JSON object.
@@ -309,7 +492,7 @@ async function main() {
 
                     // Save raw response for debugging in a new folder to avoid overwriting previous iteration
                     try {
-                        const debugDir = path.resolve(__dirname, '..', 'tmp', 'inspector-gen-debug-5');
+                        const debugDir = path.resolve(__dirname, '..', 'tmp', 'inspector-gen-debug-6');
                         if (!fs.existsSync(debugDir)) fs.mkdirSync(debugDir, { recursive: true });
                         fs.writeFileSync(path.join(debugDir, `file-${idx + 1}-${file.name}-raw-attempt-${attempt}.txt`), String(response), 'utf8');
                     } catch (dbgErr) {
@@ -340,45 +523,51 @@ async function main() {
                     if (!category || !definition) {
                         throw new Error('Parsed JSON missing required category key or definition');
                     }
-                    if (!definition.label || !definition.description || !definition.group || !definition.control) {
-                        throw new Error('Parsed JSON is missing one or more root fields (label, description, group, control)');
+                    if (!definition.label || !definition.description || !definition.group || !definition.control || !definition.variants || !definition.valueSets) {
+                        throw new Error('Parsed JSON is missing one or more root fields (label, description, group, control, variants, valueSets)');
                     }
                     
-                    // Validate strategies array
-                    if (!Array.isArray(definition.strategies) || definition.strategies.length === 0) {
-                        throw new Error('Parsed JSON is missing required strategies array or it is empty');
+                    // Validate variants array
+                    if (!Array.isArray(definition.variants) || definition.variants.length === 0) {
+                        throw new Error('Parsed JSON is missing required variants array or it is empty');
                     }
                     
-                    // Validate each strategy in the array
-                    for (const strategy of definition.strategies) {
-                        if (!strategy.type) {
-                            throw new Error('Strategy object missing required type field');
+          // Validate each variant in the array
+          for (const variant of definition.variants) {
+            // prefix may be an empty string for utilities where the class is the value (e.g. "block", "flex").
+            // require that prefix is present and is a string (can be empty), template is a string, label is non-empty,
+            // and supportsNegative is a boolean.
+            if (!variant.label || typeof variant.prefix !== 'string' || typeof variant.template !== 'string' || typeof variant.supportsNegative !== 'boolean') {
+              throw new Error('Variant object missing required fields (label, prefix, template, supportsNegative)');
+            }
+          }
+                    
+                    // Validate valueSets array
+                    if (!Array.isArray(definition.valueSets) || definition.valueSets.length === 0) {
+                        throw new Error('Parsed JSON is missing required valueSets array or it is empty');
+                    }
+                    
+                    // Validate each valueSet in the array
+                    for (const valueSet of definition.valueSets) {
+                        if (!valueSet.type) {
+                            throw new Error('ValueSet object missing required type field');
                         }
                         
-                        if (strategy.type === 'list') {
-                            if (!strategy.classes || !Array.isArray(strategy.classes)) {
-                                throw new Error('List strategy missing required classes array');
+                        if (valueSet.type === 'list') {
+                            if (!valueSet.options || !Array.isArray(valueSet.options)) {
+                                throw new Error('List valueSet missing required options array');
                             }
-                        } else if (strategy.type === 'generative') {
-                            if (!strategy.generative || !strategy.generative.template || !strategy.generative.dataset) {
-                                throw new Error('Generative strategy missing required generative.template or generative.dataset');
+                        } else if (valueSet.type === 'suggestions') {
+                            if (!valueSet.source || !valueSet.examples || !Array.isArray(valueSet.examples)) {
+                                throw new Error('Suggestions valueSet missing required source or examples array');
                             }
-                        } else if (strategy.type === 'arbitrary') {
-                            if (!strategy.arbitrary || !strategy.arbitrary.template) {
-                                throw new Error('Arbitrary strategy missing required arbitrary.template');
+                        } else if (valueSet.type === 'arbitrary') {
+                            if (!valueSet.typeHint || !valueSet.placeholder) {
+                                throw new Error('Arbitrary valueSet missing required typeHint or placeholder');
                             }
                         } else {
-                            throw new Error(`Unknown strategy type: ${strategy.type}`);
+                            throw new Error(`Unknown valueSet type: ${valueSet.type}`);
                         }
-                    }
-                    
-                    // Validate supportsArbitrary flag
-                    const hasArbitraryStrategy = definition.strategies.some(s => s.type === 'arbitrary');
-                    if (hasArbitraryStrategy && !definition.supportsArbitrary) {
-                        throw new Error('Definition has arbitrary strategy but supportsArbitrary is not set to true');
-                    }
-                    if (!hasArbitraryStrategy && definition.supportsArbitrary) {
-                        throw new Error('Definition has supportsArbitrary=true but no arbitrary strategy found');
                     }
 
                     // If validation passes, add it to the definition
@@ -388,7 +577,7 @@ async function main() {
 
                     // Write a per-file processed JSON snapshot to the new debug folder for quick verification
                     try {
-                        const processedDir = path.resolve(__dirname, '..', 'tmp', 'inspector-gen-debug-5');
+                        const processedDir = path.resolve(__dirname, '..', 'tmp', 'inspector-gen-debug-6');
                         if (!fs.existsSync(processedDir)) fs.mkdirSync(processedDir, { recursive: true });
                         fs.writeFileSync(path.join(processedDir, `file-${idx + 1}-${file.name}-processed.json`), JSON.stringify({ [category]: definition }, null, 2), 'utf8');
                     } catch (procErr) {
@@ -402,7 +591,7 @@ async function main() {
                     } catch (writeErr) {
                         console.error(`  Error writing snapshot to ${outputPath}:`, writeErr.message);
                         try {
-                            const errDir = path.resolve(__dirname, '..', 'tmp', 'inspector-gen-debug-5');
+                            const errDir = path.resolve(__dirname, '..', 'tmp', 'inspector-gen-debug-6');
                             if (!fs.existsSync(errDir)) fs.mkdirSync(errDir, { recursive: true });
                             fs.writeFileSync(path.join(errDir, `file-${idx + 1}-${file.name}-write-error.txt`), String(writeErr.stack || writeErr.message), 'utf8');
                         } catch (errWrite2) {
@@ -415,7 +604,7 @@ async function main() {
                     if (attempt >= maxAttempts) {
                         // Write an error file for later triage
                         try {
-                            const errDir = path.resolve(__dirname, '..', 'tmp', 'inspector-gen-debug-5');
+                            const errDir = path.resolve(__dirname, '..', 'tmp', 'inspector-gen-debug-6');
                             fs.writeFileSync(path.join(errDir, `file-${idx + 1}-${file.name}-error.txt`), String(fileErr.stack || fileErr.message), 'utf8');
                         } catch (errWrite) {
                             console.warn('Failed to write error file:', errWrite.message);

@@ -1,108 +1,90 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { useComponentStore } from '@/store/componentStore';
-import type { SerializableElement } from '@/store/componentStore';
 
 interface TextInputProps {
-  definition: {
-    category: string;
-    label: string;
-    description: string;
-    classes?: Array<{ class: string; value: string }>;
-  };
-  selectedNode: SerializableElement;
-  modifierPrefix?: string;
-  isArbitrary?: boolean;
+  options: Array<{ value: string; label: string }>;
+  value: string | null;
+  arbitraryValue: string | null;
+  onChange: (value: string | null) => void;
+  onArbitraryChange: (arbitraryValue: string | null) => void;
+  supportsArbitrary: boolean;
+  placeholder?: string;
 }
 
 /**
- * TextInput component for flexible text value input with automatic Tailwind class generation.
- * 
- * This component provides a straightforward text input interface for text-based CSS properties
- * that require custom values rather than predefined options. It automatically converts user
- * input into appropriate Tailwind utility classes while supporting various text formats
- * for properties like font families, content values, custom spacing, and other text-based
- * CSS attributes.
- * 
+ * TextInput component for flexible text value input with preset and arbitrary value support.
+ *
+ * This component provides a straightforward text input interface for text-based CSS properties.
+ * It supports both preset options and arbitrary values.
+ *
  * Key features:
- * - Flexible text input supporting custom values and complex strings
- * - Automatic Tailwind class generation based on category and input value
- * - Real-time parsing of existing utility classes to extract current values
- * - Support for complex class names with multiple dash-separated segments
- * - Intelligent value extraction from utility state with fallback handling
- * - Trimmed input processing to handle whitespace gracefully
- * - Placeholder guidance for user input expectations
- * 
- * The component handles the complexity of mapping between user-friendly text inputs
- * and Tailwind's naming conventions, making it easy to work with text-based properties
- * in the visual editor while maintaining consistency with the design system.
- * 
+ * - Text input with preset and arbitrary value support
+ * - Automatic synchronization with current values
+ * - Placeholder guidance for user input
+ *
  * @component
  * @param {TextInputProps} props - Component props
- * @param {Object} props.definition - Definition object containing control metadata
- * @param {string} props.definition.category - The text property category (e.g., 'fontFamily', 'content', 'spacing')
- * @param {string} props.definition.label - Display label for the text input control
- * @param {string} props.definition.description - Descriptive text explaining the text control's purpose
- * @param {Array<{class: string, value: string}>} [props.definition.classes] - Optional array of suggested text classes
- * @param {SerializableElement} props.selectedNode - The currently selected component node being edited
- * @returns {JSX.Element} The rendered TextInput component with intelligent text input handling
+ * @param {Array<{value: string, label: string}>} props.options - Array of preset options
+ * @param {string | null} props.value - Currently selected preset value
+ * @param {string | null} props.arbitraryValue - Current arbitrary value
+ * @param {(value: string | null) => void} props.onChange - Callback for preset selection
+ * @param {(arbitraryValue: string | null) => void} props.onArbitraryChange - Callback for arbitrary value
+ * @param {boolean} props.supportsArbitrary - Whether arbitrary values are supported
+ * @param {string} props.placeholder - Placeholder text for input
+ * @returns {JSX.Element} The rendered TextInput component
  */
 export const TextInput: React.FC<TextInputProps> = ({
-  definition,
-  selectedNode,
-  modifierPrefix = '',
-  isArbitrary = false,
+  options,
+  value,
+  arbitraryValue,
+  onChange,
+  onArbitraryChange,
+  supportsArbitrary,
+  placeholder = "Enter value..."
 }) => {
-  const { updateUtilityClass } = useComponentStore();
+  const [inputValue, setInputValue] = useState<string>('');
 
-  // Extract current value from utility state
-  const currentValue = selectedNode.utilityClassState?.[definition.category];
-  let displayValue = '';
-
-  if (currentValue) {
-    if (isArbitrary) {
-      // For arbitrary values, extract the value from [brackets]
-      const match = currentValue.match(/\[([^\]]+)\]$/);
-      displayValue = match ? match[1] : '';
+  // Parse current value
+  useEffect(() => {
+    if (arbitraryValue !== null) {
+      setInputValue(arbitraryValue);
+    } else if (value) {
+      // Extract text part from class like 'font-family-arial' -> 'arial'
+      const parts = value.split('-');
+      if (parts.length > 1) {
+        setInputValue(parts.slice(1).join('-'));
+      }
     } else {
-      // For regular values, extract after the first dash
-      displayValue = currentValue.split('-').slice(1).join('-');
+      setInputValue('');
     }
-  }
+  }, [value, arbitraryValue]);
+
+  const handleInputChange = (newValue: string) => {
+    setInputValue(newValue);
+
+    if (supportsArbitrary) {
+      onArbitraryChange(newValue.trim() || null);
+    } else {
+      // For non-arbitrary, try to find matching preset or set custom
+      const trimmed = newValue.trim();
+      const preset = options.find(opt => opt.value.includes(trimmed));
+      if (preset) {
+        onChange(preset.value);
+      } else if (trimmed) {
+        // Create a class if no preset matches
+        onChange(trimmed);
+      } else {
+        onChange(null);
+      }
+    }
+  };
 
   return (
     <Input
       type="text"
-      placeholder={isArbitrary ? "Enter custom value..." : "Enter value..."}
-      value={displayValue}
-      onChange={(e) => {
-        /**
-         * Handles text input changes and converts them to Tailwind utility classes.
-         * 
-         * This function processes user input, trims whitespace, and generates the
-         * appropriate Tailwind class name. Empty values result in clearing the
-         * utility class (setting it to null) for the text property.
-         * 
-         * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event
-         */
-        const value = e.target.value.trim();
-        let classValue = null;
-
-        if (value) {
-          if (isArbitrary) {
-            // For arbitrary values, wrap in square brackets
-            classValue = `${definition.category}-[${value}]`;
-          } else {
-            // For regular values, use dash separator
-            classValue = `${definition.category}-${value}`;
-          }
-        }
-        
-        // Apply modifier prefix if present
-        const finalClass = classValue && modifierPrefix ? `${modifierPrefix}${classValue}` : classValue;
-        
-        updateUtilityClass(selectedNode.id, definition.category, finalClass);
-      }}
+      placeholder={placeholder}
+      value={inputValue}
+      onChange={(e) => handleInputChange(e.target.value)}
       className="text-xs"
     />
   );

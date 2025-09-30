@@ -1,12 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { Input } from '@/components/ui/input';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useComponentStore } from '@/store/componentStore';
+import { Input } from '@/components/ui/input';
+import { useControlData } from '@/hooks/useControlData';
 import type { SerializableElement } from '@/store/componentStore';
-import datasets from '../../../lib/definitions/datasets.json';
-
-type DatasetOption = { class: string; value: string; label?: string };
-type DatasetsType = Record<string, DatasetOption[]>;
 
 interface GradientEditorProps {
   definition: {
@@ -61,92 +57,49 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({
   selectedNode,
   modifierPrefix = '',
 }) => {
-  const { updateUtilityClass } = useComponentStore();
+  const { options, currentValue, setValue, setArbitraryValue } = useControlData(
+    definition,
+    selectedNode,
+    modifierPrefix
+  );
   const [customValue, setCustomValue] = useState('');
 
-  // Extract current gradient from utility state
-  const currentValue = selectedNode.utilityClassState?.[definition.category] || '';
-
-  // Resolve options from strategies
-  const resolvedClasses = useMemo(() => {
-    const allClasses: DatasetOption[] = [];
-
-    for (const strategy of definition.strategies) {
-      if (strategy.type === 'list' && strategy.classes) {
-        allClasses.push(...strategy.classes);
-      } else if (strategy.type === 'generative' && strategy.generative) {
-        const dataset = (datasets as DatasetsType)[strategy.generative.dataset];
-        if (dataset) {
-          const generatedClasses = dataset.map((item: DatasetOption) => {
-            // Apply the template to create the final class name
-            const finalClassName = strategy.generative!.template.replace('{value}', item.class);
-            
-            return {
-              class: finalClassName,
-              value: item.value,
-              label: item.label,
-            };
-          });
-          allClasses.push(...generatedClasses);
-        }
-      }
-      // Skip arbitrary strategies for gradient options
-    }
-
-    return allClasses;
-  }, [definition.strategies]);
-
   /**
-   * Handles predefined gradient selection and updates the component's utility state.
-   * 
-   * This function applies a selected gradient class to the component, supporting
-   * modifier prefixes for responsive or state-based styling.
-   * 
-   * @param {string} gradientClass - The selected gradient class name
-   * @returns {void}
+   * Handles predefined gradient selection.
    */
   const handleGradientSelect = (gradientClass: string) => {
-    const finalClass = gradientClass ? modifierPrefix + gradientClass : null;
-    updateUtilityClass(selectedNode.id, definition.category, finalClass);
+    setValue(gradientClass);
   };
 
   /**
-   * Handles custom gradient input and applies arbitrary gradient value.
-   * 
-   * This function processes custom gradient CSS and creates an arbitrary Tailwind
-   * class for complex gradient definitions that aren't covered by predefined classes.
-   * 
-   * @returns {void}
+   * Handles custom gradient input.
    */
   const handleCustomGradient = () => {
     if (customValue.trim()) {
-      // Create arbitrary class for custom gradient
-      const arbitraryClass = `${definition.category}-[${customValue.trim()}]`;
-      const finalClass = modifierPrefix + arbitraryClass;
-      updateUtilityClass(selectedNode.id, definition.category, finalClass);
+      setArbitraryValue(customValue.trim());
       setCustomValue('');
     }
   };
 
   // Filter classes to show only gradient-related ones
-  const gradientClasses = resolvedClasses.filter((cls: DatasetOption) =>
-    cls.class.includes('linear') ||
-    cls.class.includes('radial') ||
-    cls.class.includes('conic') ||
-    cls.class === 'bg-none'
+  const gradientClasses = options.filter((option) =>
+    option.value.includes('linear') ||
+    option.value.includes('radial') ||
+    option.value.includes('conic') ||
+    option.value === 'bg-none'
   );  return (
     <div className="space-y-3">
       {/* Predefined Gradients */}
       <div className="grid grid-cols-2 gap-2">
         {gradientClasses.map((gradient) => (
           <Button
-            key={gradient.class}
-            variant={currentValue === gradient.class ? "default" : "outline"}
+            key={gradient.value}
+            variant={currentValue === gradient.value ? "default" : "outline"}
             size="sm"
-            onClick={() => handleGradientSelect(gradient.class)}
+            onClick={() => handleGradientSelect(gradient.value)}
             className="text-xs h-8"
           >
-            {gradient.label || gradient.class}
+            {gradient.label || gradient.value}
           </Button>
         ))}
       </div>

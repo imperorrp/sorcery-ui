@@ -1,14 +1,11 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { SegmentedControl } from '@/components/ui/segmented-control';
-import { useComponentStore } from '@/store/componentStore';
+import { useControlData } from '@/hooks/useControlData';
 import type { SerializableElement } from '@/store/componentStore';
-import datasets from '../../../lib/definitions/datasets.json';
-
-type DatasetOption = { class: string; value: string; label?: string };
-type DatasetsType = Record<string, DatasetOption[]>;
 
 interface SmartSegmentedControlProps {
-  definition: {
+  // For backward compatibility (TabbedControl usage)
+  definition?: {
     category: string;
     label: string;
     description: string;
@@ -24,9 +21,13 @@ interface SmartSegmentedControlProps {
       };
     }>;
   };
-  selectedNode: SerializableElement;
-  options?: Array<{ value: string; label?: string }>;
+  selectedNode?: SerializableElement;
   modifierPrefix?: string;
+  
+  // For new architecture (ClassNameEditor usage)
+  options?: Array<{ value: string; label: string }>;
+  value?: string | null;
+  onChange?: (value: string | null) => void;
 }
 
 /**
@@ -63,67 +64,45 @@ interface SmartSegmentedControlProps {
 export const SmartSegmentedControl: React.FC<SmartSegmentedControlProps> = ({
   definition,
   selectedNode,
-  options,
+  options: externalOptions,
   modifierPrefix = '',
+  // New architecture props
+  options: resolvedOptions,
+  value,
+  onChange,
 }) => {
-  const { updateUtilityClass } = useComponentStore();
-
-  // Find current selection from utility state
-  const currentValue = selectedNode.utilityClassState?.[definition.category] || '';
-
-  // Resolve options from strategies
-  const resolvedOptions = useMemo(() => {
-    const allOptions: DatasetOption[] = [];
-
-    for (const strategy of definition.strategies) {
-      if (strategy.type === 'list' && strategy.classes) {
-        allOptions.push(...strategy.classes);
-      } else if (strategy.type === 'generative' && strategy.generative) {
-        const dataset = (datasets as DatasetsType)[strategy.generative.dataset];
-        if (dataset) {
-          const generatedOptions = dataset.map((item: DatasetOption) => {
-            // Apply the template to create the final class name
-            const finalClassName = strategy.generative!.template.replace('{value}', item.class);
-            
-            return {
-              class: finalClassName,
-              value: item.value,
-              label: item.label,
-            };
-          });
-          allOptions.push(...generatedOptions);
-        }
-      }
-      // Skip arbitrary strategies for segmented options
-    }
-
-    return allOptions;
-  }, [definition.strategies]);
-
-  /**
-   * Handles option selection changes and updates the component's utility state.
-   * 
-   * This function is called when the user selects a new option from the segmented control.
-   * It updates the component store with the selected value, or clears the utility class
-   * if an empty value is provided (allowing for "no selection" state).
-   * 
-   * @param {string} value - The selected option value, or empty string to clear selection
-   * @returns {void}
-   */
-  const handleValueChange = (value: string) => {
-    const finalClass = value && modifierPrefix ? `${modifierPrefix}${value}` : value || null;
-    updateUtilityClass(selectedNode.id, definition.category, finalClass);
-  };
-
-  // Use provided options or generate from resolved options
-  const controlOptions = options || resolvedOptions.map((cls: DatasetOption) => ({
-    value: cls.class,
-    label: cls.label || cls.class,
-  }));
+  // Always call hook (it handles undefined definition and selectedNode)
+  const hookData = useControlData(definition, selectedNode as SerializableElement, modifierPrefix);
+  
+  // Determine which mode we're in
+  const isNewArchitecture = !definition && resolvedOptions !== undefined;
+  
+  let controlOptions: Array<{ value: string; label: string }>;
+  let currentValue: string | null | undefined;
+  let handleValueChange: (value: string) => void;
+  
+  if (isNewArchitecture) {
+    // New architecture: use provided props
+    controlOptions = resolvedOptions || [];
+    currentValue = value;
+    handleValueChange = (val: string) => {
+      if (onChange) onChange(val || null);
+    };
+  } else if (definition) {
+    // Old architecture: use hook
+    controlOptions = externalOptions || hookData.options;
+    currentValue = hookData.currentValue;
+    handleValueChange = (val: string) => hookData.setValue(val || null);
+  } else {
+    // Fallback
+    controlOptions = [];
+    currentValue = null;
+    handleValueChange = () => {};
+  }
 
   return (
     <SegmentedControl
-      value={currentValue}
+      value={currentValue || undefined}
       onValueChange={handleValueChange}
       options={controlOptions}
       className="w-full"

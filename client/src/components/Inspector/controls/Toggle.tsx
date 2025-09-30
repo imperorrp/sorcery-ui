@@ -1,75 +1,47 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Check, X } from 'lucide-react';
-import { useComponentStore } from '@/store/componentStore';
-import type { SerializableElement } from '@/store/componentStore';
 
 interface ToggleProps {
-  definition: {
-    category: string;
-    label: string;
-    description: string;
-    classes: Array<{ class: string; value: string }>;
-  };
-  selectedNode: SerializableElement;
-  modifierPrefix?: string;
+  options: Array<{ value: string; label: string }>;
+  value: string | null;
+  onChange: (value: string | null) => void;
+  arbitraryValue?: string | null;
+  onArbitraryChange?: (arbitraryValue: string | null) => void;
+  supportsArbitrary?: boolean;
 }
 
 /**
  * Toggle component for boolean state control with visual feedback.
- * 
+ *
  * This component provides an elegant toggle button interface for enabling or disabling
- * boolean Tailwind utility classes. It offers clear visual feedback with check/X icons
- * and integrates seamlessly with the component store's utility state system for
- * properties like visibility, display states, and other binary CSS attributes.
- * 
+ * boolean Tailwind utility classes. It offers clear visual feedback with check/X icons.
+ *
  * Key features:
  * - Visual toggle button with check (active) and X (inactive) icons
- * - Automatic state detection from component utility state
- * - Single-click toggle functionality for quick state changes
- * - Consistent UI with shadcn/ui Button component and theme integration
- * - Support for multiple toggle classes with intelligent selection
- * - Real-time utility state synchronization
- * - Compact design optimized for inspector panels
- * 
- * The component handles the complexity of boolean state management while providing
- * an intuitive, accessible interface for binary property control in the visual editor.
- * It automatically selects the first available class when activating and clears
- * the utility class when deactivating.
- * 
+ * - Single-click toggle functionality
+ * - Consistent UI with shadcn/ui Button component
+ *
  * @component
  * @param {ToggleProps} props - Component props
- * @param {Object} props.definition - Definition object containing control metadata and toggle options
- * @param {string} props.definition.category - The boolean property category (e.g., 'hidden', 'visible', 'block', 'flex')
- * @param {string} props.definition.label - Display label for the toggle control
- * @param {string} props.definition.description - Descriptive text explaining the toggle's purpose
- * @param {Array<{class: string, value: string}>} props.definition.classes - Array of available toggle classes (typically one for active state)
- * @param {SerializableElement} props.selectedNode - The currently selected component node being edited
- * @returns {JSX.Element} The rendered Toggle component with visual state indication
+ * @param {Array<{value: string, label: string}>} props.options - Array of available toggle options
+ * @param {string | null} props.value - Currently selected value
+ * @param {(value: string | null) => void} props.onChange - Callback for value changes
+ * @param {string | null} props.arbitraryValue - Current arbitrary value (not used for toggles)
+ * @param {(arbitraryValue: string | null) => void} props.onArbitraryChange - Callback for arbitrary value (not used)
+ * @param {boolean} props.supportsArbitrary - Whether arbitrary values are supported (not used)
+ * @returns {JSX.Element} The rendered Toggle component
  */
 export const Toggle: React.FC<ToggleProps> = ({
-  definition,
-  selectedNode,
-  modifierPrefix = ''
+  options,
+  value,
+  onChange
 }) => {
-  const { updateUtilityClass } = useComponentStore();
+  const isActive = !!value;
 
-  // Check if the class is currently applied
-  const isActive = !!(selectedNode.utilityClassState?.[definition.category]);
-
-  /**
-   * Handles toggle state changes and updates the component's utility state.
-   * 
-   * This function toggles between active and inactive states for the boolean property.
-   * When activating, it selects the first available class from the definition. When
-   * deactivating, it clears the utility class by setting it to null.
-   * 
-   * @returns {void}
-   */
   const handleToggle = () => {
-    const baseClass = !isActive && definition.classes.length > 0 ? definition.classes[0].class : null;
-    const finalClass = baseClass ? modifierPrefix + baseClass : null;
-    updateUtilityClass(selectedNode.id, definition.category, finalClass);
+    const nextValue = !isActive && options.length > 0 ? options[0].value : null;
+    onChange(nextValue);
   };
 
   return (

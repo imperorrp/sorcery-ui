@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import type { SerializableElement } from '@/store/componentStore';
+import { useControlData } from '@/hooks/useControlData';
 import {
   SelectControl,
   BoxModelEditor,
@@ -88,6 +89,16 @@ export const TabbedControl: React.FC<TabbedControlProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState(0);
 
+  // Use the control data hook
+  const {
+    options,
+    currentValue,
+    currentArbitraryValue,
+    setValue,
+    setArbitraryValue,
+    supportsArbitrary
+  } = useControlData(definition, selectedNode, modifierPrefix);
+
   // Get strategies from the definition
   const strategies = definition.strategies || [];
   const hasArbitrary = strategies.some(s => s.type === 'arbitrary');
@@ -139,14 +150,13 @@ export const TabbedControl: React.FC<TabbedControlProps> = ({
       // Use TextInput for arbitrary values
       return (
         <TextInput
-          definition={{
-            category: definition.category,
-            label: `${definition.label} (Custom)`,
-            description: `Enter a custom value for ${definition.label.toLowerCase()}`
-          }}
-          selectedNode={selectedNode}
-          modifierPrefix={modifierPrefix}
-          isArbitrary={true}
+          options={options}
+          value={currentValue}
+          arbitraryValue={currentArbitraryValue}
+          onChange={setValue}
+          onArbitraryChange={setArbitraryValue}
+          supportsArbitrary={supportsArbitrary}
+          placeholder={`Enter custom value for ${definition.label.toLowerCase()}`}
         />
       );
     }

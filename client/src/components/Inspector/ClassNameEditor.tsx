@@ -14,6 +14,7 @@ import {
   NumberInput,
   GradientEditor,
 } from './controls';
+import { useControlData } from '@/hooks/useControlData';
 
 // Control map to connect control.type strings to React components
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -83,6 +84,16 @@ export const ClassNameEditor: React.FC<ClassNameEditorProps> = ({
   selectedNode,
   modifierPrefix = ''
 }) => {
+  // Use the control data hook to resolve strategies and current values
+  const {
+    options,
+    currentValue,
+    currentArbitraryValue,
+    setValue,
+    setArbitraryValue,
+    supportsArbitrary
+  } = useControlData(definition, selectedNode, modifierPrefix);
+
   // Single control - render directly
   const controlDefinition = definition.control;
   if (!controlDefinition) {
@@ -110,9 +121,23 @@ export const ClassNameEditor: React.FC<ClassNameEditorProps> = ({
   return (
     <ControlRow definition={definition} selectedNode={selectedNode}>
       <ControlComponent
-        definition={definition}
-        selectedNode={selectedNode}
-        modifierPrefix={modifierPrefix}
+        options={options}
+        value={currentValue}
+        arbitraryValue={currentArbitraryValue}
+        onChange={setValue}
+        onArbitraryChange={setArbitraryValue}
+        supportsArbitrary={supportsArbitrary}
+        {...(controlDefinition.type === 'ColorPicker' && {
+          previewKind: definition.category.includes('text')
+            ? 'text'
+            : definition.category.includes('outline')
+            ? 'outline'
+            : definition.category.includes('caret')
+            ? 'caret'
+            : definition.category.includes('border')
+            ? 'border'
+            : 'background'
+        })}
         {...controlDefinition}
       />
     </ControlRow>

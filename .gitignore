@@ -162,3 +162,7 @@ storybook-static
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# codebase prompt contexts
+
+digest.txt
