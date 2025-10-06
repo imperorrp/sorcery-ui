@@ -107,6 +107,7 @@ This directory contains the entire frontend React application, built with Vite. 
 
 - `useDebounce.ts`: Custom hook for debouncing user input to prevent excessive re-renders and API calls.
 - `useResizableLayout.ts`: Custom hook that manages the resizable layout state for the editor panels, including panel sizes, minimization states, and resize handlers.
+- `useControlData.ts`: Custom hook for managing control state and data flow in inspector controls. Handles option generation, value synchronization, and utility class updates for various control types.
 
 #### `polyfills/`
 
@@ -148,15 +149,24 @@ This directory contains the entire frontend React application, built with Vite. 
 - `BoxModelEditor.tsx`: Visual editor component for padding and margin properties with linked/unlinked controls. Provides individual directional inputs or unified control with comprehensive JSDoc documentation.
 - `ControlRow.tsx`: Enhanced layout component for inspector controls with anchor navigation, active indicators, hover reset functionality, and responsive grid design with comprehensive JSDoc documentation.
 - `ColorPicker.tsx`: Smart color picker component that resolves colors from datasets.json or direct class arrays. Supports both reference-based and direct color definitions with comprehensive JSDoc documentation.
-- `SelectControl.tsx`: Dropdown control component for selecting from predefined Tailwind utility classes. Provides a clean interface for choosing from available options with comprehensive JSDoc documentation.
+- `SelectControl.tsx`: Button-based control component for selecting from predefined Tailwind utility classes. Displays all options as buttons instead of dropdown menu with comprehensive JSDoc documentation.
 - `ShadowEditor.tsx`: Advanced shadow editor component for creating and editing box-shadow properties. Supports multiple shadows with offset, blur, spread, color, and inset controls with comprehensive JSDoc documentation.
-- `SizeInput.tsx`: Size input component for entering dimension values with category-specific formatting. Converts user input to appropriate Tailwind classes with comprehensive JSDoc documentation.
-- `NumberInput.tsx`: Number input component for entering numeric values with optional min/max constraints. Converts numeric input to appropriate Tailwind utility classes with comprehensive JSDoc documentation.
+- `GradientEditor.tsx`: Advanced gradient editor component for creating and editing CSS gradient backgrounds and masks. Supports predefined gradient directions and custom gradient values with comprehensive JSDoc documentation.
+- `SegmentedControl.tsx`: Smart segmented control component for selecting values from predefined option sets. Supports both external options and Tailwind class definitions with comprehensive JSDoc documentation.
 - `Slider.tsx`: Slider component for selecting numeric values with visual slider and numeric input. Supports special handling for opacity values and custom units with comprehensive JSDoc documentation.
 - `TextInput.tsx`: Text input component for entering text values that are converted to Tailwind utility classes. Provides a simple text input interface for category-specific text-based properties with comprehensive JSDoc documentation.
 - `Toggle.tsx`: Toggle component for enabling/disabling boolean Tailwind utility classes. Provides a visual toggle button interface for on/off type properties with comprehensive JSDoc documentation.
-- `SegmentedControl.tsx`: Smart segmented control component for selecting values from predefined option sets. Supports both external options and Tailwind class definitions with comprehensive JSDoc documentation.
-- `index.ts`: Module index file that exports all control components with comprehensive documentation of available controls.
+- `NumberInput.tsx`: Number input component for entering numeric values with optional min/max constraints. Converts numeric input to appropriate Tailwind utility classes with comprehensive JSDoc documentation.
+- `SizeInput.tsx`: Size input component for entering dimension values with category-specific formatting. Converts user input to appropriate Tailwind classes with comprehensive JSDoc documentation.
+- `BorderRadiusControl.tsx`: Specialized control for border radius properties with visual preview and preset options.
+- `BorderRadiusEditor.tsx`: Advanced editor for border radius with individual corner controls and linked/unlinked modes.
+- `BorderWidthControl.tsx`: Control component for border width properties with thickness selection.
+- `BorderWidthEditor.tsx`: Editor component for border width with directional controls and presets.
+- `BoxModelControl.tsx`: Unified control for box model properties (padding, margin) with linked controls.
+- `ComboBoxWithSlider.tsx`: Combined control with dropdown presets and slider for numeric values. Supports index-based slider with label display and arbitrary input.
+- `TabbedControl.tsx`: Tabbed interface control for organizing multiple related properties.
+- `UtilityControlFactory.tsx`: Factory component that dynamically creates appropriate control components based on utility definitions. Handles different control types (slider, segmented, select, etc.) and manages state synchronization.
+- `TabbedControl.tsx`: Tabbed interface control for organizing multiple related properties with strategy switching.
 
 ##### `Navigator/`
 
@@ -187,6 +197,8 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 - `select-control.tsx`: Styled select dropdown control for choosing from predefined options
 - `shadow-editor.tsx`: Control for selecting and previewing box shadow styles
 - `size-input.tsx`: Input control for size values with unit selection (px, rem, em, etc.)
+- `select.tsx`: Select dropdown component built on Radix UI primitives for choosing from options
+- `slider.tsx`: Slider component for numeric input with visual feedback and accessibility features
 
 ##### `Layouts/`
 

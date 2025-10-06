@@ -65,6 +65,11 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
   modifierPrefix = '',
 }) => {
   const { updateUtilityClass } = useComponentStore();
+
+  // Don't render if no selected node
+  if (!selectedNode) {
+    return null;
+  }
   const [shadows, setShadows] = useState<Shadow[]>([
     {
       offsetX: '0',
@@ -78,6 +83,8 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
 
   // Parse current shadow from utility state
   useEffect(() => {
+    if (!selectedNode) return;
+
     /**
      * Parses the current shadow utility class and populates the editor state.
      * 
@@ -89,7 +96,7 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
      * @returns {void}
      */
     const parseShadow = () => {
-      const currentClass = selectedNode.utilityClassState?.[definition.category];
+      const currentClass = selectedNode?.utilityClassState?.[definition.category];
 
       if (!currentClass || currentClass === 'shadow-none') {
         setShadows([{
@@ -155,7 +162,7 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
     };
 
     parseShadow();
-  }, [selectedNode.utilityClassState, definition.category]);
+  }, [selectedNode, definition.category]);
 
   /**
    * Updates a specific shadow's properties and regenerates the utility class.
@@ -229,6 +236,8 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
    * @returns {void}
    */
   const generateClassName = (currentShadows: Shadow[]) => {
+    if (!selectedNode) return;
+
     // For now, we'll map to predefined shadow classes
     // In a real implementation, you'd generate custom shadow values
     const shadowClasses = currentShadows.map(shadow => {
@@ -260,6 +269,11 @@ export const ShadowEditor: React.FC<ShadowEditorProps> = ({
   };
 
   const currentShadow = shadows[0]; // For simplicity, focus on first shadow
+
+  // Don't render if no selected node
+  if (!selectedNode) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col gap-2 rounded-md border bg-muted/10 p-2">

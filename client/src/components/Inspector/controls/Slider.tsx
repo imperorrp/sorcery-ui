@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
+import suggestions from '@/lib/definitions/suggestions.json';
 
 interface SliderProps {
   options: Array<{ value: string; label: string }>;
@@ -8,6 +9,7 @@ interface SliderProps {
   onChange: (value: string | null) => void;
   onArbitraryChange: (arbitraryValue: string | null) => void;
   supportsArbitrary: boolean;
+  suggestionsSource?: string;
   min?: number;
   max?: number;
   step?: number;
@@ -50,6 +52,7 @@ export const Slider: React.FC<SliderProps> = ({
   onChange,
   onArbitraryChange,
   supportsArbitrary,
+  suggestionsSource,
   min = 0,
   max = 100,
   step = 1,
@@ -57,6 +60,33 @@ export const Slider: React.FC<SliderProps> = ({
 }) => {
   const [sliderValue, setSliderValue] = useState<number>(0);
   const [inputValue, setInputValue] = useState<string>('');
+
+  // Get slider configuration from suggestions or legacy props
+  const getSliderConfig = () => {
+    if (suggestionsSource) {
+      const suggestionArray = (suggestions as Record<string, string[]>)[suggestionsSource];
+      if (suggestionArray && suggestionArray.length > 0) {
+        // Strict numeric detection (avoid treating fractions like '3/2' as numeric)
+        const numericRegex = /^-?\d+(?:\.\d+)?$/;
+        const numericStrings = suggestionArray.filter(s => numericRegex.test(String(s)));
+        const numericValues = numericStrings.map(s => Number(s)).sort((a, b) => a - b);
+
+        if (numericValues.length > 0) {
+          const min = numericValues[0];
+          const max = numericValues[numericValues.length - 1];
+          // Calculate step based on the smallest difference between values
+          const differences = numericValues.slice(1).map((val, i) => val - numericValues[i]);
+          const step = differences.length > 0 ? Math.min(...differences) : 1;
+
+          return { min, max, step };
+        }
+      }
+    }
+    // Fallback to legacy props or defaults
+    return { min, max, step };
+  };
+
+  const config = getSliderConfig();
 
   // Parse current value
   useEffect(() => {
@@ -105,7 +135,7 @@ export const Slider: React.FC<SliderProps> = ({
     setInputValue(newInputValue);
     const numericValue = parseFloat(newInputValue);
 
-    if (!isNaN(numericValue) && numericValue >= min && numericValue <= max) {
+    if (!isNaN(numericValue) && numericValue >= config.min && numericValue <= config.max) {
       setSliderValue(numericValue);
       handleSliderChange(numericValue);
     }
@@ -116,9 +146,9 @@ export const Slider: React.FC<SliderProps> = ({
       <div className="space-y-2">
         <input
           type="range"
-          min={min}
-          max={max}
-          step={step}
+          min={config.min}
+          max={config.max}
+          step={config.step}
           value={sliderValue}
           onChange={(e) => handleSliderChange(parseFloat(e.target.value))}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
@@ -127,9 +157,9 @@ export const Slider: React.FC<SliderProps> = ({
         <div className="flex items-center gap-2">
           <Input
             type="number"
-            min={min}
-            max={max}
-            step={step}
+            min={config.min}
+            max={config.max}
+            step={config.step}
             value={inputValue}
             onChange={(e) => handleInputChange(e.target.value)}
             className="text-xs w-20"

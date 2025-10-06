@@ -21,6 +21,12 @@ interface SmartSegmentedControlProps {
       };
     }>;
   };
+  variant?: {
+    label: string;
+    prefix: string;
+    template: string;
+    supportsNegative: boolean;
+  };
   selectedNode?: SerializableElement;
   modifierPrefix?: string;
   
@@ -63,6 +69,7 @@ interface SmartSegmentedControlProps {
  */
 export const SmartSegmentedControl: React.FC<SmartSegmentedControlProps> = ({
   definition,
+  variant,
   selectedNode,
   options: externalOptions,
   modifierPrefix = '',
@@ -72,7 +79,7 @@ export const SmartSegmentedControl: React.FC<SmartSegmentedControlProps> = ({
   onChange,
 }) => {
   // Always call hook (it handles undefined definition and selectedNode)
-  const hookData = useControlData(definition, selectedNode as SerializableElement, modifierPrefix);
+  const hookData = useControlData(definition, variant || { label: 'Default', prefix: '', template: '{value}', supportsNegative: false }, selectedNode, modifierPrefix);
   
   // Determine which mode we're in
   const isNewArchitecture = !definition && resolvedOptions !== undefined;

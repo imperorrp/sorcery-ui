@@ -59,6 +59,12 @@ interface ControlDefinition {
 
 interface TabbedControlProps {
   definition: ControlDefinition; // Single definition with strategies
+  variant?: {
+    label: string;
+    prefix: string;
+    template: string;
+    supportsNegative: boolean;
+  };
   selectedNode: SerializableElement;
   modifierPrefix?: string;
 }
@@ -84,6 +90,7 @@ interface TabbedControlProps {
  */
 export const TabbedControl: React.FC<TabbedControlProps> = ({
   definition,
+  variant,
   selectedNode,
   modifierPrefix = ''
 }) => {
@@ -97,7 +104,7 @@ export const TabbedControl: React.FC<TabbedControlProps> = ({
     setValue,
     setArbitraryValue,
     supportsArbitrary
-  } = useControlData(definition, selectedNode, modifierPrefix);
+  } = useControlData(definition, variant || { label: 'Default', prefix: '', template: '{value}', supportsNegative: false }, selectedNode, modifierPrefix);
 
   // Get strategies from the definition
   const strategies = definition.strategies || [];

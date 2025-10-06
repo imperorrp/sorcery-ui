@@ -1,7 +1,17 @@
-import React, { useState } from 'react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+
+const extractKeyword = (value: string): string => {
+  if (!value) return '';
+  const colonIndex = value.lastIndexOf(':');
+  const base = colonIndex >= 0 ? value.slice(colonIndex + 1) : value;
+  const arbitraryMatch = base.match(/\[(.+)\]/);
+  if (arbitraryMatch) return arbitraryMatch[1];
+  const dashIndex = base.indexOf('-');
+  if (dashIndex === -1) return base;
+  return base.slice(dashIndex + 1);
+};
 
 interface SelectControlProps {
   options: Array<{ value: string; label: string }>;
@@ -48,42 +58,76 @@ export const SelectControl: React.FC<SelectControlProps> = ({
   onChange,
   arbitraryValue,
   onArbitraryChange,
-  supportsArbitrary = false,
-  placeholder = 'Select option'
+  supportsArbitrary = false
 }) => {
   const [customValue, setCustomValue] = useState(arbitraryValue || '');
 
-  const currentOption = options.find((opt) => opt.value === value);
+  useEffect(() => {
+    setCustomValue(arbitraryValue || '');
+  }, [arbitraryValue]);
+
+  const keywordOptions = useMemo(
+    () =>
+      options.map((option) => ({
+        ...option,
+        keyword: extractKeyword(option.value),
+      })),
+    [options]
+  );
+
+  const allOptions = keywordOptions;
+
+  const handlePresetClick = (optionValue: string) => {
+    // Clear any arbitrary value first to avoid race where clearing overwrites the preset
+    onArbitraryChange?.(null);
+    onChange(optionValue);
+    setCustomValue('');
+  };
+
+  const handleClearSelection = () => {
+    onChange(null);
+    onArbitraryChange?.(null);
+    setCustomValue('');
+  };
 
   const handleArbitrarySubmit = () => {
     if (customValue.trim() && onArbitraryChange) {
-      onArbitraryChange(customValue.trim());
+      const trimmed = customValue.trim();
+      onChange(null);
+      onArbitraryChange(trimmed);
+      setCustomValue(trimmed);
     }
   };
 
   return (
     <div className="space-y-2">
-      {/* Preset Options Dropdown */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="w-full justify-start text-xs">
-            {currentOption?.label || currentOption?.value || placeholder}
+      {/* All Options */}
+      <div className="flex items-center gap-1 flex-wrap">
+        {allOptions.map((option) => (
+          <Button
+            key={option.value}
+            variant={value === option.value ? "default" : "outline"}
+            size="sm"
+            className="text-xs px-2 py-1 h-auto"
+            onClick={() => handlePresetClick(option.value)}
+            title={option.label !== option.keyword ? option.label : undefined}
+          >
+                              <span className="font-mono">{option.label}</span>
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-48 z-[100]">
-          <DropdownMenuItem onClick={() => onChange(null)}>
-            None
-          </DropdownMenuItem>
-          {options.map((option) => (
-            <DropdownMenuItem
-              key={option.value}
-              onClick={() => onChange(option.value)}
-            >
-              {option.label || option.value}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        ))}
+
+        {/* Clear/None Button */}
+        {value && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs px-2 py-1 h-auto text-muted-foreground hover:text-foreground"
+            onClick={handleClearSelection}
+          >
+            ✕
+          </Button>
+        )}
+      </div>
 
       {/* Arbitrary Value Input */}
       {supportsArbitrary && onArbitraryChange && (

@@ -124,7 +124,7 @@
       {
         "label": "Items",
         "prefix": "items-",
-        "template": "{value}",
+        "template": "items-{value}",
         "supportsNegative": false
       }
     ],
@@ -845,7 +845,7 @@
       {
         "label": "Default",
         "prefix": "bg-blend-",
-        "template": "{value}",
+        "template": "bg-blend-{value}",
         "supportsNegative": false
       }
     ],
@@ -1967,7 +1967,7 @@
       {
         "label": "Default",
         "prefix": "box-",
-        "template": "{value}",
+        "template": "box-{value}",
         "supportsNegative": false
       }
     ],
@@ -2114,7 +2114,7 @@
       {
         "label": "Default",
         "prefix": "break-inside-",
-        "template": "{value}",
+        "template": "break-inside-{value}",
         "supportsNegative": false
       }
     ],
@@ -3212,7 +3212,7 @@
       {
         "label": "Direction",
         "prefix": "flex-",
-        "template": "{value}",
+        "template": "flex-{value}",
         "supportsNegative": false
       }
     ],
@@ -3329,7 +3329,7 @@
       {
         "label": "Wrap Behavior",
         "prefix": "flex-",
-        "template": "{value}",
+        "template": "flex-{value}",
         "supportsNegative": false
       }
     ],
@@ -3424,7 +3424,7 @@
       {
         "label": "Default",
         "prefix": "float-",
-        "template": "{value}",
+        "template": "float-{value}",
         "supportsNegative": false
       }
     ],
@@ -4052,7 +4052,7 @@
       {
         "label": "Default",
         "prefix": "auto-cols-",
-        "template": "{value}",
+        "template": "auto-cols-{value}",
         "supportsNegative": false
       }
     ],
@@ -4543,7 +4543,7 @@
       {
         "label": "Default",
         "prefix": "hyphens-",
-        "template": "{value}",
+        "template": "hyphens-{value}",
         "supportsNegative": false
       }
     ],
@@ -4966,7 +4966,7 @@
       {
         "label": "Default",
         "prefix": "list-",
-        "template": "{value}",
+        "template": "list-{value}",
         "supportsNegative": false
       }
     ],
@@ -5206,7 +5206,7 @@
       {
         "label": "Composite",
         "prefix": "mask-",
-        "template": "{value}",
+        "template": "mask-{value}",
         "supportsNegative": false
       }
     ],
@@ -5514,7 +5514,7 @@
       {
         "label": "Default",
         "prefix": "mask-",
-        "template": "{value}",
+        "template": "mask-{value}",
         "supportsNegative": false
       }
     ],
@@ -7176,7 +7176,7 @@
       {
         "label": "Default",
         "prefix": "place-self-",
-        "template": "{value}",
+        "template": "place-self-{value}",
         "supportsNegative": false
       }
     ],
@@ -7229,7 +7229,7 @@
       {
         "label": "Default",
         "prefix": "pointer-events-",
-        "template": "{value}",
+        "template": "pointer-events-{value}",
         "supportsNegative": false
       }
     ],
@@ -7932,7 +7932,7 @@
       {
         "label": "Default",
         "prefix": "table-",
-        "template": "{value}",
+        "template": "table-{value}",
         "supportsNegative": false
       }
     ],
@@ -9521,6 +9521,39 @@
         "type": "arbitrary",
         "typeHint": "integer | custom-property",
         "placeholder": "100"
+      }
+    ]
+  },
+  "transformStyle": {
+    "label": "Transform Style",
+    "description": "Utilities for controlling if an elements children are placed in 3D space.",
+    "docUrl": "https://tailwindcss.com/docs/transform-style",
+    "group": "Transforms",
+    "notes": "Controls how children of an element are rendered in 3D space. `transform-3d` positions children within the element's 3D space, allowing them to be affected by their parent's 3D transforms. `transform-flat` flattens children into the element's 2D plane, ignoring parent 3D transformations for them.",
+    "control": {
+      "type": "SegmentedControl"
+    },
+    "variants": [
+      {
+        "label": "Default",
+        "prefix": "transform-",
+        "template": "transform-{value}",
+        "supportsNegative": false
+      }
+    ],
+    "valueSets": [
+      {
+        "type": "list",
+        "options": [
+          {
+            "class": "3d",
+            "label": "3D"
+          },
+          {
+            "class": "flat",
+            "label": "Flat"
+          }
+        ]
       }
     ]
   }

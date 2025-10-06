@@ -3,6 +3,8 @@ import { ColorSwatchPicker } from '@/components/ui/color-swatch-picker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import datasets from '@/lib/definitions/datasets.json';
+import type { ColorOption } from '@/lib/colorConstants';
 
 interface ColorPickerProps {
   options: Array<{ value: string; label: string }>;
@@ -55,10 +57,27 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   const [isCustomOpen, setIsCustomOpen] = useState(false);
 
   // Convert options to color format expected by ColorSwatchPicker
-  const colors = options.map(option => ({
-    name: option.label,
-    className: option.value,
-  }));
+  const colors: ColorOption[] = options.map(option => {
+    // Extract the class name from the full value (e.g., "bg-red-500" -> "red-500")
+    const classParts = option.value.split('-');
+    let colorClass = '';
+    if (classParts.length >= 2 && (classParts[0] === 'bg' || classParts[0] === 'text' || classParts[0] === 'border' || classParts[0] === 'stroke' || classParts[0] === 'fill' || classParts[0] === 'caret')) {
+      colorClass = classParts.slice(1).join('-'); // Remove prefix
+    } else {
+      colorClass = option.value;
+    }
+
+    // Look up hex value in datasets
+    const colorDataset = (datasets as { colors: Array<{ class: string; value: string }> }).colors || [];
+    const datasetItem = colorDataset.find((item) => item.class === colorClass);
+    const hex = datasetItem?.value || undefined;
+
+    return {
+      name: option.label,
+      className: option.value,
+      hex,
+    };
+  });
 
   const handleCustomColor = () => {
     if (customValue.trim()) {

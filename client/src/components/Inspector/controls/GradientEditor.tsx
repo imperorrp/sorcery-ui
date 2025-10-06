@@ -21,6 +21,12 @@ interface GradientEditorProps {
       };
     }>;
   };
+  variant?: {
+    label: string;
+    prefix: string;
+    template: string;
+    supportsNegative: boolean;
+  };
   selectedNode: SerializableElement;
   modifierPrefix?: string;
 }
@@ -54,11 +60,13 @@ interface GradientEditorProps {
  */
 export const GradientEditor: React.FC<GradientEditorProps> = ({
   definition,
+  variant,
   selectedNode,
   modifierPrefix = '',
 }) => {
   const { options, currentValue, setValue, setArbitraryValue } = useControlData(
     definition,
+    variant || { label: 'Default', prefix: '', template: '{value}', supportsNegative: false },
     selectedNode,
     modifierPrefix
   );

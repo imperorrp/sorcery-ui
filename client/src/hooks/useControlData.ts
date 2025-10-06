@@ -1,26 +1,34 @@
 import { useMemo } from 'react';
 import { useComponentStore } from '@/store/componentStore';
 import type { SerializableElement } from '@/store/componentStore';
-import datasets from '@/lib/definitions/datasets.json';
 
 // Define types
 interface ControlDefinition {
   category: string;
-  strategies?: Array<{
+  variants?: Array<{
+    label: string;
+    prefix: string;
+    template: string;
+    supportsNegative: boolean;
+  }>;
+  valueSets?: Array<{
     type: string;
-    classes?: Array<{ class: string; value?: string; label?: string }>;
-    generative?: { template: string; dataset: string };
-    arbitrary?: { template: string };
+    options?: Array<{ class: string; value?: string; label?: string }>;
+    source?: string;
+    examples?: string[];
+    typeHint?: string;
+    placeholder?: string;
   }>;
 }
 
-interface DatasetItem {
-  class: string;
-  value: string;
-  label?: string;
+interface Variant {
+  label: string;
+  prefix: string;
+  template: string;
+  supportsNegative: boolean;
 }
 
-type DatasetsType = Record<string, DatasetItem[]>;
+// suggestions.json is used in specific controls (ComboBoxWithSlider) instead of here
 
 // Define a standardized output format
 interface ControlData {
@@ -32,11 +40,35 @@ interface ControlData {
   supportsArbitrary: boolean;
 }
 
-export function useControlData(definition: ControlDefinition | undefined, selectedNode: SerializableElement | undefined, modifierPrefix: string = ''): ControlData {
+/**
+ * Custom hook for managing control state and data flow in inspector controls.
+ *
+ * This hook provides a standardized interface for inspector controls to interact with
+ * the component store's utility state system. It handles option generation from control
+ * definitions, current value detection, and utility class updates with proper modifier
+ * prefix support.
+ *
+ * Key features:
+ * - Dynamic option generation from Tailwind control definitions
+ * - Automatic current value detection from component utility state
+ * - Support for arbitrary values with bracket syntax
+ * - Modifier prefix handling for responsive and state variants
+ * - Type-safe interface for control components
+ *
+ * The hook abstracts the complexity of utility state management while providing
+ * a clean, consistent API for various control types (sliders, segmented controls, etc.).
+ *
+ * @param definition - Control definition object containing category and value sets
+ * @param variant - Variant configuration with template and prefix information
+ * @param selectedNode - The currently selected component node being edited
+ * @param modifierPrefix - Optional prefix for responsive/state modifiers (e.g., 'md:', 'hover:')
+ * @returns ControlData object with options, current values, and update functions
+ */
+export function useControlData(definition: ControlDefinition | undefined, variant: Variant | undefined, selectedNode: SerializableElement | undefined, modifierPrefix: string = ''): ControlData {
   const updateUtilityClass = useComponentStore((s) => s.updateUtilityClass);
 
   const { options, supportsArbitrary, arbitraryTemplate } = useMemo(() => {
-    if (!definition) {
+    if (!definition || !variant) {
       return { options: [], supportsArbitrary: false, arbitraryTemplate: '' };
     }
 
@@ -44,36 +76,28 @@ export function useControlData(definition: ControlDefinition | undefined, select
     let supportsArb = false;
     let arbTemplate = '';
 
-    for (const strategy of definition.strategies || []) {
-      if (strategy.type === 'list' && strategy.classes) {
-        allOptions.push(...strategy.classes.map((cls) => ({
-          value: cls.class,
+    for (const valueSet of definition.valueSets || []) {
+      if (valueSet.type === 'list' && valueSet.options) {
+        allOptions.push(...valueSet.options.map((cls) => ({
+          value: variant.template.replace('{value}', cls.class),
           label: cls.label || cls.class,
         })));
-      } else if (strategy.type === 'generative' && strategy.generative) {
-        const dataset = (datasets as DatasetsType)[strategy.generative.dataset];
-        if (dataset) {
-          const generatedOptions = dataset.map((item: DatasetItem) => ({
-            value: strategy.generative!.template.replace('{value}', item.class),
-            label: item.label || item.class,
-          }));
-          allOptions.push(...generatedOptions);
-        }
-      } else if (strategy.type === 'arbitrary' && strategy.arbitrary) {
+      } else if (valueSet.type === 'arbitrary') {
         supportsArb = true;
-        arbTemplate = strategy.arbitrary.template;
+        arbTemplate = variant.template;
       }
     }
 
     return { options: allOptions, supportsArbitrary: supportsArb, arbitraryTemplate: arbTemplate };
-  }, [definition]);
+  }, [definition, variant]);
 
   const { currentValue, currentArbitraryValue } = useMemo(() => {
-    if (!definition || !selectedNode) {
+    if (!definition || !variant || !selectedNode) {
       return { currentValue: null, currentArbitraryValue: null };
     }
 
-    const currentClass = selectedNode.utilityClassState?.[definition.category] || '';
+    const stateKey = `${definition.category}-${variant.label.toLowerCase().replace(/\s+/g, '-')}`;
+    const currentClass = selectedNode.utilityClassState?.[stateKey] || '';
 
     if (!currentClass) return { currentValue: null, currentArbitraryValue: null };
 
@@ -98,23 +122,26 @@ export function useControlData(definition: ControlDefinition | undefined, select
 
     // Fallback
     return { currentValue: cls, currentArbitraryValue: null };
-  }, [selectedNode, definition, options, arbitraryTemplate]);
+  }, [selectedNode, definition, variant, options, arbitraryTemplate]);
 
   const setValue = (className: string | null) => {
-    if (!definition || !selectedNode) return;
+    if (!definition || !variant || !selectedNode) return;
+    const stateKey = `${definition.category}-${variant.label.toLowerCase().replace(/\s+/g, '-')}`;
     const finalClass = className ? modifierPrefix + className : null;
-    updateUtilityClass(selectedNode.id, definition.category, finalClass);
+    updateUtilityClass(selectedNode.id, stateKey, finalClass);
   };
 
   const setArbitraryValue = (arbitraryValue: string | null) => {
-    if (!definition || !selectedNode) return;
+    if (!definition || !variant || !selectedNode) return;
     if (!arbitraryValue || !arbitraryTemplate) {
-      updateUtilityClass(selectedNode.id, definition.category, null);
+      const stateKey = `${definition.category}-${variant.label.toLowerCase().replace(/\s+/g, '-')}`;
+      updateUtilityClass(selectedNode.id, stateKey, null);
       return;
     }
 
+    const stateKey = `${definition.category}-${variant.label.toLowerCase().replace(/\s+/g, '-')}`;
     const finalClass = modifierPrefix + arbitraryTemplate.replace('{value}', `[${arbitraryValue}]`);
-    updateUtilityClass(selectedNode.id, definition.category, finalClass);
+    updateUtilityClass(selectedNode.id, stateKey, finalClass);
   };
 
   return { options, currentValue, currentArbitraryValue, setValue, setArbitraryValue, supportsArbitrary };

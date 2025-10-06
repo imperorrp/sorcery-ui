@@ -18,7 +18,6 @@ export const ComponentStoreTest: React.FC = () => {
     componentPreviewAst,
     propsJson,
     dependencies,
-    wrapperCode,
     originalCode,
     jsxLocation,
     history,

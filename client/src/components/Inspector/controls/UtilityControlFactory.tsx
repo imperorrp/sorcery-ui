@@ -1,0 +1,272 @@
+import React from 'react';
+import { BoxModelControl } from './BoxModelControl';
+import { BorderRadiusControl } from './BorderRadiusControl';
+import { BorderWidthControl } from './BorderWidthControl';
+import { SelectControl } from './SelectControl';
+import { BoxModelEditor } from './BoxModelEditor';
+import { ColorPicker } from './ColorPicker';
+import { Slider } from './Slider';
+import { ShadowEditor } from './ShadowEditor';
+import { Toggle } from './Toggle';
+import { SmartSegmentedControl } from './SegmentedControl';
+import { SizeInput } from './SizeInput';
+import { TextInput } from './TextInput';
+import { NumberInput } from './NumberInput';
+import { GradientEditor } from './GradientEditor';
+import { ComboBoxWithSlider } from './ComboBoxWithSlider';
+import { useControlData } from '@/hooks/useControlData';
+import type { SerializableElement } from '@/store/componentStore';
+
+interface ControlVariant {
+  label: string;
+  prefix: string;
+  template: string;
+  supportsNegative: boolean;
+}
+
+interface ControlDefinition {
+  category: string;
+  label: string;
+  description: string;
+  group: string;
+  control?: {
+    type: string;
+    [key: string]: unknown;
+  };
+  variants?: ControlVariant[];
+  valueSets?: Array<{
+    type: string;
+    options?: Array<{ class: string; value?: string; label?: string }>;
+    source?: string;
+    examples?: string[];
+    typeHint?: string;
+    placeholder?: string;
+  }>;
+  docUrl?: string;
+  notes?: string;
+  supportsArbitrary?: boolean;
+}
+
+interface UtilityControlFactoryProps {
+  definition: ControlDefinition;
+  selectedNode: SerializableElement;
+  modifierPrefix?: string;
+}
+
+/**
+ * Maps Tailwind inspector control types to their corresponding React components.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const controlComponentMap: Record<string, React.ComponentType<any>> = {
+  Select: SelectControl,
+  BoxModelEditor: BoxModelEditor,
+  ColorPicker,
+  Slider,
+  ShadowEditor,
+  Toggle,
+  SegmentedControl: SmartSegmentedControl,
+  SizeInput,
+  TextInput,
+  NumberInput,
+  GradientEditor,
+  ComboBoxWithSlider,
+};
+
+const ensureVariants = (definition: ControlDefinition): ControlVariant[] => {
+  if (definition.variants && definition.variants.length > 0) {
+    return definition.variants;
+  }
+  return [
+    {
+      label: 'Default',
+      prefix: '',
+      template: '{value}',
+      supportsNegative: false,
+    },
+  ];
+};
+
+/**
+ * SingleVariantControl component - Renders a concrete control for a specific variant.
+ *
+ * @param props.definition - The overall control definition
+ * @param props.variant - Variant metadata describing template and label
+ * @param props.selectedNode - The currently selected node in the inspector tree
+ * @param props.modifierPrefix - Optional modifier prefix to prepend to generated classes
+ */
+const SingleVariantControl: React.FC<{
+  definition: ControlDefinition;
+  variant: ControlVariant;
+  selectedNode: SerializableElement;
+  modifierPrefix?: string;
+}> = ({ definition, variant, selectedNode, modifierPrefix = '' }) => {
+  const {
+    options,
+    currentValue,
+    currentArbitraryValue,
+    setValue,
+    setArbitraryValue,
+    supportsArbitrary,
+  } = useControlData(definition, variant, selectedNode, modifierPrefix);
+
+  const controlDefinition = definition.control;
+
+  if (!controlDefinition) {
+    return (
+      <div className="text-xs p-2 bg-red-100 rounded">
+        No control defined for '{definition.label}'
+      </div>
+    );
+  }
+
+  const ControlComponent = controlComponentMap[controlDefinition.type];
+
+  if (!ControlComponent) {
+    return (
+      <div className="text-xs p-2 bg-red-100 rounded">
+        Control '{controlDefinition.type}' for '{definition.label}' is not yet implemented.
+      </div>
+    );
+  }
+
+  const colorPreviewProps = controlDefinition.type === 'ColorPicker'
+    ? {
+        previewKind: definition.category.includes('text')
+          ? 'text'
+          : definition.category.includes('outline')
+          ? 'outline'
+          : definition.category.includes('caret')
+          ? 'caret'
+          : definition.category.includes('border')
+          ? 'border'
+          : 'background',
+      }
+    : {};
+
+  // Extract suggestionsSource and typeHint for components that need them
+  const suggestionsValueSet = definition.valueSets?.find(vs => vs.type === 'suggestions');
+  const arbitraryValueSet = definition.valueSets?.find(vs => vs.type === 'arbitrary');
+  const suggestionsSource = suggestionsValueSet?.source;
+  const typeHint = arbitraryValueSet?.typeHint;
+  const examples = suggestionsValueSet?.examples || arbitraryValueSet?.examples || [];
+  const placeholder = arbitraryValueSet?.placeholder || controlDefinition.placeholder || '';
+
+  const sliderProps = controlDefinition.type === 'Slider' && suggestionsSource
+    ? { suggestionsSource, examples, placeholder }
+    : {};
+
+  const comboBoxProps = (controlDefinition.type === 'ComboBoxWithSlider' || controlDefinition.type === 'Slider') && (suggestionsSource || typeHint)
+    ? { suggestionsSource, typeHint, examples, placeholder }
+    : {};
+
+  return (
+    <div>
+      <ControlComponent
+        options={options}
+        value={currentValue}
+        arbitraryValue={currentArbitraryValue}
+        onChange={setValue}
+        onArbitraryChange={setArbitraryValue}
+        supportsArbitrary={supportsArbitrary}
+        {...colorPreviewProps}
+        {...sliderProps}
+        {...comboBoxProps}
+        {...controlDefinition}
+      />
+    </div>
+  );
+};
+
+/**
+ * UtilityControlFactory component - Chooses the correct control rendering strategy for a utility definition.
+ *
+ * It supports three scenarios:
+ * - Special compound controls (e.g., BoxModelControl for margin/padding)
+ * - Simple controls with a single variant
+ * - Multi-variant controls rendered side-by-side within a flexible layout
+ */
+export const UtilityControlFactory: React.FC<UtilityControlFactoryProps> = ({
+  definition,
+  selectedNode,
+  modifierPrefix = '',
+}) => {
+  const controlDefinition = definition.control;
+  const variants = ensureVariants(definition);
+
+  if (!controlDefinition) {
+    return (
+      <div className="text-xs p-2 bg-red-100 rounded">
+        No control defined for '{definition.label}'
+      </div>
+    );
+  }
+
+  if (controlDefinition.type === 'BoxModelEditor') {
+    return (
+      <div>
+        <BoxModelControl
+          definition={definition}
+          selectedNode={selectedNode}
+          modifierPrefix={modifierPrefix}
+        />
+      </div>
+    );
+  }
+
+  if (definition.label === 'borderRadius' && controlDefinition.type === 'ComboBoxWithSlider') {
+    return (
+      <div>
+        <BorderRadiusControl
+          definition={definition}
+          selectedNode={selectedNode}
+          modifierPrefix={modifierPrefix}
+        />
+      </div>
+    );
+  }
+
+  if (definition.label === 'borderWidth' && controlDefinition.type === 'ComboBoxWithSlider') {
+    return (
+      <div>
+        <BorderWidthControl
+          definition={definition}
+          selectedNode={selectedNode}
+          modifierPrefix={modifierPrefix}
+        />
+      </div>
+    );
+  }
+
+  if (variants.length === 1) {
+    return (
+      <SingleVariantControl
+        definition={definition}
+        variant={variants[0]}
+        selectedNode={selectedNode}
+        modifierPrefix={modifierPrefix}
+      />
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
+        {variants.map((variant) => (
+          <div key={variant.label} className="flex items-center gap-1.5 min-w-0">
+            <span className="text-xs font-medium text-muted-foreground flex-shrink-0">
+              {variant.label}
+            </span>
+            <div className="min-w-0">
+              <SingleVariantControl
+                definition={definition}
+                variant={variant}
+                selectedNode={selectedNode}
+                modifierPrefix={modifierPrefix}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};

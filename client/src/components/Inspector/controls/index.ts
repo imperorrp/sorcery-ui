@@ -37,4 +37,4 @@ export { SmartSegmentedControl } from './SegmentedControl';
 export { ColorPicker } from './ColorPicker';
 export { ControlRow } from './ControlRow';
 export { GradientEditor } from './GradientEditor';
-export { TabbedControl } from './TabbedControl';
+export { ComboBoxWithSlider } from './ComboBoxWithSlider';
