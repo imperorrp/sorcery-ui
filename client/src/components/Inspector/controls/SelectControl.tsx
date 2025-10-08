@@ -58,7 +58,8 @@ export const SelectControl: React.FC<SelectControlProps> = ({
   onChange,
   arbitraryValue,
   onArbitraryChange,
-  supportsArbitrary = false
+  supportsArbitrary = false,
+  placeholder = "Custom value..."
 }) => {
   const [customValue, setCustomValue] = useState(arbitraryValue || '');
 
@@ -135,7 +136,7 @@ export const SelectControl: React.FC<SelectControlProps> = ({
           <Input
             value={customValue}
             onChange={(e) => setCustomValue(e.target.value)}
-            placeholder="Custom value..."
+            placeholder={placeholder}
             className="text-xs flex-1"
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleArbitrarySubmit();

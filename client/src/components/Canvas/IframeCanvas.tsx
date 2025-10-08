@@ -36,7 +36,8 @@ export const IframeCanvas: React.FC = () => {
   const setSelectedNodeId = useComponentStore((s) => s.setSelectedNodeId);
   const setHoveredNodeId = useComponentStore((s) => s.setHoveredNodeId);
   const dependencies = React.useMemo(() => activeComponent?.dependencies ?? [], [activeComponent?.dependencies]);
-  const globalCss = useComponentStore((s) => s.globalCss);
+  const themeCss = useComponentStore((s) => s.themeCss);
+  const tailwindConfig = useComponentStore((s) => s.tailwindConfig);
   
   // Pull snapshot history to recover preview if current state lost it
   const history = activeComponent?.history ?? [];
@@ -147,17 +148,57 @@ export const IframeCanvas: React.FC = () => {
     if (!iframe || !iframe.contentDocument) return;
 
     const head = iframe.contentDocument.head;
-    let globalStyleEl = head.querySelector('#global-styles') as HTMLStyleElement;
+    let globalStyleEl = head.querySelector('#user-theme-styles') as HTMLStyleElement;
 
     if (!globalStyleEl) {
       globalStyleEl = iframe.contentDocument.createElement('style');
-      globalStyleEl.id = 'global-styles';
+      globalStyleEl.id = 'user-theme-styles';
       head.appendChild(globalStyleEl);
     }
 
-    globalStyleEl.innerHTML = globalCss;
-  }, [iframeBody, globalCss]);
-  // ▲▲▲ END GLOBAL CSS INJECTION ▲▲▲
+    globalStyleEl.innerHTML = themeCss;
+  }, [iframeBody, themeCss]);
+  // ▲▲▲ END THEME CSS INJECTION ▲▲▲
+
+  // ▼▼▼ TAILWIND CONFIG INJECTION ▼▼▼
+  // Dynamic Tailwind compilation via Play CDN
+  useEffect(() => {
+    if (!iframeBody) return;
+
+    const doc = iframeBody.ownerDocument;
+    const head = doc.head;
+
+    // Safely parse the user's tailwindConfig string
+    let parsedConfig: unknown = {};
+    try {
+      // Use a sandboxed new Function to parse the config string
+      parsedConfig = new Function('return (' + tailwindConfig + ')')();
+    } catch (error) {
+      console.warn('Failed to parse Tailwind config:', error);
+      parsedConfig = {};
+    }
+
+    // Find or create the config script
+    let configScript = head.querySelector('#tailwind-config-script') as HTMLScriptElement;
+    if (!configScript) {
+      configScript = doc.createElement('script');
+      configScript.id = 'tailwind-config-script';
+      head.appendChild(configScript);
+    }
+
+    // Set the config on window.tailwind
+    configScript.innerHTML = `window.tailwind = { config: ${JSON.stringify(parsedConfig)} };`;
+
+    // Ensure Tailwind Play CDN is loaded after the config
+    let tailwindScript = head.querySelector('script[src="https://cdn.tailwindcss.com"]') as HTMLScriptElement;
+    if (!tailwindScript) {
+      tailwindScript = doc.createElement('script');
+      tailwindScript.src = 'https://cdn.tailwindcss.com';
+      tailwindScript.async = true;
+      head.appendChild(tailwindScript);
+    }
+  }, [iframeBody, tailwindConfig]);
+  // ▲▲▲ END TAILWIND CONFIG INJECTION ▲▲▲
 
   // ▼▼▼ UPDATE REF WHEN DEPENDENCIES CHANGE ▼▼▼
   // Hover highlight and context selection wiring when in selection mode

@@ -2,125 +2,122 @@ import React, { useState } from 'react';
 import { ColorSwatchPicker } from '@/components/ui/color-swatch-picker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import datasets from '@/lib/definitions/datasets.json';
+import { Slider } from '@/components/ui/slider';
 import type { ColorOption } from '@/lib/colorConstants';
 
+// The component now receives a fully-formed `ColorOption` array.
 interface ColorPickerProps {
-  options: Array<{ value: string; label: string }>;
+  options: Array<{ value: string; label: string }>; // Keyword options from valueSets
+  colors: ColorOption[]; // Color swatches from theme
   value: string | null;
   onChange: (value: string | null) => void;
-  onArbitraryChange: (arbitraryValue: string | null) => void;
+  onArbitraryChange?: (arbitraryValue: string | null) => void; // Made optional
   supportsArbitrary: boolean;
   previewKind?: 'text' | 'background' | 'border' | 'outline' | 'caret';
+  placeholder?: string; // Placeholder for arbitrary input
+  swatchTemplate?: string; // e.g. 'bg-{value}' to build full utility class
+  currentOpacity: number | null;
+  onOpacityChange?: (opacity: number | null) => void;
 }
 
 /**
  * ColorPicker component for intuitive color selection in the visual editor.
  *
- * This component provides a sophisticated color selection interface that supports
- * multiple data sources and seamlessly integrates with the component store's utility
- * state system. It handles both predefined color palettes and custom color definitions,
- * offering a unified interface for text colors, background colors, and other color properties.
- *
- * Key features:
- * - Dynamic color palette loading from strategies
- * - Support for direct class arrays in definition objects
- * - Automatic color type detection (text vs background) based on category
- * - Real-time utility state synchronization with component store
- * - Hex color value extraction for visual swatch display
- * - Custom color input for arbitrary values
- * - Graceful fallback handling for missing or invalid color data
- *
- * The component transforms color definitions into a consistent format for the
- * ColorSwatchPicker UI component, handling the complexity of different data
- * sources while providing a simple, consistent user experience.
- *
- * @component
- * @param {ColorPickerProps} props - Component props
- * @param {Object} props.definition - Definition object containing control metadata
- * @param {string} props.definition.category - Color category (e.g., 'text-color', 'background-color', 'border-color')
- * @param {string} props.definition.label - Display label for the color picker control
- * @param {string} props.definition.description - Descriptive text explaining the color control's purpose
- * @param {any} props.selectedNode - The currently selected component node being edited
- * @returns {JSX.Element} The rendered ColorPicker component with color swatch interface
+ * This is a "dumb" presentational component. It receives keyword options and color swatches
+ * and is responsible for rendering the UI and reporting user selections. All theme-aware
+ * logic is handled by its parent.
  */
 export const ColorPicker: React.FC<ColorPickerProps> = ({
   options,
+  colors,
   value,
   onChange,
   onArbitraryChange,
   supportsArbitrary,
-  previewKind = 'background'
+  previewKind = 'background',
+  placeholder = 'Custom color...'
+  , swatchTemplate,
+  currentOpacity,
+  onOpacityChange
 }) => {
+  // ...existing code...
   const [customValue, setCustomValue] = useState('');
-  const [isCustomOpen, setIsCustomOpen] = useState(false);
 
-  // Convert options to color format expected by ColorSwatchPicker
-  const colors: ColorOption[] = options.map(option => {
-    // Extract the class name from the full value (e.g., "bg-red-500" -> "red-500")
-    const classParts = option.value.split('-');
-    let colorClass = '';
-    if (classParts.length >= 2 && (classParts[0] === 'bg' || classParts[0] === 'text' || classParts[0] === 'border' || classParts[0] === 'stroke' || classParts[0] === 'fill' || classParts[0] === 'caret')) {
-      colorClass = classParts.slice(1).join('-'); // Remove prefix
-    } else {
-      colorClass = option.value;
-    }
+  React.useEffect(() => {
+    setCustomValue('');
+  }, [value]); // Clear custom input when a preset is selected
 
-    // Look up hex value in datasets
-    const colorDataset = (datasets as { colors: Array<{ class: string; value: string }> }).colors || [];
-    const datasetItem = colorDataset.find((item) => item.class === colorClass);
-    const hex = datasetItem?.value || undefined;
-
-    return {
-      name: option.label,
-      className: option.value,
-      hex,
-    };
-  });
-
-  const handleCustomColor = () => {
-    if (customValue.trim()) {
+  const handleArbitrarySubmit = () => {
+    if (customValue.trim() && onArbitraryChange) {
       onArbitraryChange(customValue.trim());
-      setIsCustomOpen(false);
       setCustomValue('');
     }
   };
 
   return (
     <div className="space-y-2">
+      {/* Keyword options (like transparent, current, inherit) */}
+      {options.length > 0 && (
+        <div className="flex items-center gap-1 flex-wrap">
+          {options.map((option) => (
+            <Button
+              key={option.value}
+              variant={value === option.value ? 'default' : 'outline'}
+              size="sm"
+              className="text-xs px-2 py-1 h-auto"
+              onClick={() => onChange(option.value)}
+              title={option.label}
+            >
+              <span className="font-mono">{option.label}</span>
+            </Button>
+          ))}
+        </div>
+      )}
+
+      {/* Color swatches */}
       <ColorSwatchPicker
         value={value || ''}
-        onValueChange={onChange}
+        onValueChange={(val) => {
+          // ColorSwatchPicker now emits either a raw token (e.g., 'red-500') or a
+          // full utility class when provided a swatchTemplate; just forward it.
+          onChange(val || null);
+        }}
         colors={colors}
         previewKind={previewKind}
+        swatchTemplate={swatchTemplate}
       />
 
-      {supportsArbitrary && (
-        <Popover open={isCustomOpen} onOpenChange={setIsCustomOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="w-full text-xs">
-              Custom...
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64 p-3">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Custom Color</label>
-              <Input
-                value={customValue}
-                onChange={(e) => setCustomValue(e.target.value)}
-                placeholder="#ff0000, rgb(255,0,0), etc."
-                className="text-xs"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleCustomColor();
-                }}
-              />
-              <Button onClick={handleCustomColor} size="sm" className="w-full">
-                Apply
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
+      {/* Opacity slider */}
+      {(value || currentOpacity !== null) && onOpacityChange && (
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Opacity: {currentOpacity ?? 100}%</label>
+          <Slider
+            value={[currentOpacity ?? 100]}
+            onValueChange={(vals) => onOpacityChange(vals[0])}
+            min={0}
+            max={100}
+            step={5} // Tailwind opacity uses 0,5,10,...,100 increments
+            className="w-full"
+          />
+        </div>
+      )}
+
+      {/* Arbitrary value input - inline like other controls */}
+      {supportsArbitrary && onArbitraryChange && (
+        <div className="flex gap-2">
+          <Input
+            value={customValue}
+            onChange={(e) => setCustomValue(e.target.value)}
+            placeholder={placeholder}
+            className="text-xs flex-1"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleArbitrarySubmit();
+            }}
+          />
+          <Button onClick={handleArbitrarySubmit} size="sm" className="px-3">
+            Apply
+          </Button>
+        </div>
       )}
     </div>
   );

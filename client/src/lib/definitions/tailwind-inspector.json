@@ -390,16 +390,35 @@
           {
             "class": "none",
             "label": "None"
+          },
+          {
+            "class": "xs",
+            "label": "Extra Small (4px)"
+          },
+          {
+            "class": "sm",
+            "label": "Small (8px)"
+          },
+          {
+            "class": "md",
+            "label": "Medium (12px)"
+          },
+          {
+            "class": "lg",
+            "label": "Large (16px)"
+          },
+          {
+            "class": "xl",
+            "label": "Extra Large (24px)"
+          },
+          {
+            "class": "2xl",
+            "label": "2x Large (40px)"
+          },
+          {
+            "class": "3xl",
+            "label": "3x Large (64px)"
           }
-        ]
-      },
-      {
-        "type": "suggestions",
-        "source": "blur",
-        "examples": [
-          "sm",
-          "lg",
-          "3xl"
         ]
       },
       {
@@ -2734,16 +2753,35 @@
           {
             "class": "none",
             "label": "None"
+          },
+          {
+            "class": "xs",
+            "label": "Extra Small (4px)"
+          },
+          {
+            "class": "sm",
+            "label": "Small (8px)"
+          },
+          {
+            "class": "md",
+            "label": "Medium (12px)"
+          },
+          {
+            "class": "lg",
+            "label": "Large (16px)"
+          },
+          {
+            "class": "xl",
+            "label": "Extra Large (24px)"
+          },
+          {
+            "class": "2xl",
+            "label": "2x Large (40px)"
+          },
+          {
+            "class": "3xl",
+            "label": "3x Large (64px)"
           }
-        ]
-      },
-      {
-        "type": "suggestions",
-        "source": "blur",
-        "examples": [
-          "sm",
-          "lg",
-          "2xl"
         ]
       },
       {

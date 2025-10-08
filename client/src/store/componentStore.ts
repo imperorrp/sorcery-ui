@@ -109,7 +109,8 @@ interface ComponentState {
   selectionMode: 'interact' | 'select'; // Canvas interaction mode
   isDirty: boolean; // isDirty now refers to the active component
   isCodeHighlighted: boolean; // Controls persistent code highlighting
-  globalCss: string; // Global CSS for utility classes and custom styles
+  themeCss: string; // Theme CSS for CSS variables and arbitrary global styles
+  tailwindConfig: string; // Tailwind configuration JavaScript string
 }
 
 // Define the actions that can be performed on the state
@@ -149,7 +150,8 @@ interface ComponentActions {
   removeDependency: (url: string) => void; // Add this
   setDependencies: (urls: string[]) => void; // Add this
   setWrapperCode: (code: string) => void;  // Add this
-  setGlobalCss: (css: string) => void; // Global CSS for utility classes
+  setThemeCss: (css: string) => void; // Theme CSS for CSS variables and arbitrary global styles
+  setTailwindConfig: (config: string) => void; // Tailwind configuration JavaScript string
   /**
    * Sets the render output after transpiling and executing component code.
    *
@@ -274,7 +276,16 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
     isDirty: false,
     isCodeHighlighted: false,
   examplesVersion: 0,
-  globalCss: '', // Global CSS for utility classes
+  themeCss: `
+/* Paste your :root and .dark CSS variables here */
+`,
+  // Provide a minimal valid default Tailwind theme object string so the parser doesn't fail.
+  // Users can paste full config objects or use the examples in the test cases.
+  tailwindConfig: `{
+  theme: {
+    extend: {}
+  }
+}`,
 
     // Computed properties for backward compatibility
     get componentAst() {
@@ -924,7 +935,9 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
       }));
     },
 
-    setGlobalCss: (css) => set({ globalCss: css }),
+    setThemeCss: (css) => set({ themeCss: css }),
+
+    setTailwindConfig: (config) => set({ tailwindConfig: config }),
 
     setRenderOutput: (code, runtimeAst, previewAst, jsxLocation) => {
       const { activeComponentId, components } = get();

@@ -1,6 +1,7 @@
 import React from 'react';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { useControlData } from '@/hooks/useControlData';
+import { getCssPropertiesForClass } from '@/lib/themeUtils';
 import type { SerializableElement } from '@/store/componentStore';
 
 interface SmartSegmentedControlProps {
@@ -34,6 +35,7 @@ interface SmartSegmentedControlProps {
   options?: Array<{ value: string; label: string }>;
   value?: string | null;
   onChange?: (value: string | null) => void;
+  resolvedTheme?: Record<string, unknown>;
 }
 
 /**
@@ -77,6 +79,7 @@ export const SmartSegmentedControl: React.FC<SmartSegmentedControlProps> = ({
   options: resolvedOptions,
   value,
   onChange,
+  resolvedTheme,
 }) => {
   // Always call hook (it handles undefined definition and selectedNode)
   const hookData = useControlData(definition, variant || { label: 'Default', prefix: '', template: '{value}', supportsNegative: false }, selectedNode, modifierPrefix);
@@ -107,12 +110,20 @@ export const SmartSegmentedControl: React.FC<SmartSegmentedControlProps> = ({
     handleValueChange = () => {};
   }
 
+  // Compute preview styles for options
+  const optionStyles = resolvedTheme ? controlOptions.map(option => {
+    const previewStyle = getCssPropertiesForClass(option.value, resolvedTheme);
+    // For segmented control, apply all styles to the button, as they are visual
+    return previewStyle as React.CSSProperties;
+  }) : undefined;
+
   return (
     <SegmentedControl
       value={currentValue || undefined}
       onValueChange={handleValueChange}
       options={controlOptions}
       className="w-full"
+      optionStyles={optionStyles}
     />
   );
 };

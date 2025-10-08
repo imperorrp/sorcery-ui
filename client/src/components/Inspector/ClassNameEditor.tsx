@@ -65,6 +65,7 @@ export const ClassNameEditor: React.FC<ClassNameEditorProps> = ({
   selectedNode,
   modifierPrefix = '',
 }) => {
+  // ...existing code...
   const updateUtilityClass = useComponentStore((state) => state.updateUtilityClass);
 
   const variants = React.useMemo(() => {

@@ -27,6 +27,7 @@ interface SegmentedControlProps {
   options: SegmentedControlOption[];
   className?: string;
   size?: 'sm' | 'default' | 'lg';
+  optionStyles?: React.CSSProperties[];
 }
 
 export const SegmentedControl: React.FC<SegmentedControlProps> = ({
@@ -35,6 +36,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
   options,
   className,
   size = 'sm',
+  optionStyles,
 }) => {
   return (
     <div className={cn("flex rounded-md border border-border bg-background p-1", className)}>
@@ -51,6 +53,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
             index === options.length - 1 && "rounded-r-md",
             index > 0 && index < options.length - 1 && "rounded-none border-x-0"
           )}
+          style={optionStyles?.[index]}
           onClick={() => onValueChange(option.value)}
         >
           <div className="flex items-center gap-1.5">

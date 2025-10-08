@@ -22,6 +22,7 @@ interface ColorSwatchPickerProps {
   onValueChange: (value: string) => void;
   colors: ColorOption[];
   className?: string;
+  swatchTemplate?: string; // optional template to build full utility (e.g., 'bg-{value}')
   /**
    * previewKind controls how the swatch is visually rendered so utilities that don't affect background directly
    * (like outline-*, caret-*) can still be previewed.
@@ -34,11 +35,19 @@ export const ColorSwatchPicker: React.FC<ColorSwatchPickerProps> = ({
   onValueChange,
   colors,
   className,
+  swatchTemplate,
   previewKind = 'background',
 }) => {
-  // Normalize a potentially modifier-prefixed class (e.g., hover:bg-red-500) for selection comparison
-  const normalize = (c?: string) => (c && c.includes(':') ? c.split(':').pop() || c : c) as string | undefined;
-  const normalizedValue = normalize(value);
+  // Normalize a potentially modifier-prefixed or utility-prefixed class (e.g., hover:bg-red-500 or bg-red-500)
+  // so selection comparison works against raw tokens like 'red-500'.
+  const stripUtilityPrefix = (s?: string | null) => {
+    if (!s) return undefined;
+    // Remove state/responsive prefixes (e.g., hover:, md:)
+    const afterModifiers = s.includes(':') ? s.split(':').pop() || s : s;
+    // Remove common utility prefixes to get the bare token (e.g., bg-, text-, border-)
+    return afterModifiers.replace(/^(bg|text|border|caret|outline|fill|stroke)-/, '');
+  };
+  const normalizedValue = stripUtilityPrefix(value);
 
   // Build a visible preview element for caret colors by mapping to a background sample
   const caretPreview = (className: string) => {
@@ -63,27 +72,49 @@ export const ColorSwatchPicker: React.FC<ColorSwatchPickerProps> = ({
                 size="sm"
                 className={cn(
                   "w-6 h-6 p-0 rounded border-2 hover:border-gray-400 transition-colors overflow-hidden",
-                  normalizedValue === color.className && "border-blue-500 ring-1 ring-blue-500"
+                  normalizedValue === stripUtilityPrefix(color.className) && "border-blue-500 ring-1 ring-blue-500"
                 )}
-                onClick={() => onValueChange(color.className)}
+                onClick={() => {
+                  const token = stripUtilityPrefix(color.className) || color.className;
+                  if (swatchTemplate) {
+                    const full = swatchTemplate.replace('{value}', token);
+                    onValueChange(full);
+                  } else {
+                    onValueChange(token);
+                  }
+                }}
               >
                 {previewKind === 'text' && (
                   // For text colors, show a sample text with the color on white background
                   <div className="w-full h-full bg-white flex items-center justify-center">
-                    <span className={cn("text-[10px] font-bold", color.className)}>A</span>
+                    <span
+                      className={cn("text-[10px] font-bold", color.hex ? "" : color.className)}
+                      style={color.hex ? { color: color.hex } : undefined}
+                    >
+                      A
+                    </span>
                   </div>
                 )}
                 {previewKind === 'background' && (
-                  // For background colors, apply the color directly
-                  <div className={cn("w-full h-full", color.className)} />
+                  // For background colors, apply the color directly using hex if available, otherwise use className
+                  <div
+                    className={cn("w-full h-full", color.hex ? "" : color.className)}
+                    style={color.hex ? { backgroundColor: color.hex } : undefined}
+                  />
                 )}
                 {previewKind === 'outline' && (
                   // For outline colors, render a box with a visible outline using the color class
-                  <div className={cn("w-full h-full bg-white", "outline-2 outline-offset-0", color.className)} />
+                  <div
+                    className={cn("w-full h-full bg-white", "outline-2 outline-offset-0", color.hex ? "" : color.className)}
+                    style={color.hex ? { outlineColor: color.hex } : undefined}
+                  />
                 )}
                 {previewKind === 'border' && (
                   // For border colors, render a box with a visible border using the color class
-                  <div className={cn("w-full h-full bg-white", "border-2 border-solid", color.className)} />
+                  <div
+                    className={cn("w-full h-full bg-white", "border-2 border-solid", color.hex ? "" : color.className)}
+                    style={color.hex ? { borderColor: color.hex } : undefined}
+                  />
                 )}
                 {previewKind === 'caret' && caretPreview(color.className)}
               </Button>

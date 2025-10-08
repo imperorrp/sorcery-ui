@@ -5,6 +5,7 @@ import { BorderWidthControl } from './BorderWidthControl';
 import { SelectControl } from './SelectControl';
 import { BoxModelEditor } from './BoxModelEditor';
 import { ColorPicker } from './ColorPicker';
+import { ThemeColorPicker } from './ThemeColorPicker';
 import { Slider } from './Slider';
 import { ShadowEditor } from './ShadowEditor';
 import { Toggle } from './Toggle';
@@ -15,6 +16,8 @@ import { NumberInput } from './NumberInput';
 import { GradientEditor } from './GradientEditor';
 import { ComboBoxWithSlider } from './ComboBoxWithSlider';
 import { useControlData } from '@/hooks/useControlData';
+import { useComponentStore } from '@/store/componentStore';
+import { resolveTheme } from '@/lib/themeUtils';
 import type { SerializableElement } from '@/store/componentStore';
 
 interface ControlVariant {
@@ -104,10 +107,18 @@ const SingleVariantControl: React.FC<{
     options,
     currentValue,
     currentArbitraryValue,
+    currentOpacity,
     setValue,
     setArbitraryValue,
     supportsArbitrary,
   } = useControlData(definition, variant, selectedNode, modifierPrefix);
+
+  // Resolve theme for live previews
+  const tailwindConfig = useComponentStore((state) => state.tailwindConfig);
+  const resolvedTheme = React.useMemo(() => resolveTheme(tailwindConfig), [tailwindConfig]);
+
+  // Note: theme resolution is now handled inside ThemeColorPicker
+  const swatchTemplate = variant?.template;
 
   const controlDefinition = definition.control;
 
@@ -129,20 +140,6 @@ const SingleVariantControl: React.FC<{
     );
   }
 
-  const colorPreviewProps = controlDefinition.type === 'ColorPicker'
-    ? {
-        previewKind: definition.category.includes('text')
-          ? 'text'
-          : definition.category.includes('outline')
-          ? 'outline'
-          : definition.category.includes('caret')
-          ? 'caret'
-          : definition.category.includes('border')
-          ? 'border'
-          : 'background',
-      }
-    : {};
-
   // Extract suggestionsSource and typeHint for components that need them
   const suggestionsValueSet = definition.valueSets?.find(vs => vs.type === 'suggestions');
   const arbitraryValueSet = definition.valueSets?.find(vs => vs.type === 'arbitrary');
@@ -151,13 +148,60 @@ const SingleVariantControl: React.FC<{
   const examples = suggestionsValueSet?.examples || arbitraryValueSet?.examples || [];
   const placeholder = arbitraryValueSet?.placeholder || controlDefinition.placeholder || '';
 
+  const colorPreviewProps = controlDefinition.type === 'ColorPicker'
+    ? {
+        previewKind: (definition.category.includes('text')
+          ? 'text'
+          : definition.category.includes('outline')
+          ? 'outline'
+          : definition.category.includes('caret')
+          ? 'caret'
+          : definition.category.includes('border')
+          ? 'border'
+          : 'background') as 'text' | 'background' | 'border' | 'outline' | 'caret',
+        // ThemeColorPicker handles colors internally, so don't pass colors here
+        swatchTemplate: swatchTemplate,
+        options: options, // Pass keyword options to ColorPicker
+        placeholder: typeof placeholder === 'string' ? placeholder : undefined, // Pass the placeholder from arbitrary valueSet
+      }
+    : {};
+
   const sliderProps = controlDefinition.type === 'Slider' && suggestionsSource
     ? { suggestionsSource, examples, placeholder }
     : {};
 
   const comboBoxProps = (controlDefinition.type === 'ComboBoxWithSlider' || controlDefinition.type === 'Slider') && (suggestionsSource || typeHint)
-    ? { suggestionsSource, typeHint, examples, placeholder }
-    : {};
+    ? { suggestionsSource, typeHint, examples, placeholder, resolvedTheme }
+    : (controlDefinition.type === 'ComboBoxWithSlider' ? { resolvedTheme } : {});
+
+  const segmentedProps = controlDefinition.type === 'SegmentedControl' ? { resolvedTheme } : {};
+
+  // Special handling for ColorPicker to use ThemeColorPicker
+  if (controlDefinition.type === 'ColorPicker') {
+    const onOpacityChange = (opacity: number | null) => {
+      if (currentValue) {
+        setValue(currentValue, opacity);
+      } else if (currentArbitraryValue) {
+        setArbitraryValue(currentArbitraryValue, opacity);
+      }
+    };
+
+    return (
+      <div>
+        <ThemeColorPicker
+          options={options}
+          value={currentValue}
+          arbitraryValue={currentArbitraryValue}
+          onChange={setValue}
+          onArbitraryChange={setArbitraryValue}
+          supportsArbitrary={supportsArbitrary}
+          currentOpacity={currentOpacity}
+          onOpacityChange={onOpacityChange}
+          {...colorPreviewProps}
+        />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -168,9 +212,11 @@ const SingleVariantControl: React.FC<{
         onChange={setValue}
         onArbitraryChange={setArbitraryValue}
         supportsArbitrary={supportsArbitrary}
+        placeholder={placeholder} // Pass placeholder to all controls
         {...colorPreviewProps}
         {...sliderProps}
         {...comboBoxProps}
+        {...segmentedProps}
         {...controlDefinition}
       />
     </div>

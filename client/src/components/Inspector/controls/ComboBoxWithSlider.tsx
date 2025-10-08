@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import suggestions from '@/lib/definitions/suggestions.json';
+import { getCssPropertiesForClass } from '@/lib/themeUtils';
 
 /**
  * ComboBoxWithSlider component - Advanced control combining preset selection with slider input.
@@ -59,6 +60,7 @@ interface ComboBoxWithSliderProps {
   step?: number;
   unit?: string;
   dataType?: string;
+  resolvedTheme?: Record<string, unknown>;
 }
 
 const numericRegex = /^-?\d+(?:\.\d+)?$/;
@@ -161,9 +163,11 @@ export const ComboBoxWithSlider: React.FC<ComboBoxWithSliderProps> = ({
   min = 0,
   max = 100,
   step = 1,
+  resolvedTheme,
 }) => {
   const [sliderValue, setSliderValue] = useState<number>(0);
   const [inputValue, setInputValue] = useState<string>('');
+  const sliderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const suggestionConfig = useMemo<SliderConfig | null>(() => {
     if (!suggestionsSource) return null;
@@ -287,6 +291,15 @@ export const ComboBoxWithSlider: React.FC<ComboBoxWithSliderProps> = ({
     }
   }, [value, arbitraryValue, suggestionConfig, inputType, min]);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (sliderTimeoutRef.current) {
+        clearTimeout(sliderTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handlePresetSelect = (optionValue: string) => {
     // Clear any arbitrary value first
     onArbitraryChange(null);
@@ -308,92 +321,100 @@ export const ComboBoxWithSlider: React.FC<ComboBoxWithSliderProps> = ({
     }
   };
 
-  const handleSliderChange = (newValues: number[]) => {
+  const handleSliderChange = useCallback((newValues: number[]) => {
     const val = newValues[0];
 
-    if (suggestionConfig) {
-      if (suggestionConfig.mode === 'fraction') {
-        const clampedIndex = Math.round(clamp(val, suggestionConfig.min, suggestionConfig.max));
-        const keyword = suggestionConfig.values[clampedIndex];
-        setSliderValue(clampedIndex);
+    // For smooth sliding, only update local slider state immediately
+    // Defer complex logic to avoid blocking the UI thread
+    setSliderValue(val);
 
-        const matchedOption = keywordToOption.get(keyword);
-        if (matchedOption) {
-          onArbitraryChange(null);
-          Promise.resolve().then(() => onChange(matchedOption.value));
-        } else {
-          // Try to synthesize a full utility class using the first option as an example prefix
-          const firstOpt = options[0];
-          if (firstOpt && firstOpt.value && firstOpt.value.includes('{value}') === false) {
-            const exampleValue = firstOpt.value;
-            const dash = exampleValue.indexOf('-');
-            if (dash >= 0) {
-              const prefix = exampleValue.slice(0, dash + 1);
-              onArbitraryChange(null);
-              Promise.resolve().then(() => onChange(prefix + keyword));
-            } else {
-              onArbitraryChange(null);
-              Promise.resolve().then(() => onChange(keyword));
-            }
-          } else {
-            onArbitraryChange(null);
-            onChange(keyword);
-          }
-        }
-        return;
-      }
-
-      if (suggestionConfig.mode === 'numeric' && suggestionConfig.numbers) {
-        const numbers = suggestionConfig.numbers;
-        let nearestIndex = 0;
-        let bestDiff = Math.abs(val - numbers[0]);
-        for (let i = 1; i < numbers.length; i += 1) {
-          const diff = Math.abs(val - numbers[i]);
-          if (diff < bestDiff) {
-            bestDiff = diff;
-            nearestIndex = i;
-          }
-        }
-
-        const nearestNumber = numbers[nearestIndex];
-        const keyword = suggestionConfig.values[nearestIndex];
-        setSliderValue(nearestNumber);
-
-        const matchedOption = keywordToOption.get(keyword) || keywordToOption.get(String(nearestNumber));
-        if (matchedOption) {
-          onArbitraryChange(null);
-          Promise.resolve().then(() => onChange(matchedOption.value));
-        } else {
-          const firstOpt = options[0];
-          if (firstOpt && firstOpt.value && firstOpt.value.includes('{value}') === false) {
-            const exampleValue = firstOpt.value;
-            const dash = exampleValue.indexOf('-');
-            if (dash >= 0) {
-              const prefix = exampleValue.slice(0, dash + 1);
-              onArbitraryChange(null);
-              Promise.resolve().then(() => onChange(prefix + keyword));
-            } else {
-              onArbitraryChange(null);
-              Promise.resolve().then(() => onChange(keyword));
-            }
-          } else {
-            // As a last resort, apply the raw keyword as a class so the
-            // inspector reflects the change (do not set arbitrary input)
-            onArbitraryChange(null);
-            Promise.resolve().then(() => onChange(keyword));
-          }
-        }
-        return;
-      }
+    // Debounce the expensive operations
+    if (sliderTimeoutRef.current) {
+      clearTimeout(sliderTimeoutRef.current);
     }
 
-    const clamped = clamp(val, min, max);
-    setSliderValue(clamped);
-    const numericString = clamped.toString();
-    setInputValue(numericString);
-    onChange(null);
-    onArbitraryChange(numericString);
-  };
+    sliderTimeoutRef.current = setTimeout(() => {
+      if (suggestionConfig) {
+        if (suggestionConfig.mode === 'fraction') {
+          const clampedIndex = Math.round(clamp(val, suggestionConfig.min, suggestionConfig.max));
+          const keyword = suggestionConfig.values[clampedIndex];
+
+          const matchedOption = keywordToOption.get(keyword);
+          if (matchedOption) {
+            onArbitraryChange(null);
+            onChange(matchedOption.value);
+          } else {
+            // Try to synthesize a full utility class using the first option as an example prefix
+            const firstOpt = options[0];
+            if (firstOpt && firstOpt.value && firstOpt.value.includes('{value}') === false) {
+              const exampleValue = firstOpt.value;
+              const dash = exampleValue.indexOf('-');
+              if (dash >= 0) {
+                const prefix = exampleValue.slice(0, dash + 1);
+                onArbitraryChange(null);
+                onChange(prefix + keyword);
+              } else {
+                onArbitraryChange(null);
+                onChange(keyword);
+              }
+            } else {
+              onArbitraryChange(null);
+              onChange(keyword);
+            }
+          }
+          return;
+        }
+
+        if (suggestionConfig.mode === 'numeric' && suggestionConfig.numbers) {
+          const numbers = suggestionConfig.numbers;
+          let nearestIndex = 0;
+          let bestDiff = Math.abs(val - numbers[0]);
+          for (let i = 1; i < numbers.length; i += 1) {
+            const diff = Math.abs(val - numbers[i]);
+            if (diff < bestDiff) {
+              bestDiff = diff;
+              nearestIndex = i;
+            }
+          }
+
+          const nearestNumber = numbers[nearestIndex];
+          const keyword = suggestionConfig.values[nearestIndex];
+
+          const matchedOption = keywordToOption.get(keyword) || keywordToOption.get(String(nearestNumber));
+          if (matchedOption) {
+            onArbitraryChange(null);
+            onChange(matchedOption.value);
+          } else {
+            const firstOpt = options[0];
+            if (firstOpt && firstOpt.value && firstOpt.value.includes('{value}') === false) {
+              const exampleValue = firstOpt.value;
+              const dash = exampleValue.indexOf('-');
+              if (dash >= 0) {
+                const prefix = exampleValue.slice(0, dash + 1);
+                onArbitraryChange(null);
+                onChange(prefix + keyword);
+              } else {
+                onArbitraryChange(null);
+                onChange(keyword);
+              }
+            } else {
+              // As a last resort, apply the raw keyword as a class so the
+              // inspector reflects the change (do not set arbitrary input)
+              onArbitraryChange(null);
+              onChange(keyword);
+            }
+          }
+          return;
+        }
+      }
+
+      const clamped = clamp(val, min, max);
+      const numericString = clamped.toString();
+      setInputValue(numericString);
+      onChange(null);
+      onArbitraryChange(numericString);
+    }, 100); // 100ms debounce
+  }, [suggestionConfig, keywordToOption, options, onArbitraryChange, onChange, min, max]);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const val = event.target.value;
@@ -461,18 +482,29 @@ export const ComboBoxWithSlider: React.FC<ComboBoxWithSliderProps> = ({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1 flex-wrap">
-        {allOptions.map((option) => (
-          <Button
-            key={option.value}
-            variant={value === option.value ? 'default' : 'outline'}
-            size="sm"
-            className="text-xs px-2 py-1 h-auto"
-            onClick={() => handlePresetSelect(option.value)}
-            title={option.label || option.keyword}
-          >
-            <span className="font-mono">{option.label || option.keyword}</span>
-          </Button>
-        ))}
+        {allOptions.map((option) => {
+          const previewStyle = resolvedTheme ? getCssPropertiesForClass(option.value, resolvedTheme) : {};
+          // Separate font-related styles (apply to the label) from visual container styles (apply to the button)
+          const { fontSize, lineHeight, fontWeight, ...buttonPreviewStyle } = previewStyle as Record<string, string | number>;
+          const labelStyle: Record<string, string | number> = {};
+          if (fontSize) labelStyle.fontSize = fontSize;
+          if (lineHeight) labelStyle.lineHeight = lineHeight;
+          if (fontWeight) labelStyle.fontWeight = fontWeight;
+
+          return (
+            <Button
+              key={option.value}
+              variant={value === option.value ? 'default' : 'outline'}
+              size="sm"
+              className="text-xs px-2 py-1 h-auto"
+              style={buttonPreviewStyle}
+              onClick={() => handlePresetSelect(option.value)}
+              title={option.label || option.keyword}
+            >
+              <span className="font-mono" style={labelStyle}>{option.label || option.keyword}</span>
+            </Button>
+          );
+        })}
 
         {/* Clear button removed; ControlRow reset handles clearing */}
       </div>
