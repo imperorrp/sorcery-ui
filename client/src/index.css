@@ -1,3 +1,31 @@
+/**
+ * Global Stylesheet
+ *
+ * This file contains the global CSS styles for the Live Component Editor application.
+ * It includes CSS custom properties for theming, utility classes, and component-specific styles.
+ *
+ * Features:
+ * - CSS custom properties for light/dark theme support
+ * - Semantic utility mappings for theme tokens (bg-card, text-foreground, etc.)
+ * - React-resizable-panels styling with hover and active states
+ * - Monaco editor code highlighting styles
+ * - Glassmorphic panel styling for floating UI elements
+ * - Responsive design with proper color scheme support
+ *
+ * Theme Variables:
+ * - Background, foreground, and surface colors
+ * - Primary, secondary, and accent color schemes
+ * - Muted and destructive color variants
+ * - Border, input, and ring styling variables
+ * - React-resizable-panels customization variables
+ *
+ * Utility Classes:
+ * - Background color utilities (bg-background, bg-card, etc.)
+ * - Text color utilities (text-foreground, text-muted-foreground, etc.)
+ * - Border utilities (border-border)
+ * - Ring offset utilities for focus states
+ */
+
 @import "tailwindcss";
 
 @layer base {
@@ -122,4 +150,27 @@
   background-color: rgba(99, 179, 237, 0.2);
   border: 1px solid rgba(99, 179, 237, 0.5);
   border-radius: 3px;
+}
+
+/* Glassmorphic panel styling for floating elements */
+.glassmorphic-panel {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  width: 300px;
+  height: 40%;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(20, 20, 20, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px); /* For Safari */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Light mode adjustments for glassmorphic panel */
+.light .glassmorphic-panel {
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }

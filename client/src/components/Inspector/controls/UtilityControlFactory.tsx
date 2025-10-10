@@ -124,7 +124,7 @@ const SingleVariantControl: React.FC<{
 
   if (!controlDefinition) {
     return (
-      <div className="text-xs p-2 bg-red-100 rounded">
+      <div className="text-xs p-2 bg-red-100 dark:bg-red-900/50 rounded">
         No control defined for '{definition.label}'
       </div>
     );
@@ -134,7 +134,7 @@ const SingleVariantControl: React.FC<{
 
   if (!ControlComponent) {
     return (
-      <div className="text-xs p-2 bg-red-100 rounded">
+      <div className="text-xs p-2 bg-red-100 dark:bg-red-900/50 rounded">
         Control '{controlDefinition.type}' for '{definition.label}' is not yet implemented.
       </div>
     );
@@ -226,10 +226,22 @@ const SingleVariantControl: React.FC<{
 /**
  * UtilityControlFactory component - Chooses the correct control rendering strategy for a utility definition.
  *
- * It supports three scenarios:
- * - Special compound controls (e.g., BoxModelControl for margin/padding)
- * - Simple controls with a single variant
+ * This factory component dynamically creates appropriate control components based on Tailwind utility
+ * definitions. It supports multiple rendering strategies:
+ *
+ * - Special compound controls (e.g., BoxModelControl for margin/padding combinations)
+ * - Simple controls with a single variant (most common case)
  * - Multi-variant controls rendered side-by-side within a flexible layout
+ * - Theme-aware controls with resolved color palettes and configuration
+ *
+ * The component integrates with the control data hook for state management and provides
+ * consistent interfaces for all control types including sliders, color pickers, segmented controls,
+ * and specialized editors for complex properties like shadows and gradients.
+ *
+ * @param definition - The Tailwind utility definition containing control metadata
+ * @param selectedNode - The currently selected DOM node for applying changes
+ * @param modifierPrefix - Optional modifier prefix (e.g., 'hover:', 'md:') to prepend to classes
+ * @returns The rendered control component appropriate for the definition type
  */
 export const UtilityControlFactory: React.FC<UtilityControlFactoryProps> = ({
   definition,

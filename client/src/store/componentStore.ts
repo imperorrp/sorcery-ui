@@ -5,6 +5,8 @@ import { updateStylesInCode } from '@/lib/styleUpdater';
 import { updateClassNameInCode } from '@/lib/classNameUpdater';
 import { generateClassNameFromState } from '@/lib/utilityStateHelpers';
 import { defaultExample } from '@/examples/examples';
+import { renderCodeToAst } from '@/lib/renderer';
+import { examples, multiComponentExamples } from '@/examples/examples';
 
 /**
  * Component Store - Central State Management for Live Component Editor
@@ -20,6 +22,7 @@ import { defaultExample } from '@/examples/examples';
  * - selectionMode: Either 'interact' or 'select' mode for the canvas
  * - isDirty: Flag indicating whether the active component has changes that haven't been applied back to the code
  * - isCodeHighlighted: Flag to control persistent highlighting in the code editor after changes are applied
+ * - isRendering: Flag indicating whether a render operation is currently in progress
  * - examplesVersion: Incremented when example sets are loaded to notify UI
  * - lastOpenedTabId: Transient flag for tracking explicitly opened components
  *
@@ -109,6 +112,7 @@ interface ComponentState {
   selectionMode: 'interact' | 'select'; // Canvas interaction mode
   isDirty: boolean; // isDirty now refers to the active component
   isCodeHighlighted: boolean; // Controls persistent code highlighting
+  isRendering: boolean; // Flag indicating whether a render operation is in progress
   themeCss: string; // Theme CSS for CSS variables and arbitrary global styles
   tailwindConfig: string; // Tailwind configuration JavaScript string
 }
@@ -122,6 +126,7 @@ interface ComponentState {
  * - Legacy actions for backward compatibility
  * - UI state management
  * - Code and AST manipulation
+ * - Example loading and rendering
  */
 interface ComponentActions {
   // Component Library Management
@@ -133,6 +138,8 @@ interface ComponentActions {
   deleteComponent: (componentId: string) => void;
   saveActiveCodeAsNewComponent: (newName: string) => void;
   loadExampleSet: (components: Record<string, Partial<ComponentData>> | ComponentData[], activeId: string) => void;
+  loadExample: (key: string) => void;
+  renderActiveComponent: () => Promise<void>;
   
   // Legacy actions for backward compatibility (now operate on active component)
   setAst: (ast: SerializableElement | null) => void;
@@ -275,6 +282,7 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
     selectionMode: 'interact',
     isDirty: false,
     isCodeHighlighted: false,
+    isRendering: false,
   examplesVersion: 0,
   themeCss: `
 /* Paste your :root and .dark CSS variables here */
@@ -505,6 +513,62 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
   // bump examplesVersion so UIs know the examples were replaced
   examplesVersion: get().examplesVersion + 1,
       });
+    },
+
+    loadExample: (key: string) => {
+      if (multiComponentExamples[key]) {
+        const multiExample = multiComponentExamples[key];
+        get().loadExampleSet(multiExample.components, multiExample.activeId);
+        return;
+      }
+
+      const ex = examples[key as keyof typeof examples];
+      if (ex) {
+        const newId = `example-${key}`;
+        const singleComp: Partial<ComponentData> = {
+          id: newId,
+          name: key,
+          code: ex.code,
+          propsJson: ex.props ? JSON.stringify(ex.props, null, 2) : '{}',
+          dependencies: ex.dependency ? (Array.isArray(ex.dependency) ? ex.dependency : [ex.dependency]) : [],
+        };
+        get().loadExampleSet({ [newId]: singleComp }, newId);
+      }
+    },
+
+    renderActiveComponent: async () => {
+      const { activeComponentId, components } = get();
+      if (!activeComponentId) {
+        alert("No active component selected.");
+        return;
+      }
+
+      const activeComponent = components[activeComponentId];
+      const activeCode = activeComponent?.code;
+      
+      if (!activeCode) {
+        alert("Code editor is empty.");
+        return;
+      }
+
+      try {
+        set({ isRendering: true });
+        
+        const activeComponentPropsJson = activeComponent?.propsJson || '{}';
+
+        const { runtimeAst, previewAst, jsxLocation } = await renderCodeToAst(
+          activeCode,
+          components,
+          activeComponentPropsJson
+        );
+        get().setRenderOutput(activeCode, runtimeAst, previewAst, jsxLocation);
+      } catch (error: unknown) {
+        console.error('Error rendering component:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        alert(`Error: ${errorMessage}\n\nCheck the console for more details.`);
+      } finally {
+        set({ isRendering: false });
+      }
     },
 
     // Legacy actions for backward compatibility (now operate on active component)

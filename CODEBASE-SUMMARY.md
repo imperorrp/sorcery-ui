@@ -2,7 +2,7 @@
 
 This document provides a summary of the "Live Component Editor" codebase, outlining its architecture, the purpose of each major file and folder, and the core data flow.
 
-- `LibraryPanel.tsx`: **NEW (v1.2)** - Comprehensive component library management panel with full CRUD functionality (add, rename, delete, switch between components)
+- `index.css`: Global stylesheet containing CSS custom properties for theming, utility classes for theme tokens, react-resizable-panels styling, Monaco editor code highlighting, and glassmorphic panel effects with comprehensive JSDoc documentation.
 - `ComponentList.tsx`: **NEW (v1.2)** - Placeholder for future component list interface (currently unused)
 
 ## Overall Architecture
@@ -59,7 +59,7 @@ This directory contains the entire frontend React application, built with Vite. 
 #### `main.tsx` & `App.tsx`
 
 - `main.tsx`: The entry point of the application, responsible for rendering the App component into the DOM.
-- `App.tsx`: The root component. It sets up the ThemeProvider for light/dark mode and renders the main Navbar and EditorLayout.
+- `App.tsx`: The root component. It sets up the ThemeProvider for light/dark mode and renders the main Navbar and ExperimentalLayout. Includes modal dialogs for configuration panels and layout mode switching between Vibe and Experimental layouts. Includes modal dialogs for configuration panels and layout mode switching between Vibe and Experimental layouts.
 
 #### `store/`
 
@@ -70,6 +70,7 @@ This directory contains the entire frontend React application, built with Vite. 
   - `selectionMode`: Either 'interact' or 'select' mode for the canvas
   - `isDirty`: A flag indicating that visual changes have been made but not yet applied to the source code
   - `isCodeHighlighted`: A flag to control the persistent highlighting in the code editor after changes are applied
+  - `isRendering`: A flag indicating whether a render operation is currently in progress
   - `examplesVersion`: Incremented when example sets are loaded to notify UI
   - `lastOpenedTabId`: Transient flag for tracking explicitly opened components
   - For each component (`ComponentData`):
@@ -82,7 +83,7 @@ This directory contains the entire frontend React application, built with Vite. 
     - `wrapperCode`: Code for context wrapper components
     - `history`: An array of AST snapshots for undo/redo functionality
     - `historyIndex`: Current position in the history stack
-  - Key methods: `setRenderOutput` (initializes both ASTs after rendering), `updateNodeStyle` (applies style changes with proper immutable updates within set() callback), `applyAstChangesToCode` (surgical code updates), `undo`/`redo` (history management), plus multi-component management methods like `addComponent`, `setActiveComponent`, `deleteComponent`, etc.
+  - Key methods: `setRenderOutput` (initializes both ASTs after rendering), `updateNodeStyle` (applies style changes with proper immutable updates within set() callback), `applyAstChangesToCode` (surgical code updates), `undo`/`redo` (history management), `renderActiveComponent` (async rendering with error handling), plus multi-component management methods like `addComponent`, `setActiveComponent`, `deleteComponent`, etc.
 
 #### `lib/`
 
@@ -115,8 +116,8 @@ This directory contains the entire frontend React application, built with Vite. 
 
 #### `components/`
 
-- `Navbar.tsx`: Navigation bar component with theme toggle functionality and app branding.
-- `EditorLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Component Preview, Style Editor). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access, fullscreen mode with automatic panel hiding, floating dock for panel visibility controls, and enhanced layout management with persistent preferences.
+- `Navbar.tsx`: Navigation bar component with theme toggle functionality, layout controls, examples dropdown, render button, configuration panel toggle, panel visibility controls, and app branding with comprehensive JSDoc documentation.
+- `ExperimentalLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Component Preview, Style Editor). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access, fullscreen mode with automatic panel hiding, floating dock for panel visibility controls, and enhanced...
 
 ##### `Canvas/`
 
@@ -133,7 +134,7 @@ This directory contains the entire frontend React application, built with Vite. 
 
 ##### `Inspector/`
 
-- `InspectorPanel.tsx`: The right-hand panel that contains tabs for editing. It includes the Undo/Redo buttons and the master "Apply Changes" button. Features search functionality for filtering Tailwind controls and comprehensive JSDoc documentation.
+- `InspectorPanel.tsx`: The right-hand panel that contains tabs for editing. It includes the Undo/Redo buttons and the master "Apply Changes" button. Features search functionality for filtering Tailwind controls, modifier stack system for session-based change tracking, and comprehensive JSDoc documentation.
 - `inspector-config.ts`: Configuration module providing property groupings, icon mappings, color organization, and typography scales for the visual inspector. Enhances UX with structured data for control organization and visual representation with comprehensive JSDoc documentation.
 - `StyleEditor.tsx`: Displays input fields (e.g., color pickers, text inputs) to modify the CSS properties of the selected element. Changes are propagated to the Zustand store via the `updateNodeStyle` action. Includes smart component boundary detection to prevent editing child components and real-time visual feedback.
 - `PropsEditor.tsx`: Provides a textarea for the user to input a JSON object, which is then used as props for the root component during rendering.
@@ -165,7 +166,7 @@ This directory contains the entire frontend React application, built with Vite. 
 - `BoxModelControl.tsx`: Unified control for box model properties (padding, margin) with linked controls.
 - `ComboBoxWithSlider.tsx`: Combined control with dropdown presets and slider for numeric values. Supports index-based slider with label display and arbitrary input.
 - `TabbedControl.tsx`: Tabbed interface control for organizing multiple related properties.
-- `UtilityControlFactory.tsx`: Factory component that dynamically creates appropriate control components based on utility definitions. Handles different control types (slider, segmented, select, etc.) and manages state synchronization.
+- `UtilityControlFactory.tsx`: Factory component that dynamically creates appropriate control components based on utility definitions. Handles different control types (slider, segmented, select, etc.), manages state synchronization, theme integration, and special compound controls with comprehensive JSDoc documentation.
 - `TabbedControl.tsx`: Tabbed interface control for organizing multiple related properties with strategy switching.
 
 ##### `Navigator/`
@@ -181,6 +182,7 @@ This directory contains the entire frontend React application, built with Vite. 
 ##### `ui/`
 
 Contains reusable UI components built using shadcn/ui principles and Tailwind CSS:
+- `accordion.tsx`: Collapsible accordion component built on Radix UI primitives with smooth animations and accessibility features
 - `button.tsx`: Button component with various variants and sizes
 - `dropdown-menu.tsx`: Dropdown menu component
 - `input.tsx`: Input field component
@@ -202,8 +204,8 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 
 ##### `Layouts/`
 
-- `EditorLayout.tsx`: Alternative layout implementation (currently unused - main layout is in components/EditorLayout.tsx). Includes JSDoc documentation explaining its purpose and current status.
-- `EditorLayout_deprecated.tsx`: Deprecated layout implementation kept for reference, replaced by the main EditorLayout.tsx.
+- `EditorLayout.tsx`: Alternative layout implementation (currently unused - main layout is in components/ExperimentalLayout.tsx). Includes JSDoc documentation explaining its purpose and current status.
+- `EditorLayout_deprecated.tsx`: Deprecated layout implementation kept for reference, replaced by the main ExperimentalLayout.tsx.
 
 ##### `contexts/`
 

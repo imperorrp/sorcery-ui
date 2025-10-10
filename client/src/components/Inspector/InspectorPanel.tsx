@@ -39,11 +39,11 @@ interface ControlDefinition {
 
 /**
  * InspectorPanel component that provides a comprehensive tabbed interface for editing component properties.
- * 
+ *
  * This component serves as the main inspector interface for the visual editor, offering two primary tabs:
  * - Style tab: Visual styling controls for colors, fonts, layout, and other CSS properties
  * - Classes tab: Tailwind CSS class management with definition-driven controls organized in accordions
- * 
+ *
  * Key features include:
  * - Dynamic class token management with add/remove functionality
  * - Search filtering for property controls
@@ -51,12 +51,15 @@ interface ControlDefinition {
  * - Accordion-based organization of controls by category (Layout, Typography, etc.)
  * - Integration with component store for state management
  * - Support for both utility state classes and manual className modifications
- * 
+ * - Modifier stack system for responsive and state-based class prefixes
+ * - Baseline tracking for highlighting changes since last apply/selection
+ *
  * The component handles complex state management including:
  * - Selected node tracking and persistence during undo/redo operations
  * - Baseline tracking for change highlighting
  * - Dirty state management for apply changes workflow
- * 
+ * - Modifier prefix generation for complex class combinations
+ *
  * @component
  * @returns {JSX.Element} The rendered InspectorPanel component with tabbed interface
  */
@@ -420,14 +423,14 @@ export const InspectorPanel: React.FC = () => {
             </div>
             <div className="rounded-sm border bg-background/50 px-2 py-1 font-mono text-xs leading-relaxed flex flex-wrap gap-1 min-h-[34px]">
               {classTokens.length === 0 && (
-                <span className="text-muted-foreground/60">(no classes)</span>
+                <span className="text-muted-foreground">(no classes)</span>
               )}
               {classTokens.map(token => (
                 <span
                   key={token + (addedTokens.includes(token) ? '-new' : '')}
                   className={`px-1.5 py-0.5 rounded-sm border cursor-pointer select-none ${addedTokens.includes(token)
-                    ? 'bg-emerald-100/80 border-emerald-400 text-emerald-900 dark:bg-emerald-900/50 dark:text-emerald-200 dark:border-emerald-600 ring-1 ring-emerald-300/60'
-                    : 'bg-muted/40 border-transparent hover:border-border/60'} transition-colors`}
+                    ? 'bg-emerald-100/80 border-emerald-400 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200 dark:border-emerald-600 ring-1 ring-emerald-300/60'
+                    : 'bg-muted/40 border-transparent hover:border-border/60 text-foreground'} transition-colors`}
                   title={addedTokens.includes(token) ? 'New this session (not yet applied to source)' : 'Click to remove this class'}
                   onClick={() => {
                     // Confirm before removing
