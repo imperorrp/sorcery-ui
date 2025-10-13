@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useComponentStore } from '@/store/componentStore';
-import { CanvasContainer } from '../containers/CanvasContainer';
-import { CodeEditorContainer } from '../containers/CodeEditorContainer';
-import { NavigatorContainer } from '../containers/NavigatorContainer';
-import { InspectorContainer } from '../containers/InspectorContainer';
+import { CanvasContainer } from '../components/containers/CanvasContainer';
+import { CodeEditorContainer } from '../components/containers/CodeEditorContainer';
+import { NavigatorContainer } from '../components/containers/NavigatorContainer';
+import { InspectorContainer } from '../components/containers/InspectorContainer';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface VibeLayoutProps {
@@ -20,6 +20,14 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
   isNavigatorVisible,
 }) => {
   const { theme } = useTheme();
+  const [isNavigatorExpanded, setIsNavigatorExpanded] = useState(false);
+
+  /**
+   * Handle navigator expand/minimize toggle
+   */
+  const handleNavigatorToggle = () => {
+    setIsNavigatorExpanded(!isNavigatorExpanded);
+  };
 
   // Get store state and actions
   const { selectionMode, setSelectionMode, updateActiveComponentCode, undo, redo, isDirty, isCodeHighlighted, clearCodeHighlight, applyAstChangesToCode } = useComponentStore();
@@ -117,7 +125,7 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
             <AnimatePresence>
               {isNavigatorVisible && (
                 <motion.div
-                  className="glassmorphic-panel"
+                  className={isNavigatorExpanded ? "glassmorphic-panel-expanded" : "glassmorphic-panel"}
                   initial={{ opacity: 0, scale: 0.8, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -128,7 +136,10 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
                     duration: 0.3
                   }}
                 >
-                  <NavigatorContainer />
+                  <NavigatorContainer
+                    isExpanded={isNavigatorExpanded}
+                    onToggleExpanded={handleNavigatorToggle}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

@@ -15,4 +15,6 @@ Guidelines to follow:
 
 6. **Performance**: Consider the performance impact of code changes, particularly in critical areas of the application. Optimize for efficiency where possible.
 
+7. **IDE and tools**: the "&&" is not a valid token in the IDE terminal. So for example instead of cd client && npm run build, do cd client; npm run build. Use MCP tools like Context7 and Shadcn UI wherever applicable too. 
+
 By following these guidelines, AI can effectively contribute to the project and help achieve its goals.

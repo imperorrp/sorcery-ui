@@ -32,8 +32,8 @@
 
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Navbar } from './components/Navbar';
-import { ExperimentalLayout } from './components/ExperimentalLayout';
-import VibeLayout from './components/Layouts/VibeLayout';
+import { ExperimentalLayout } from './layouts/ExperimentalLayout';
+import VibeLayout from './layouts/VibeLayout';
 import { TwentyFirstToolbar } from '@21st-extension/toolbar-react';
 import { ReactPlugin } from '@21st-extension/react';
 import { useState } from 'react';

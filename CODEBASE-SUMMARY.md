@@ -59,7 +59,7 @@ This directory contains the entire frontend React application, built with Vite. 
 #### `main.tsx` & `App.tsx`
 
 - `main.tsx`: The entry point of the application, responsible for rendering the App component into the DOM.
-- `App.tsx`: The root component. It sets up the ThemeProvider for light/dark mode and renders the main Navbar and ExperimentalLayout. Includes modal dialogs for configuration panels and layout mode switching between Vibe and Experimental layouts. Includes modal dialogs for configuration panels and layout mode switching between Vibe and Experimental layouts.
+- `App.tsx`: The root component. It sets up the ThemeProvider for light/dark mode and renders the main Navbar and ExperimentalLayout. Includes modal dialogs for configuration panels and layout mode switching between Vibe and Experimental layouts. Includes modal dialogs for configuration panels and layout mode switching between Vibe and Experimental layouts. Includes modal dialogs for configuration panels and layout mode switching between Vibe and Experimental layouts.
 
 #### `store/`
 
@@ -202,10 +202,10 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 - `select.tsx`: Select dropdown component built on Radix UI primitives for choosing from options
 - `slider.tsx`: Slider component for numeric input with visual feedback and accessibility features
 
-##### `Layouts/`
+#### `layouts/`
 
-- `EditorLayout.tsx`: Alternative layout implementation (currently unused - main layout is in components/ExperimentalLayout.tsx). Includes JSDoc documentation explaining its purpose and current status.
-- `EditorLayout_deprecated.tsx`: Deprecated layout implementation kept for reference, replaced by the main ExperimentalLayout.tsx.
+- `ExperimentalLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Component Preview, Style Editor). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access, fullscreen mode with automatic panel hiding, floating dock for panel visibility controls, and enhanced...
+- `VibeLayout.tsx`: Alternative layout implementation with a floating navigator panel that can be expanded/minimized. Features a compact design with inspector sidebar and floating navigator overlay, including expand/minimize functionality for better space utilization.
 
 ##### `contexts/`
 

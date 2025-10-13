@@ -154,11 +154,36 @@
 
 /* Glassmorphic panel styling for floating elements */
 .glassmorphic-panel {
-  position: absolute;
+  /* Use fixed positioning so the panel is always relative to the viewport
+     (prevents clipping when the parent has constrained height/overflow). */
+  position: fixed;
   bottom: 1rem;
   right: 1rem;
   width: 300px;
-  height: 40%;
+  /* Use viewport units so the panel height is predictable and never extends
+     below the visible area. Allow scrolling inside the panel. */
+  height: 40vh;
+  max-height: calc(100vh - 2rem);
+  z-index: 60;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(20, 20, 20, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px); /* For Safari */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Expanded glassmorphic panel styling */
+.glassmorphic-panel-expanded {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  /* Use a responsive width but constrain it so it doesn't cover the whole screen */
+  width: min(50vw, 600px);
+  height: 90vh; /* Take most of the viewport height */
+  max-height: calc(100vh - 2rem);
+  z-index: 60;
   border-radius: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background-color: rgba(20, 20, 20, 0.5);
@@ -170,6 +195,12 @@
 
 /* Light mode adjustments for glassmorphic panel */
 .light .glassmorphic-panel {
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+}
+
+.light .glassmorphic-panel-expanded {
   background-color: rgba(255, 255, 255, 0.5);
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);

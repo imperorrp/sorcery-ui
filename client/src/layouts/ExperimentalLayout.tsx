@@ -2,11 +2,11 @@ import React from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useComponentStore } from '@/store/componentStore';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { InspectorContainer } from './containers/InspectorContainer';
-import { NavigatorContainer } from './containers/NavigatorContainer';
-import { CodeEditorContainer } from './containers/CodeEditorContainer';
-import { CanvasContainer } from './containers/CanvasContainer';
-import { ConfigurerContainer } from './containers/ConfigurerContainer';
+import { InspectorContainer } from '../components/containers/InspectorContainer';
+import { NavigatorContainer } from '../components/containers/NavigatorContainer';
+import { CodeEditorContainer } from '../components/containers/CodeEditorContainer';
+import { CanvasContainer } from '../components/containers/CanvasContainer';
+import { ConfigurerContainer } from '../components/containers/ConfigurerContainer';
 
 /**
  * Props for the ExperimentalLayout component
