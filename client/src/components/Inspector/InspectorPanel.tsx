@@ -1,8 +1,17 @@
+/**
+ * InspectorPanel Module
+ *
+ * Defines the primary inspector sidebar that powers the visual Tailwind editor.
+ * The panel orchestrates class token management, modifier stack composition, and
+ * property controls that are sourced from the Tailwind inspector definitions.
+ */
 import React, { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { SegmentedControl } from '@/components/ui/segmented-control';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { StyleEditor } from './StyleEditor';
 import { ClassNameEditor } from './ClassNameEditor';
 import { ModifierBuilder } from './ModifierBuilder';
@@ -13,6 +22,7 @@ import type { SerializableElement } from '@/store/componentStore';
 
 // Import the definitions from tailwind-inspector.json
 import tailwindInspectorDefinitions from '../../lib/definitions/tailwind-inspector.json';
+import { commonProperties, favoriteUtilityCategories, favoriteModifierTypes } from './inspector-config';
 // import { generateClassNameFromState } from '@/lib/utilityStateHelpers';
 
 interface ControlDefinition {
@@ -36,6 +46,22 @@ interface ControlDefinition {
   structuralVariants?: Array<{ label: string; template: string }>;
   docUrl?: string;
 }
+
+/** ScopeOption captures the available filter modes for modifiers and utilities. */
+type ScopeOption = 'common' | 'favorites' | 'all';
+
+/** Shared segmented control options for scope selection. */
+const scopeOptions: { value: ScopeOption; label: string }[] = [
+  { value: 'common', label: 'Common' },
+  { value: 'favorites', label: 'Favorites' },
+  { value: 'all', label: 'All' },
+];
+
+const scopeLabels: Record<ScopeOption, string> = {
+  common: 'Common',
+  favorites: 'Favorites',
+  all: 'All',
+};
 
 /**
  * InspectorPanel component that provides a comprehensive tabbed interface for editing component properties.
@@ -66,6 +92,47 @@ interface ControlDefinition {
 export const InspectorPanel: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeModifierStack, setActiveModifierStack] = useState<ModifierValue[]>([]);
+  /** Tracks which utility set (common, favorites, all) the accordion should render. */
+  const [utilityScope, setUtilityScope] = useState<ScopeOption>(
+    favoriteUtilityCategories.length > 0 ? 'favorites' : 'common'
+  );
+  /** Tracks which modifier collection the builder popover should surface. */
+  const [modifierScope, setModifierScope] = useState<ScopeOption>(
+    favoriteModifierTypes.length > 0 ? 'favorites' : 'common'
+  );
+  const hasUtilityFavorites = favoriteUtilityCategories.length > 0;
+  const hasModifierFavorites = favoriteModifierTypes.length > 0;
+
+  /** Track scroll position to conditionally show sticky header */
+  const [isScrolled, setIsScrolled] = useState(false);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const classNameSectionRef = React.useRef<HTMLDivElement>(null);
+  const modifierSectionRef = React.useRef<HTMLDivElement>(null);
+
+  // Update sticky header state when the outer scroll container scrolls
+  const handleContainerScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    setIsScrolled(el.scrollTop > 0);
+  }, []);
+
+  // Scroll handlers for interactive click-to-scroll behavior
+  const scrollToClassNameSection = React.useCallback(() => {
+    if (classNameSectionRef.current && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const target = classNameSectionRef.current;
+      const targetTop = target.offsetTop - 8; // Small offset from top
+      container.scrollTo({ top: targetTop, behavior: 'smooth' });
+    }
+  }, []);
+
+  const scrollToModifierSection = React.useCallback(() => {
+    if (modifierSectionRef.current && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const target = modifierSectionRef.current;
+      const targetTop = target.offsetTop - 8; // Small offset from top
+      container.scrollTo({ top: targetTop, behavior: 'smooth' });
+    }
+  }, []);
 
   // Get current className from the store
   const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
@@ -268,6 +335,61 @@ export const InspectorPanel: React.FC = () => {
     return displayTexts.join(':') + ':';
   }, [activeModifierStack]);
 
+  const trimmedModifierPrefix = React.useMemo(() => {
+    if (!modifierPrefix) return '';
+    return modifierPrefix.endsWith(':') ? modifierPrefix.slice(0, -1) : modifierPrefix;
+  }, [modifierPrefix]);
+
+  const classSummary = React.useMemo(() => {
+    if (classTokens.length === 0) return '(no classes)';
+    return classTokens.join(' ');
+  }, [classTokens]);
+
+  const classSummaryWithHighlight = React.useMemo(() => {
+    if (classTokens.length === 0) return { text: '(no classes)', hasNew: false };
+    
+    // Highlight new classes in green
+    const segments = classTokens.map(token => ({
+      token,
+      isNew: addedTokens.includes(token)
+    }));
+    
+    return {
+      segments,
+      hasNew: addedTokens.length > 0
+    };
+  }, [classTokens, addedTokens]);
+
+  const classTooltip = React.useMemo(() => {
+    if (classTokens.length === 0) {
+      return 'No classes applied yet.';
+    }
+    const lines = [`Classes applied (${classTokens.length}):`, classTokens.join(' ')];
+    if (addedTokens.length > 0) {
+      lines.push(`New this session: ${addedTokens.join(' ')}`);
+    }
+    lines.push('Tip: Click a class token to remove it.');
+    return lines.join('\n');
+  }, [classTokens, addedTokens]);
+
+  const classCountLabel = `${classTokens.length} ${classTokens.length === 1 ? 'class' : 'classes'}`;
+
+  const modifierSummary = trimmedModifierPrefix || '(none)';
+
+  const modifierTooltip = React.useMemo(() => {
+    if (!trimmedModifierPrefix) {
+      return 'No modifiers active. Add modifiers to prefix generated classes.';
+    }
+    const lines = [`Modifier stack (${activeModifierStack.length}):`, trimmedModifierPrefix];
+    lines.push('Modifiers prefix every new class you add.');
+    return lines.join('\n');
+  }, [trimmedModifierPrefix, activeModifierStack]);
+
+  const modifierCountLabel = `${activeModifierStack.length} ${activeModifierStack.length === 1 ? 'modifier' : 'modifiers'}`;
+
+  const utilityScopeLabel = scopeLabels[utilityScope];
+  const modifierScopeLabel = scopeLabels[modifierScope];
+
   /**
    * Adds new CSS class tokens to the currently displayed element.
    * 
@@ -297,6 +419,8 @@ export const InspectorPanel: React.FC = () => {
   }, [classTokens, displayNode, selectedNodeId, updateNodeClassName]);
 
   // Group controls by their group field and filter by search
+  const trimmedSearch = searchQuery.trim();
+
   const groupedControls = useMemo(() => {
     // Convert object to array of definitions
     const definitionsObject = tailwindInspectorDefinitions as unknown as Record<string, Omit<ControlDefinition, 'category'>>;
@@ -308,9 +432,9 @@ export const InspectorPanel: React.FC = () => {
     })) as ControlDefinition[];
 
     // Filter by search query
-    const filtered = searchQuery.trim()
+    const filtered = trimmedSearch
       ? definitionsArray.filter(definition => {
-          const query = searchQuery.toLowerCase();
+          const query = trimmedSearch.toLowerCase();
           return definition.label.toLowerCase().includes(query) ||
                  definition.description.toLowerCase().includes(query) ||
                  definition.category.toLowerCase().includes(query) ||
@@ -329,7 +453,7 @@ export const InspectorPanel: React.FC = () => {
     });
 
     return groups;
-  }, [searchQuery]);
+  }, [trimmedSearch]);
 
   // Sort groups according to the defined order
   const sortedGroups = React.useMemo(() => {
@@ -370,12 +494,55 @@ export const InspectorPanel: React.FC = () => {
     return sorted;
   }, [groupedControls]);
 
-  
+  const scopedGroups = React.useMemo(() => {
+    const scoped: Record<string, ControlDefinition[]> = {};
 
-  if (!effectiveNode) {
+    Object.entries(sortedGroups).forEach(([groupName, groupControls]) => {
+      let visibleControls = groupControls;
+
+      if (utilityScope === 'common') {
+        const allowed = (commonProperties as Record<string, readonly string[] | undefined>)[groupName] ?? [];
+        if (allowed.length > 0) {
+          const allowedSet = new Set(allowed);
+          visibleControls = groupControls.filter((control) => allowedSet.has(control.category));
+        } else {
+          visibleControls = [];
+        }
+      } else if (utilityScope === 'favorites') {
+        const allowedSet = new Set(favoriteUtilityCategories);
+        visibleControls = groupControls.filter((control) => allowedSet.has(control.category));
+      }
+
+      if (visibleControls.length > 0) {
+        scoped[groupName] = visibleControls;
+      }
+    });
+
+    return scoped;
+  }, [sortedGroups, utilityScope]);
+
+  const scopedGroupEntries = React.useMemo(() => Object.entries(scopedGroups), [scopedGroups]);
+  const hasScopedResults = scopedGroupEntries.length > 0;
+  const hasSearch = trimmedSearch.length > 0;
+
+  // Check if no element is selected (not just checking if effectiveNode exists)
+  // displayNode will be the selected node, or the last selected node during undo/redo
+  // We only show editing controls when there's an actual selection
+  const hasSelection = selectedNodeId !== null || lastSelectedNode !== null;
+
+  // Ensure initial header state matches initial scroll position when content mounts
+  React.useLayoutEffect(() => {
+    if (!hasSelection) return;
+    const container = scrollContainerRef.current;
+    if (container) {
+      setIsScrolled(container.scrollTop > 0);
+    }
+  }, [hasSelection]);
+
+  if (!hasSelection) {
     return (
       <div className="p-4 min-w-0">
-        <p className="text-sm text-muted-foreground text-center py-4">Select an element to edit its className.</p>
+        <p className="text-sm text-muted-foreground text-center py-4">Select an element to edit its properties.</p>
       </div>
     );
   }
@@ -405,148 +572,268 @@ export const InspectorPanel: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="classes" className="mt-6">
-          <div className="mb-4">
-            <p className="text-xs text-muted-foreground mb-4">
-              Apply CSS classes to selected elements using definition-driven controls.
-            </p>
-          </div>
-
-          {/* Global ClassName Input */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="classname-input" className="text-sm font-medium">Class Name</Label>
-              {addedTokens.length > 0 && (
-                <span className="text-xs text-emerald-600 dark:text-emerald-400">
-                  {addedTokens.length} new
-                </span>
-              )}
-            </div>
-            <div className="rounded-sm border bg-background/50 px-2 py-1 font-mono text-xs leading-relaxed flex flex-wrap gap-1 min-h-[34px]">
-              {classTokens.length === 0 && (
-                <span className="text-muted-foreground">(no classes)</span>
-              )}
-              {classTokens.map(token => (
-                <span
-                  key={token + (addedTokens.includes(token) ? '-new' : '')}
-                  className={`px-1.5 py-0.5 rounded-sm border cursor-pointer select-none ${addedTokens.includes(token)
-                    ? 'bg-emerald-100/80 border-emerald-400 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200 dark:border-emerald-600 ring-1 ring-emerald-300/60'
-                    : 'bg-muted/40 border-transparent hover:border-border/60 text-foreground'} transition-colors`}
-                  title={addedTokens.includes(token) ? 'New this session (not yet applied to source)' : 'Click to remove this class'}
-                  onClick={() => {
-                    // Confirm before removing
-                    const ok = window.confirm(`Remove class "${token}"?`);
-                    if (ok && displayNode) {
-                      const targetId = selectedNodeId || displayNode?.id || null;
-                      if (targetId) {
-                        // Check if this token is from utility state or manual className
-                        const utilityState = displayNode.utilityClassState || {};
-                        const utilityClasses = Object.values(utilityState).filter(Boolean);
-                        
-                        if (utilityClasses.includes(token)) {
-                          // This is a utility state class - find its category and remove it
-                          const category = Object.keys(utilityState).find(key => utilityState[key] === token);
-                          if (category) {
-                            // Use updateUtilityClass to remove it properly
-                            const { updateUtilityClass } = useComponentStore.getState();
-                            updateUtilityClass(targetId, category, null);
-                            return;
-                          }
-                        }
-                        
-                        // This is a manually added class - remove from className string
-                        const currentClassName = displayClassNameRef.current;
-                        const updatedClassName = currentClassName.split(/\s+/).filter(t => t !== token).join(' ');
-                        updateNodeClassName(targetId, updatedClassName);
-                      }
-                    }
-                  }}
-                >
-                  {token}
-                </span>
-              ))}
-              {/* Inline add-class input chip */}
-              <input
-                id="classname-input"
-                aria-label="Add class"
-                placeholder="Add class"
-                value={newToken}
-                onChange={(e) => setNewToken(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ' || e.key === 'Tab') {
-                    e.preventDefault();
-                    addTokens(newToken);
-                    setNewToken('');
-                  }
-                }}
-                onBlur={() => {
-                  if (newToken.trim()) {
-                    addTokens(newToken);
-                    setNewToken('');
-                  }
-                }}
-                className="px-1.5 py-0.5 rounded-sm border bg-transparent outline-none text-xs min-w-[90px] placeholder:text-muted-foreground/70"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Green tokens are new since last apply / selection change. Click any token to remove it.
-            </p>
-          </div>
-
-          {/* Modifiers Section */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Modifiers</Label>
-            <p className="text-xs text-muted-foreground">
-              Modifiers prefix all classes you add below. For example: hover:bg-blue-500
-            </p>
-            <ModifierStack
-              modifiers={activeModifierStack}
-              onRemoveModifier={handleRemoveModifier}
-              onUpdateModifier={handleUpdateModifier}
-              onClearAll={handleClearModifiers}
-            />
-            <ModifierBuilder
-              onAddModifier={handleAddModifier}
-              currentStack={activeModifierStack.map(m => m.name)}
-            />
-          </div>
-
-          {/* Search Bar */}
-          <div className="mb-4">
+          <TooltipProvider delayDuration={200}>
             <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search properties..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Accordion-based Controls */}
-          <div className="space-y-2">
-            <Accordion type="multiple" className="w-full">
-              {Object.entries(sortedGroups).map(([groupName, groupControls]) => (
-                <AccordionItem key={groupName} value={groupName}>
-                  <AccordionTrigger className="text-sm font-medium hover:no-underline">
-                    {groupName} ({groupControls.length})
-                  </AccordionTrigger>
-                  <AccordionContent className="max-h-96 overflow-y-auto px-1 pb-1">
+              <div 
+                className="max-h-[calc(100vh-200px)] overflow-y-auto overflow-x-hidden px-4 pr-2" 
+                ref={scrollContainerRef}
+                onScroll={handleContainerScroll}
+              >
+                {isScrolled && (
+                  <div className="sticky top-0 z-20 border-b border-border bg-background px-1 py-0.5 shadow-sm">
                     <div className="flex flex-col gap-0.5">
-                      {displayNode && groupControls.map((definition) => (
-                        <ClassNameEditor
-                          key={definition.category}
-                          definition={definition}
-                          selectedNode={displayNode}
-                          modifierPrefix={modifierPrefix}
-                        />
-                      ))}
+                      <div className="flex flex-wrap items-center justify-between text-[10px] sm:text-[11px] uppercase tracking-wide text-muted-foreground">
+                        <span>Overview</span>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className="flex items-center gap-0.5">
+                            <span className="text-muted-foreground/80 text-[10px] sm:text-[11px]">Utilities</span>
+                            <span className="rounded-sm bg-muted px-1 py-0.5 text-[10px] sm:text-[11px] font-semibold text-foreground">{utilityScopeLabel}</span>
+                          </span>
+                          <span className="flex items-center gap-0.5">
+                            <span className="text-muted-foreground/80 text-[10px] sm:text-[11px]">Modifiers</span>
+                            <span className="rounded-sm bg-muted px-1 py-0.5 text-[10px] sm:text-[11px] font-semibold text-foreground">{modifierScopeLabel}</span>
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-0.5 text-xs">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={scrollToClassNameSection}
+                              className="flex items-center gap-1 truncate text-left transition-colors hover:text-foreground"
+                              title={classTooltip}
+                            >
+                              <span className="text-muted-foreground">Classes</span>
+                              <span className="flex flex-1 items-center gap-0.5 truncate font-mono">
+                                {classSummaryWithHighlight.segments ? (
+                                  classSummaryWithHighlight.segments.map((seg, idx) => (
+                                    <span
+                                      key={`${seg.token}-${idx}`}
+                                      className={seg.isNew 
+                                        ? 'bg-emerald-100/60 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 px-1 rounded-sm font-medium' 
+                                        : 'text-foreground'
+                                      }
+                                    >
+                                      {seg.token}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span className="text-muted-foreground">{classSummary}</span>
+                                )}
+                              </span>
+                              <span className="whitespace-nowrap text-[10px] sm:text-[11px] text-muted-foreground/80 underline decoration-dashed underline-offset-2">
+                                {classCountLabel}
+                              </span>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent align="start" className="max-w-sm whitespace-pre-wrap break-words font-mono text-[11px]">
+                            {classTooltip}
+                          </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={scrollToModifierSection}
+                              className="flex items-center gap-1 truncate text-left transition-colors hover:text-foreground"
+                              title={modifierTooltip}
+                            >
+                              <span className="text-muted-foreground">Stack</span>
+                              <span className={`flex-1 truncate font-mono ${trimmedModifierPrefix ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                {modifierSummary}
+                              </span>
+                              <span className="whitespace-nowrap text-[10px] sm:text-[11px] text-muted-foreground/80 underline decoration-dashed underline-offset-2">
+                                {modifierCountLabel}
+                              </span>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent align="start" className="max-w-sm whitespace-pre-wrap break-words font-mono text-[11px]">
+                            {modifierTooltip}
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Apply CSS classes to selected elements using definition-driven controls.
+                  </p>
+                </div>
+
+                <div className="space-y-2" ref={classNameSectionRef}>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="classname-input" className="text-sm font-medium">Class Name</Label>
+                    {addedTokens.length > 0 && (
+                      <span className="text-xs text-emerald-600 dark:text-emerald-400">
+                        {addedTokens.length} new
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex min-h-[34px] flex-wrap gap-1 rounded-sm border bg-background/50 px-2 py-1 font-mono text-xs leading-relaxed">
+                    {classTokens.length === 0 && (
+                      <span className="text-muted-foreground">(no classes)</span>
+                    )}
+                    {classTokens.map(token => (
+                      <span
+                        key={token + (addedTokens.includes(token) ? '-new' : '')}
+                        className={`px-1.5 py-0.5 rounded-sm border cursor-pointer select-none transition-all duration-200 ${
+                          addedTokens.includes(token)
+                            ? 'bg-emerald-100/90 border-emerald-400/80 text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-200 dark:border-emerald-600/80 shadow-sm shadow-emerald-200/50 dark:shadow-emerald-900/30 ring-1 ring-emerald-300/40 animate-pulse'
+                            : 'bg-muted/40 border-transparent hover:border-border/60 text-foreground hover:bg-muted/60'
+                        }`}
+                        title={addedTokens.includes(token) ? 'New this session (not yet applied to source)' : 'Click to remove this class'}
+                        onClick={() => {
+                          const ok = window.confirm(`Remove class "${token}"?`);
+                          if (ok && displayNode) {
+                            const targetId = selectedNodeId || displayNode?.id || null;
+                            if (targetId) {
+                              const utilityState = displayNode.utilityClassState || {};
+                              const utilityClasses = Object.values(utilityState).filter(Boolean);
+
+                              if (utilityClasses.includes(token)) {
+                                const category = Object.keys(utilityState).find(key => utilityState[key] === token);
+                                if (category) {
+                                  const { updateUtilityClass } = useComponentStore.getState();
+                                  updateUtilityClass(targetId, category, null);
+                                  return;
+                                }
+                              }
+
+                              const currentClassName = displayClassNameRef.current;
+                              const updatedClassName = currentClassName.split(/\s+/).filter(t => t !== token).join(' ');
+                              updateNodeClassName(targetId, updatedClassName);
+                            }
+                          }
+                        }}
+                      >
+                        {token}
+                      </span>
+                    ))}
+                    <input
+                      id="classname-input"
+                      aria-label="Add class"
+                      placeholder="Add class"
+                      value={newToken}
+                      onChange={(e) => setNewToken(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Tab') {
+                          e.preventDefault();
+                          addTokens(newToken);
+                          setNewToken('');
+                        }
+                      }}
+                      onBlur={() => {
+                        if (newToken.trim()) {
+                          addTokens(newToken);
+                          setNewToken('');
+                        }
+                      }}
+                      className="min-w-[90px] rounded-sm border bg-transparent px-1.5 py-0.5 text-xs outline-none placeholder:text-muted-foreground/70"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Green tokens are new since last apply or selection change. Click any token to remove it.
+                  </p>
+                </div>
+
+                <div className="space-y-2" ref={modifierSectionRef}>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm font-medium">Modifier Stack</Label>
+                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground/80">Scope</span>
+                    </div>
+                    <SegmentedControl
+                      value={modifierScope}
+                      onValueChange={(value) => setModifierScope(value as ScopeOption)}
+                      options={scopeOptions}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Modifiers prefix all classes you add below. For example: hover:bg-blue-500
+                  </p>
+                  <ModifierStack
+                    modifiers={activeModifierStack}
+                    onRemoveModifier={handleRemoveModifier}
+                    onUpdateModifier={handleUpdateModifier}
+                    onClearAll={handleClearModifiers}
+                  />
+                  <ModifierBuilder
+                    onAddModifier={handleAddModifier}
+                    currentStack={activeModifierStack.map(m => m.name)}
+                    scope={modifierScope}
+                  />
+                  {modifierScope === 'favorites' && !hasModifierFavorites && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Favorites surface here once you mark modifier groups in a future update.
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <Label htmlFor="property-search" className="text-sm font-medium">Utilities</Label>
+                    <SegmentedControl
+                      value={utilityScope}
+                      onValueChange={(value) => setUtilityScope(value as ScopeOption)}
+                      options={scopeOptions}
+                    />
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="property-search"
+                      placeholder="Search properties..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-8 text-sm"
+                    />
+                  </div>
+                  {!hasUtilityFavorites && utilityScope === 'favorites' && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Favorites scope is empty until you promote utilities from the accordion.
+                    </p>
+                  )}
+                </div>
+
+                {!hasScopedResults ? (
+                  <div className="rounded-md border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
+                    {utilityScope === 'favorites' && !hasUtilityFavorites
+                      ? 'Mark utilities as favorites to see them here.'
+                      : hasSearch
+                        ? `No properties match "${trimmedSearch}" in this scope.`
+                        : 'No properties to show for this scope yet.'}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Accordion type="multiple" className="w-full">
+                      {scopedGroupEntries.map(([groupName, groupControls]) => (
+                        <AccordionItem key={groupName} value={groupName}>
+                          <AccordionTrigger className="text-sm font-medium hover:no-underline">
+                            {groupName} ({groupControls.length})
+                          </AccordionTrigger>
+                          <AccordionContent className="px-1 pb-1">
+                            <div className="flex flex-col gap-0.5">
+                              {displayNode && groupControls.map((definition) => (
+                                <ClassNameEditor
+                                  key={definition.category}
+                                  definition={definition}
+                                  selectedNode={displayNode}
+                                  modifierPrefix={modifierPrefix}
+                                />
+                              ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </div>
+                )}
+                </div>
+              </div>
+            </div>
+          </TooltipProvider>
         </TabsContent>
       </Tabs>
     </div>

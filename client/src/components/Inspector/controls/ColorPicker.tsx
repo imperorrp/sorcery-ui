@@ -21,11 +21,33 @@ interface ColorPickerProps {
 }
 
 /**
- * ColorPicker component for intuitive color selection in the visual editor.
+ * ColorPicker Component - Advanced color selection interface for Tailwind utilities
  *
- * This is a "dumb" presentational component. It receives keyword options and color swatches
- * and is responsible for rendering the UI and reporting user selections. All theme-aware
- * logic is handled by its parent.
+ * This component provides a comprehensive color selection interface that combines
+ * keyword options (transparent, current, inherit), color swatches from theme palettes,
+ * opacity controls, and arbitrary value input. It supports different preview modes
+ * for various CSS properties (background, text, border, etc.).
+ *
+ * Features:
+ * - Keyword color options for semantic values
+ * - Collapsible color swatch grid with theme-aware colors
+ * - Opacity slider with Tailwind-compatible increments
+ * - Arbitrary color input for custom values
+ * - Multiple preview modes for different CSS properties
+ * - Smart collapse behavior for large color palettes
+ *
+ * @param {Array<{value: string, label: string}>} options - Keyword color options (transparent, current, etc.)
+ * @param {ColorOption[]} colors - Color swatches from theme palettes
+ * @param {string | null} value - Currently selected color value
+ * @param {function} onChange - Callback when a preset color is selected
+ * @param {function} onArbitraryChange - Callback for arbitrary color input
+ * @param {boolean} supportsArbitrary - Whether arbitrary color input is enabled
+ * @param {string} previewKind - Preview mode: 'text', 'background', 'border', 'outline', 'caret'
+ * @param {string} placeholder - Placeholder text for arbitrary input field
+ * @param {string} swatchTemplate - Template for building full utility classes (e.g., 'bg-{value}')
+ * @param {number | null} currentOpacity - Current opacity value (0-100)
+ * @param {function} onOpacityChange - Callback when opacity changes
+ * @returns {JSX.Element} The ColorPicker component
  */
 export const ColorPicker: React.FC<ColorPickerProps> = ({
   options,
@@ -42,6 +64,15 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
 }) => {
   // ...existing code...
   const [customValue, setCustomValue] = useState('');
+  const [showAllColors, setShowAllColors] = useState(false);
+  const collapseThreshold = 35;
+  const shouldCollapse = colors.length > collapseThreshold;
+  const visibleColors = shouldCollapse && !showAllColors ? colors.slice(0, collapseThreshold) : colors;
+  const remainingColorCount = Math.max(colors.length - collapseThreshold, 0);
+
+  React.useEffect(() => {
+    setShowAllColors(false);
+  }, [colors]);
 
   React.useEffect(() => {
     setCustomValue('');
@@ -82,10 +113,21 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
           // full utility class when provided a swatchTemplate; just forward it.
           onChange(val || null);
         }}
-        colors={colors}
+        colors={visibleColors}
         previewKind={previewKind}
         swatchTemplate={swatchTemplate}
       />
+
+      {shouldCollapse && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowAllColors((prev) => !prev)}
+          className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+        >
+          {showAllColors ? 'Show fewer colors' : `Show ${remainingColorCount} more`}
+        </Button>
+      )}
 
       {/* Opacity slider */}
       {(value || currentOpacity !== null) && onOpacityChange && (

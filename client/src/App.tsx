@@ -34,8 +34,6 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Navbar } from './components/Navbar';
 import { ExperimentalLayout } from './layouts/ExperimentalLayout';
 import VibeLayout from './layouts/VibeLayout';
-import { TwentyFirstToolbar } from '@21st-extension/toolbar-react';
-import { ReactPlugin } from '@21st-extension/react';
 import { useState } from 'react';
 import { examples, multiComponentExamples } from './examples/examples';
 import { useComponentStore } from './store/componentStore';
@@ -79,7 +77,6 @@ function App() {
 
   return (
     <ThemeProvider>
-      <TwentyFirstToolbar config={{ plugins: [ReactPlugin] }} />
       <div className="h-screen overflow-hidden flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors">
         <Navbar
           layoutMode={layoutMode}

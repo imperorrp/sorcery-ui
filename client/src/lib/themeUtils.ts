@@ -1,5 +1,14 @@
+/**
+ * Theme Utility Helpers
+ *
+ * Centralized helpers for parsing, resolving, and working with Tailwind theme
+ * configuration in the visual inspector. Functions in this module transform
+ * the user-provided Tailwind config into rich data structures that power live
+ * previews, color pickers, and control suggestions.
+ */
 import { defaultTailwindTheme } from './default-tailwind-theme';
 import type { ColorOption } from '@/lib/colorConstants';
+import type { CSSProperties } from 'react';
 
 function safeParseJsObject(jsString: string): unknown {
   if (!jsString.trim()) return null;
@@ -13,6 +22,10 @@ function safeParseJsObject(jsString: string): unknown {
 
 /**
  * Deep merges two objects. The second object (extend) takes precedence.
+ *
+ * @param target - Base object that will receive properties
+ * @param source - Object whose properties should override the base
+ * @returns A new object containing merged properties
  */
 function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
   const result = { ...target };
@@ -29,6 +42,9 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
 /**
  * Resolves the user's Tailwind config string into a complete theme object.
  * Handles theme.extend by deeply merging with defaults, or wholesale replacement if no extend.
+ *
+ * @param configString - Stringified Tailwind configuration provided by the user
+ * @returns A fully resolved theme object ready for runtime lookup
  */
 export function resolveTheme(configString: string): Record<string, unknown> {
   const userConfig = safeParseJsObject(configString);
@@ -56,6 +72,9 @@ export function resolveTheme(configString: string): Record<string, unknown> {
 /**
  * Flattens a nested theme object into a single-level object with dot-notation keys.
  * E.g., { red: { 500: '#ef4444' } } -> { 'red.500': '#ef4444' }
+ *
+ * @param themeObject - Nested theme object to flatten
+ * @returns A record with dot-notated keys
  */
 export function flattenThemeObject(themeObject: Record<string, unknown>): Record<string, unknown> {
   const flattened: Record<string, unknown> = {};
@@ -84,6 +103,9 @@ export function resolveThemeColors(tailwindConfig: string): Record<string, unkno
 /**
  * Converts a resolved Tailwind color palette into ColorOption[] format for the ColorPicker.
  * Handles nested color objects by flattening them first.
+ *
+ * @param themeColors - The `colors` section of a Tailwind theme
+ * @returns Structured color options used by color pickers
  */
 export function convertThemeColorsToOptions(themeColors: Record<string, unknown>): ColorOption[] {
   const flattenedColors = flattenThemeObject(themeColors);
@@ -106,17 +128,32 @@ export function convertThemeColorsToOptions(themeColors: Record<string, unknown>
 }
 
 /**
+ * Removes Tailwind variant prefixes (e.g., sm:, hover:) from a utility class so the
+ * base utility can be detected reliably for preview logic.
+ *
+ * @param className - Utility class that may include variant prefixes
+ * @returns The base utility class with prefixes stripped
+ */
+export function stripVariantPrefixes(className: string): string {
+  if (!className) {
+    return className;
+  }
+  const parts = className.split(':');
+  return parts[parts.length - 1];
+}
+
+/**
  * Maps a Tailwind utility class to CSS properties for live preview in UI controls.
+ *
  * @param className - The Tailwind class name (e.g., 'text-lg', 'font-bold', 'rounded-lg', 'shadow-xl')
  * @param resolvedTheme - The fully resolved theme object
- * @returns CSS properties object for styling the preview, or empty object if not supported
+ * @returns CSS properties object for styling preview elements, or an empty object when unsupported
  */
-export function getCssPropertiesForClass(className: string, resolvedTheme: Record<string, unknown>): Record<string, string> {
-  // Normalize className by removing any variant prefixes (e.g., 'sm:', 'hover:')
-  const baseClass = className && className.includes(':') ? className.slice(className.lastIndexOf(':') + 1) : className;
+export function getCssForClass(className: string, resolvedTheme: Record<string, unknown>): CSSProperties {
+  const baseClass = stripVariantPrefixes(className);
 
   // Ignore template/arbitrary tokens like '{value}' or '[1rem]' which aren't real utilities
-  if (baseClass.includes('{') || baseClass.includes('[')) return {};
+  if (!baseClass || baseClass.includes('{') || baseClass.includes('[')) return {};
 
   // Handle different utility types
   if (baseClass.startsWith('text-')) {
@@ -126,10 +163,10 @@ export function getCssPropertiesForClass(className: string, resolvedTheme: Recor
       if (Array.isArray(fontSizeValue)) {
         // Handle [size, {lineHeight}] format
         const [fontSize, options] = fontSizeValue;
-        return {
-          fontSize: fontSize as string,
-          lineHeight: (options as Record<string, unknown>)?.lineHeight as string,
-        };
+        const css: CSSProperties = { fontSize: fontSize as string };
+        const lineHeight = (options as Record<string, unknown>)?.lineHeight as string | undefined;
+        if (lineHeight) css.lineHeight = lineHeight;
+        return css;
       } else if (typeof fontSizeValue === 'string') {
         return { fontSize: fontSizeValue };
       }
@@ -147,8 +184,8 @@ export function getCssPropertiesForClass(className: string, resolvedTheme: Recor
       return { borderRadius: borderRadiusValue as string };
     }
   } else if (baseClass.startsWith('leading-')) {
-    const height = baseClass.replace('leading-', '');
-    const lineHeightValue = (resolvedTheme.lineHeight as Record<string, unknown>)?.[height];
+    const leading = baseClass.replace('leading-', '');
+    const lineHeightValue = (resolvedTheme.lineHeight as Record<string, unknown>)?.[leading];
     if (lineHeightValue) {
       return { lineHeight: lineHeightValue as string };
     }
@@ -158,17 +195,42 @@ export function getCssPropertiesForClass(className: string, resolvedTheme: Recor
     if (letterSpacingValue) {
       return { letterSpacing: letterSpacingValue as string };
     }
+
   } else if (baseClass.startsWith('w-')) {
     const width = baseClass.replace('w-', '');
     const widthValue = (resolvedTheme.width as Record<string, unknown>)?.[width];
     if (widthValue) {
       return { width: widthValue as string };
     }
+  } else if (baseClass.startsWith('min-w-')) {
+    const minWidth = baseClass.replace('min-w-', '');
+    const minWidthValue = (resolvedTheme.minWidth as Record<string, unknown>)?.[minWidth];
+    if (minWidthValue) {
+      return { minWidth: minWidthValue as string };
+    }
+  } else if (baseClass.startsWith('max-w-')) {
+    const maxWidth = baseClass.replace('max-w-', '');
+    const maxWidthValue = (resolvedTheme.maxWidth as Record<string, unknown>)?.[maxWidth];
+    if (maxWidthValue) {
+      return { maxWidth: maxWidthValue as string };
+    }
   } else if (baseClass.startsWith('h-')) {
     const height = baseClass.replace('h-', '');
     const heightValue = (resolvedTheme.height as Record<string, unknown>)?.[height];
     if (heightValue) {
       return { height: heightValue as string };
+    }
+  } else if (baseClass.startsWith('min-h-')) {
+    const minHeight = baseClass.replace('min-h-', '');
+    const minHeightValue = (resolvedTheme.minHeight as Record<string, unknown>)?.[minHeight];
+    if (minHeightValue) {
+      return { minHeight: minHeightValue as string };
+    }
+  } else if (baseClass.startsWith('max-h-')) {
+    const maxHeight = baseClass.replace('max-h-', '');
+    const maxHeightValue = (resolvedTheme.maxHeight as Record<string, unknown>)?.[maxHeight];
+    if (maxHeightValue) {
+      return { maxHeight: maxHeightValue as string };
     }
   } else if (baseClass.startsWith('border-') && !baseClass.includes('-')) {
     // Simple border width like 'border', 'border-2'
@@ -181,3 +243,4 @@ export function getCssPropertiesForClass(className: string, resolvedTheme: Recor
 
   return {};
 }
+

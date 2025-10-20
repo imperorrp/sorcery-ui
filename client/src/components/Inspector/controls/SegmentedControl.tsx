@@ -1,8 +1,9 @@
 import React from 'react';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { useControlData } from '@/hooks/useControlData';
-import { getCssPropertiesForClass } from '@/lib/themeUtils';
+import { getCssForClass, stripVariantPrefixes } from '@/lib/themeUtils';
 import type { SerializableElement } from '@/store/componentStore';
+import { segmentedControlIconMap } from '../inspector-config';
 
 interface SmartSegmentedControlProps {
   // For backward compatibility (TabbedControl usage)
@@ -112,16 +113,24 @@ export const SmartSegmentedControl: React.FC<SmartSegmentedControlProps> = ({
 
   // Compute preview styles for options
   const optionStyles = resolvedTheme ? controlOptions.map(option => {
-    const previewStyle = getCssPropertiesForClass(option.value, resolvedTheme);
-    // For segmented control, apply all styles to the button, as they are visual
+    const previewStyle = getCssForClass(option.value, resolvedTheme);
     return previewStyle as React.CSSProperties;
   }) : undefined;
+
+  const optionsWithIcons = controlOptions.map((option) => {
+    const baseClass = stripVariantPrefixes(option.value);
+    const IconComponent = segmentedControlIconMap[baseClass];
+    return {
+      ...option,
+      icon: IconComponent ? <IconComponent className="h-3.5 w-3.5" /> : undefined,
+    };
+  });
 
   return (
     <SegmentedControl
       value={currentValue || undefined}
       onValueChange={handleValueChange}
-      options={controlOptions}
+      options={optionsWithIcons}
       className="w-full"
       optionStyles={optionStyles}
     />

@@ -47,8 +47,9 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
           size={size}
           className={cn(
             "flex-1 rounded-sm px-3 py-1.5 text-xs font-medium transition-all",
-            "hover:bg-accent hover:text-accent-foreground",
-            value === option.value && "bg-accent text-accent-foreground shadow-sm",
+            "border border-transparent hover:border-border/70",
+            "hover:bg-muted/70 hover:text-foreground",
+            value === option.value && "bg-primary text-primary-foreground shadow-sm border-primary",
             index === 0 && "rounded-l-md",
             index === options.length - 1 && "rounded-r-md",
             index > 0 && index < options.length - 1 && "rounded-none border-x-0"

@@ -69,6 +69,8 @@ export const ModifierStack: React.FC<ModifierStackProps> = ({
     return modifier.name;
   };
 
+  const appliedPrefix = modifiers.length > 0 ? `${modifiers.map(getDisplayText).join(':')}:` : 'none';
+
   const getPlaceholder = (modifier: ModifierValue) => {
     if (modifier.requires) {
       switch (modifier.requires.toLowerCase()) {
@@ -98,15 +100,15 @@ export const ModifierStack: React.FC<ModifierStackProps> = ({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">Active:</span>
+        <span className="text-[11px] font-medium text-muted-foreground">Active modifiers</span>
         {modifiers.length > 1 && (
           <Button
             variant="ghost"
             size="sm"
             onClick={onClearAll}
-            className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+            className="h-5 px-2 text-[11px] text-muted-foreground hover:text-foreground"
           >
             Clear All
           </Button>
@@ -118,14 +120,14 @@ export const ModifierStack: React.FC<ModifierStackProps> = ({
           <div key={`${modifier.name}-${index}`}>
             {editingIndex === index ? (
               <div className="flex items-center gap-1 px-2 py-1 rounded-md border bg-background">
-                <span className="text-xs font-mono text-muted-foreground">
+                <span className="text-[11px] font-mono text-muted-foreground">
                   {modifier.name.split('[')[0]}
                 </span>
                 <Input
                   value={editValue}
                   onChange={(e) => setEditValue(e.target.value)}
                   placeholder={getPlaceholder(modifier)}
-                  className="h-6 w-24 text-xs"
+                  className="h-5 w-24 text-[11px]"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handleSaveEdit();
                     if (e.key === 'Escape') handleCancelEdit();
@@ -133,12 +135,12 @@ export const ModifierStack: React.FC<ModifierStackProps> = ({
                   onBlur={handleSaveEdit}
                   autoFocus
                 />
-                <span className="text-xs font-mono text-muted-foreground">
+                <span className="text-[11px] font-mono text-muted-foreground">
                   {modifier.name.includes(']') ? modifier.name.split(']')[1] : ''}
                 </span>
               </div>
             ) : (
-              <span className="flex items-center gap-1 px-2 py-1 rounded-md border bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200 text-xs font-mono">
+              <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md border bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200 text-[11px] font-mono">
                 <span 
                   className={modifier.requires && !modifier.value ? 'cursor-pointer underline' : ''}
                   onClick={() => modifier.requires && handleStartEdit(index, modifier.value)}
@@ -164,10 +166,10 @@ export const ModifierStack: React.FC<ModifierStackProps> = ({
         ))}
       </div>
 
-      <div className="text-xs text-muted-foreground">
-        Prefix applied: 
-        <code className="font-mono bg-muted px-1.5 py-0.5 rounded text-xs ml-1">
-          {modifiers.map(getDisplayText).join(':')}:
+      <div className="text-[10px] text-muted-foreground">
+        Prefix applied:
+        <code className="font-mono bg-muted px-1.5 py-0.5 rounded text-[10px] ml-1">
+          {appliedPrefix}
         </code>
       </div>
     </div>

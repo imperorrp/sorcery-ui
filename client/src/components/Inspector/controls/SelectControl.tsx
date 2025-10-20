@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { getCssForClass, stripVariantPrefixes } from '@/lib/themeUtils';
+import { segmentedControlIconMap } from '../inspector-config';
 
 const extractKeyword = (value: string): string => {
   if (!value) return '';
@@ -21,6 +25,7 @@ interface SelectControlProps {
   onArbitraryChange?: (value: string | null) => void;
   supportsArbitrary?: boolean;
   placeholder?: string;
+  resolvedTheme?: Record<string, unknown>;
 }
 
 /**
@@ -59,7 +64,8 @@ export const SelectControl: React.FC<SelectControlProps> = ({
   arbitraryValue,
   onArbitraryChange,
   supportsArbitrary = false,
-  placeholder = "Custom value..."
+  placeholder = "Custom value...",
+  resolvedTheme,
 }) => {
   const [customValue, setCustomValue] = useState(arbitraryValue || '');
 
@@ -104,18 +110,92 @@ export const SelectControl: React.FC<SelectControlProps> = ({
     <div className="space-y-2">
       {/* All Options */}
       <div className="flex items-center gap-1 flex-wrap">
-        {allOptions.map((option) => (
-          <Button
-            key={option.value}
-            variant={value === option.value ? "default" : "outline"}
-            size="sm"
-            className="text-xs px-2 py-1 h-auto"
-            onClick={() => handlePresetClick(option.value)}
-            title={option.label !== option.keyword ? option.label : undefined}
-          >
-                              <span className="font-mono">{option.label}</span>
-          </Button>
-        ))}
+        {allOptions.map((option) => {
+          const baseClass = stripVariantPrefixes(option.value);
+          const previewStyle = resolvedTheme ? getCssForClass(baseClass, resolvedTheme) : {};
+          const {
+            fontSize,
+            lineHeight,
+            fontWeight,
+            width: previewWidth,
+            minWidth,
+            maxWidth,
+            height: previewHeight,
+            minHeight,
+            maxHeight,
+            ...buttonPreviewStyle
+          } = previewStyle as CSSProperties;
+
+          const labelStyle: CSSProperties = {};
+          if (fontSize) labelStyle.fontSize = fontSize;
+          if (lineHeight) labelStyle.lineHeight = lineHeight;
+          if (fontWeight) labelStyle.fontWeight = fontWeight;
+
+          const IconComponent = segmentedControlIconMap[baseClass];
+          const iconNode = IconComponent ? <IconComponent className="h-3.5 w-3.5" /> : null;
+
+          const applyUtilityClass = baseClass.startsWith('rounded') || baseClass.startsWith('shadow');
+          const buttonClassName = cn(
+            'text-xs px-2 py-1 h-auto flex items-center gap-2 transition-colors',
+            applyUtilityClass && baseClass
+          );
+
+          const displayLabel = option.label || option.keyword;
+
+          const isBorderColor = baseClass.startsWith('border-') && baseClass.split('-').length >= 3;
+          const isWidthUtility = baseClass.startsWith('w-');
+          const isHeightUtility = baseClass.startsWith('h-');
+
+          const borderPreview = isBorderColor ? (
+            <span className={cn('inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-sm border-2 bg-background', baseClass)} />
+          ) : null;
+
+          const resolvedWidth = previewWidth || maxWidth || minWidth;
+          const widthPreview = isWidthUtility ? (
+            <div className="flex flex-1 items-center overflow-hidden">
+              <div
+                className={cn(
+                  'mx-1 h-1 rounded-full bg-primary/70 transition-all duration-150 ease-out',
+                  typeof resolvedWidth === 'string' ? undefined : baseClass
+                )}
+                style={{ width: typeof resolvedWidth === 'string' ? resolvedWidth : undefined, maxWidth: '100%' }}
+              />
+            </div>
+          ) : null;
+
+          const resolvedHeight = previewHeight || maxHeight || minHeight;
+          const heightPreview = isHeightUtility ? (
+            <div className="flex h-6 w-6 items-end justify-center overflow-hidden">
+              <div
+                className={cn(
+                  'w-1 rounded-full bg-primary/70 transition-all duration-150 ease-out',
+                  typeof resolvedHeight === 'string' ? undefined : baseClass
+                )}
+                style={{ height: typeof resolvedHeight === 'string' ? resolvedHeight : undefined, maxHeight: '32px' }}
+              />
+            </div>
+          ) : null;
+
+          return (
+            <Button
+              key={option.value}
+              variant={value === option.value ? 'default' : 'outline'}
+              size="sm"
+              className={buttonClassName}
+              style={buttonPreviewStyle}
+              onClick={() => handlePresetClick(option.value)}
+              title={option.label !== option.keyword ? option.label : undefined}
+            >
+              {iconNode}
+              {borderPreview}
+              {widthPreview}
+              {heightPreview}
+              <span className="font-mono" style={labelStyle}>
+                {displayLabel}
+              </span>
+            </Button>
+          );
+        })}
 
         {/* Clear/None Button */}
         {value && (

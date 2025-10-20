@@ -19,15 +19,88 @@
  * Each key represents an accordion group name, and the corresponding array contains
  * the property categories that should be shown in that group by default.
  */
+import type { LucideIcon } from 'lucide-react';
+import {
+  AlignCenter,
+  AlignJustify,
+  AlignLeft,
+  AlignRight,
+  ArrowDown,
+  ArrowDownUp,
+  ArrowLeftRight,
+  ArrowUp,
+  ArrowUpDown,
+} from 'lucide-react';
+
+/**
+ * Favorite Modifiers Placeholder
+ *
+ * Users will be able to populate this collection from the UI in a future iteration.
+ * The inspector currently exposes a Favorites scope that renders an empty state
+ * when these arrays are empty.
+ */
+export const favoriteModifierTypes: readonly string[] = [];
+
+/**
+ * Common Modifiers Configuration
+ *
+ * Defines the baseline modifier types that should surface in the common scope.
+ */
+export const commonModifierTypes = ['State', 'Breakpoint', 'Dark Mode'] as const;
+
+/**
+ * Favorite Properties Placeholder
+ *
+ * Utilities will be surfaced here once the favorites feature is implemented.
+ */
+export const favoriteUtilityCategories: readonly string[] = [];
+
 export const commonProperties = {
-  'Layout': ['display', 'position', 'zIndex'],
-  'Flexbox & Grid': ['flexDirection', 'alignItems', 'justifyContent', 'gap'],
-  'Spacing': ['padding', 'margin'],
-  'Sizing': ['width', 'height'],
-  'Typography': ['fontSize', 'fontWeight', 'color', 'textAlign'],
-  'Backgrounds': ['backgroundColor'],
-  'Borders': ['borderRadius', 'borderWidth', 'borderColor'],
-  'Effects': ['boxShadow', 'opacity'],
+  'Layout': ['display', 'position', 'zIndex'] as const,
+  'Flexbox & Grid': ['flexDirection', 'alignItems', 'justifyContent', 'gap'] as const,
+  'Spacing': ['padding', 'margin'] as const,
+  'Sizing': ['width', 'height'] as const,
+  'Typography': ['fontSize', 'fontWeight', 'textColor', 'textAlign'] as const,
+  'Backgrounds': ['backgroundColor'] as const,
+  'Borders': ['borderRadius', 'borderWidth', 'borderColor'] as const,
+  'Effects': ['boxShadow', 'opacity'] as const,
+} as const;
+
+/**
+ * Segmented Control Icon Mapping
+ *
+ * Associates commonly used utility classes with Lucide icons so segmented
+ * controls and button-based selectors can render intuitive visual affordances
+ * instead of plain text labels.
+ */
+export const segmentedControlIconMap: Record<string, LucideIcon> = {
+  // Text alignment
+  'text-left': AlignLeft,
+  'text-center': AlignCenter,
+  'text-right': AlignRight,
+  'text-justify': AlignJustify,
+
+  // Flex direction
+  'flex-row': ArrowLeftRight,
+  'flex-row-reverse': ArrowDownUp,
+  'flex-col': ArrowUpDown,
+  'flex-col-reverse': ArrowDownUp,
+
+  // Align items
+  'items-start': ArrowUp,
+  'items-center': AlignCenter,
+  'items-end': ArrowDown,
+  'items-stretch': AlignJustify,
+  'items-baseline': AlignJustify,
+
+  // Justify content
+  'justify-start': AlignLeft,
+  'justify-end': AlignRight,
+  'justify-center': AlignCenter,
+  'justify-between': AlignJustify,
+  'justify-around': AlignJustify,
+  'justify-evenly': AlignJustify,
+  'justify-stretch': AlignJustify,
 };
 
 /**

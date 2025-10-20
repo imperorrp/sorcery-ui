@@ -213,6 +213,7 @@ const SingleVariantControl: React.FC<{
         onArbitraryChange={setArbitraryValue}
         supportsArbitrary={supportsArbitrary}
         placeholder={placeholder} // Pass placeholder to all controls
+        resolvedTheme={resolvedTheme}
         {...colorPreviewProps}
         {...sliderProps}
         {...comboBoxProps}

@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import type { CSSProperties } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import suggestions from '@/lib/definitions/suggestions.json';
-import { getCssPropertiesForClass } from '@/lib/themeUtils';
+import { getCssForClass, stripVariantPrefixes } from '@/lib/themeUtils';
+import { cn } from '@/lib/utils';
 
 /**
  * ComboBoxWithSlider component - Advanced control combining preset selection with slider input.
@@ -483,24 +485,79 @@ export const ComboBoxWithSlider: React.FC<ComboBoxWithSliderProps> = ({
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1 flex-wrap">
         {allOptions.map((option) => {
-          const previewStyle = resolvedTheme ? getCssPropertiesForClass(option.value, resolvedTheme) : {};
-          // Separate font-related styles (apply to the label) from visual container styles (apply to the button)
-          const { fontSize, lineHeight, fontWeight, ...buttonPreviewStyle } = previewStyle as Record<string, string | number>;
-          const labelStyle: Record<string, string | number> = {};
+          const baseClass = stripVariantPrefixes(option.value);
+          const previewStyle = resolvedTheme ? getCssForClass(baseClass, resolvedTheme) : {};
+          const {
+            fontSize,
+            lineHeight,
+            fontWeight,
+            width: previewWidth,
+            minWidth,
+            maxWidth,
+            height: previewHeight,
+            minHeight,
+            maxHeight,
+            ...buttonPreviewStyle
+          } = previewStyle as CSSProperties;
+
+          const labelStyle: CSSProperties = {};
           if (fontSize) labelStyle.fontSize = fontSize;
           if (lineHeight) labelStyle.lineHeight = lineHeight;
           if (fontWeight) labelStyle.fontWeight = fontWeight;
+
+          const applyUtilityClass = baseClass.startsWith('rounded') || baseClass.startsWith('shadow');
+          const buttonClassName = cn(
+            'text-xs px-2 py-1 h-auto flex items-center gap-2 transition-colors',
+            applyUtilityClass && baseClass
+          );
+
+          const isBorderColor = baseClass.startsWith('border-') && baseClass.split('-').length >= 3;
+          const isWidthUtility = baseClass.startsWith('w-');
+          const isHeightUtility = baseClass.startsWith('h-');
+
+          const borderPreview = isBorderColor ? (
+            <span className={cn('inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-sm border-2 bg-background', baseClass)} />
+          ) : null;
+
+          const resolvedWidth = previewWidth || maxWidth || minWidth;
+          const widthPreview = isWidthUtility ? (
+            <div className="flex flex-1 items-center overflow-hidden">
+              <div
+                className={cn(
+                  'mx-1 h-1 rounded-full bg-primary/70 transition-all duration-150 ease-out',
+                  typeof resolvedWidth === 'string' ? undefined : baseClass
+                )}
+                style={{ width: typeof resolvedWidth === 'string' ? resolvedWidth : undefined, maxWidth: '100%' }}
+              />
+            </div>
+          ) : null;
+
+          const resolvedHeight = previewHeight || maxHeight || minHeight;
+          const heightPreview = isHeightUtility ? (
+            <div className="flex h-6 w-6 items-end justify-center overflow-hidden">
+              <div
+                className={cn(
+                  'w-1 rounded-full bg-primary/70 transition-all duration-150 ease-out',
+                  typeof resolvedHeight === 'string' ? undefined : baseClass
+                )}
+                style={{ height: typeof resolvedHeight === 'string' ? resolvedHeight : undefined, maxHeight: '32px' }}
+              />
+            </div>
+          ) : null;
 
           return (
             <Button
               key={option.value}
               variant={value === option.value ? 'default' : 'outline'}
               size="sm"
-              className="text-xs px-2 py-1 h-auto"
+              className={buttonClassName}
               style={buttonPreviewStyle}
               onClick={() => handlePresetSelect(option.value)}
               title={option.label || option.keyword}
             >
+              {borderPreview}
+              {widthPreview}
+              {heightPreview}
               <span className="font-mono" style={labelStyle}>{option.label || option.keyword}</span>
             </Button>
           );

@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ChevronRight, X, Plus } from 'lucide-react';
 import modifiersData from '@/lib/definitions/modifiers.json';
+import { commonModifierTypes, favoriteModifierTypes } from './inspector-config';
 
 interface Modifier {
   name: string;
@@ -23,6 +24,7 @@ interface ModifierValue {
 interface ModifierBuilderProps {
   onAddModifier: (modifier: ModifierValue) => void;
   currentStack: string[];
+  scope?: 'common' | 'favorites' | 'all';
 }
 
 /**
@@ -46,7 +48,8 @@ interface ModifierBuilderProps {
  */
 export const ModifierBuilder: React.FC<ModifierBuilderProps> = ({
   onAddModifier,
-  currentStack
+  currentStack,
+  scope = 'all'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentView, setCurrentView] = useState<'categories' | 'modifiers' | 'value-input'>('categories');
@@ -55,11 +58,26 @@ export const ModifierBuilder: React.FC<ModifierBuilderProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [inputValue, setInputValue] = useState('');
 
+  React.useEffect(() => {
+    setCurrentView('categories');
+    setSelectedCategory('');
+    setSelectedModifier(null);
+    setSearchQuery('');
+    setInputValue('');
+  }, [scope]);
+
   // Extract unique categories from modifiers data
   const categories = useMemo(() => {
     const uniqueTypes = new Set(modifiersData.modifiers.map((mod: Modifier) => mod.type));
-    return Array.from(uniqueTypes).sort();
-  }, []);
+    const allCategories = Array.from(uniqueTypes).sort();
+    if (scope === 'common') {
+      return allCategories.filter((cat) => commonModifierTypes.includes(cat as typeof commonModifierTypes[number]));
+    }
+    if (scope === 'favorites') {
+      return allCategories.filter((cat) => favoriteModifierTypes.includes(cat));
+    }
+    return allCategories;
+  }, [scope]);
 
   // Get modifiers for selected category
   const categoryModifiers = useMemo(() => {
@@ -241,21 +259,27 @@ export const ModifierBuilder: React.FC<ModifierBuilderProps> = ({
           <div className="h-64 overflow-y-auto">
             {currentView === 'categories' && (
               <div className="space-y-1">
-                {categories.map((category) => (
-                  <Button
-                    key={category}
-                    variant="ghost"
-                    className="w-full justify-start text-left h-auto p-3"
-                    onClick={() => handleCategorySelect(category)}
-                  >
-                    <div>
-                      <div className="font-medium text-sm">{category}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {modifiersData.modifiers.filter((m: Modifier) => m.type === category).length} modifiers
+                {categories.length === 0 ? (
+                  <div className="rounded-md border px-3 py-4 text-xs text-muted-foreground text-center">
+                    No favorite modifiers yet. Mark modifiers as favorites to surface them here.
+                  </div>
+                ) : (
+                  categories.map((category) => (
+                    <Button
+                      key={category}
+                      variant="ghost"
+                      className="w-full justify-start text-left h-auto p-3"
+                      onClick={() => handleCategorySelect(category)}
+                    >
+                      <div>
+                        <div className="font-medium text-sm">{category}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {modifiersData.modifiers.filter((m: Modifier) => m.type === category).length} modifiers
+                        </div>
                       </div>
-                    </div>
-                  </Button>
-                ))}
+                    </Button>
+                  ))
+                )}
               </div>
             )}
 
