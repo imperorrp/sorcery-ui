@@ -5,7 +5,7 @@
  * Provides centralized control for all UI toggles, layout switching, and application features.
  *
  * Key Features:
- * - Branding and application title display
+ * - Sorcery UI branding with link to home page
  * - View mode toggle (Canvas vs Code)
  * - Examples dropdown for loading predefined components
  * - Render button for processing components
@@ -14,17 +14,36 @@
  * - Layout mode switching (Vibe vs Experimental)
  * - Theme toggle (Light/Dark mode)
  * - Responsive design with proper spacing and alignment
+ *
+ * @author Sorcery UI Team
  */
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Moon, Sun, Code, Palette, TreePine, Layout, Monitor, FileCode, Play, BookOpenCheck, SlidersHorizontal } from 'lucide-react';
+import { Moon, Sun, Palette, TreePine, Layout, Monitor, FileCode, Play, BookOpenCheck, SlidersHorizontal, Wand2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Example } from '@/examples/examples';
 import type { ComponentData } from '@/store/componentStore';
 
 /**
  * Props for the Navbar component
+ *
+ * @interface NavbarProps
+ * @property {string} layoutMode - Current layout mode ('vibe' or 'experimental')
+ * @property {string} mainView - Current main view ('canvas' or 'code')
+ * @property {boolean} isInspectorVisible - Whether the inspector panel is visible
+ * @property {boolean} isNavigatorVisible - Whether the navigator panel is visible
+ * @property {Record<string, Example>} examples - Available single-component examples
+ * @property {Record<string, { activeId: string; components: ComponentData[] }>} multiComponentExamples - Available multi-component examples
+ * @property {boolean} isRendering - Whether a render operation is currently in progress
+ * @property {(mode: 'vibe' | 'experimental') => void} onLayoutModeChange - Callback to change layout mode
+ * @property {(view: 'canvas' | 'code') => void} onMainViewChange - Callback to change main view
+ * @property {() => void} onInspectorToggle - Callback to toggle inspector visibility
+ * @property {() => void} onNavigatorToggle - Callback to toggle navigator visibility
+ * @property {(key: string) => void} onExampleSelect - Callback when an example is selected
+ * @property {() => void} onRender - Callback to trigger component rendering
+ * @property {() => void} onConfigToggle - Callback to toggle configuration panel
  */
 interface NavbarProps {
   layoutMode: string;
@@ -45,6 +64,9 @@ interface NavbarProps {
 
 /**
  * Main navigation component with branding, theme controls, and layout toggles.
+ *
+ * @param {NavbarProps} props - The props for the Navbar component
+ * @returns {JSX.Element} The rendered navigation bar
  */
 export const Navbar: React.FC<NavbarProps> = ({
   layoutMode,
@@ -68,12 +90,12 @@ export const Navbar: React.FC<NavbarProps> = ({
     <nav className="px-6 py-3 border-b bg-card border-border">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2">
-            <Code className="h-6 w-6 text-primary" />
+          <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+            <Wand2 className="h-6 w-6 text-primary" />
             <h1 className="text-xl font-bold text-foreground">
-              Live Component Editor
+              Sorcery UI
             </h1>
-          </div>
+          </Link>
         </div>
 
         <div className="flex items-center space-x-3">

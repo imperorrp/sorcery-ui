@@ -1,6 +1,6 @@
-# Codebase Summary: Live Component Editor
+# Codebase Summary: Sorcery UI
 
-This document provides a summary of the "Live Component Editor" codebase, outlining its architecture, the purpose of each major file and folder, and the core data flow.
+This document provides a summary of the "Sorcery UI" codebase, outlining its architecture, the purpose of each major file and folder, and the core data flow.
 
 - `index.css`: Global stylesheet containing CSS custom properties for theming, utility classes for theme tokens, react-resizable-panels styling, Monaco editor code highlighting, and glassmorphic panel effects with comprehensive JSDoc documentation.
 - `ComponentList.tsx`: **NEW (v1.2)** - Placeholder for future component list interface (currently unused)
@@ -59,7 +59,7 @@ This directory contains the entire frontend React application, built with Vite. 
 #### `main.tsx` & `App.tsx`
 
 - `main.tsx`: The entry point of the application, responsible for rendering the App component into the DOM.
-- `App.tsx`: The root component. It sets up the ThemeProvider for light/dark mode and renders the main Navbar and ExperimentalLayout. Includes modal dialogs for configuration panels and layout mode switching between Vibe and Experimental layouts. Includes modal dialogs for configuration panels and layout mode switching between Vibe and Experimental layouts. Includes modal dialogs for configuration panels and layout mode switching between Vibe and Experimental layouts.
+- `App.tsx`: The root component. It sets up the ThemeProvider for light/dark mode and renders the routing structure with BrowserRouter. Includes routes for the home page, editor page, and experimental editor page.
 
 #### `store/`
 
@@ -117,6 +117,9 @@ This directory contains the entire frontend React application, built with Vite. 
 #### `components/`
 
 - `Navbar.tsx`: Navigation bar component with theme toggle functionality, layout controls, examples dropdown, render button, configuration panel toggle, panel visibility controls, and app branding with comprehensive JSDoc documentation.
+- `HomePage.tsx`: Landing page component for Sorcery UI, featuring a hero section with gradient headline, feature cards, problem/solution explanation, and navigation to editor routes with comprehensive JSDoc documentation.
+- `EditorPage.tsx`: Editor page component using the Vibe layout, providing the main editing interface with navbar controls, panel visibility toggles, and configuration modal with comprehensive JSDoc documentation.
+- `ExperimentalEditorPage.tsx`: Experimental editor page component using the Experimental layout, featuring advanced panel controls, fullscreen mode, and comprehensive layout management with comprehensive JSDoc documentation.
 - `ExperimentalLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Component Preview, Style Editor). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access, fullscreen mode with automatic panel hiding, floating dock for panel visibility controls, and enhanced...
 
 ##### `Canvas/`

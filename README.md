@@ -1,8 +1,14 @@
-# Project Live-Component-Editor
+# Sorcery UI
 
-**A professional-grade, visual editor for live React components.**
+**A GUI-based low/no-code tool for design engineers and developers to fine-tune and precisely calibrate UI elements and components.**
 
 This project is a high-fidelity implementation of a tool that allows developers to paste React component code, interact with it in a live preview, and visually edit its properties. It is designed with a robust, extensible architecture to handle complex, real-world components.
+
+Save on tokens (and therefore $$$) by not having to go back and forth with AI for simple tweaks. Save on time if you want to manually explore and tune certain values to find just the perfect look for your design needs.
+
+This MVP is currently designed to work with React based components, standard CSS, and Tailwind CSS classes. Context, dependencies, props, and child components can all be loaded in and rendered to check out. More to come soon.
+
+Work on the browser client directly by copy pasting code in and copy pasting your final output back out or via MCP connection to your IDE or AI builder tool of your choice.
 
 [**View the Live Demo**](#) <!-- Placeholder for deployed link -->
 [**Read the Full Technical Plan**](./PLAN.md)
@@ -36,8 +42,8 @@ This project is a high-fidelity implementation of a tool that allows developers 
 ### Installation & Setup
 1.  **Clone the repository:**
     ```bash
-    git clone <repository_url>
-    cd live-component-editor
+    git clone https://github.com/imperorrp/runable-task.git
+    cd runable-task
     ```
 2.  **Install all dependencies:**
     *(This will install for the root, client, and server workspaces)*
