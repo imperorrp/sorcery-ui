@@ -50,6 +50,7 @@ This architecture treats the user's Source Code as the ultimate source of truth 
 - `package.json`: Defines the pnpm workspaces for client and server and contains scripts to run both concurrently.
 - `README.md`: High-level overview of the project, features, and setup instructions.
 - `PLAN.md`: A detailed technical planning document outlining the architecture, feature specifications, and development roadmap.
+- `ARCHITECTURE.md`: Comprehensive documentation of architectural decisions, design principles, security considerations, and technical guidelines.
 - `.github/prompts/usefulprompts.prompt.md`: AI prompt template for automated codebase analysis and documentation updates.
 - `.npmrc`: pnpm configuration file with settings for peer dependencies and hoisting.
 - `pnpm-workspace.yaml`: Defines the pnpm workspace structure for client and server.
