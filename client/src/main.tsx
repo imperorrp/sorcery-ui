@@ -18,7 +18,6 @@
  * - StrictMode helps catch potential issues in development
  *
  * @author Live Component Editor Team
- * @version 1.0.0
  */
 
 // Ensure a minimal `process.env` exists in the browser for libraries that reference it
@@ -31,6 +30,13 @@ declare global {
 
 // Import polyfills FIRST before any other imports
 import './polyfills/processShim';
+
+// Buffer polyfill for browser runtime. Some libraries (e.g. @babel/generator -> jsesc)
+// reference Buffer which is not available in the browser by default. Import the
+// `buffer` package and expose it as a global to satisfy those libraries.
+import { Buffer } from 'buffer';
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+(globalThis as any).Buffer = Buffer;
 
 // Allow a minimal process shim for browser runtime. This intentionally uses a narrow any-cast.
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */

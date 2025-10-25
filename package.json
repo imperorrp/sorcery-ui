@@ -1,17 +1,14 @@
 {
-  "name": "live-component-editor-root",
+  "name": "sorcery-ui-root",
   "version": "1.0.0",
   "private": true,
-  "description": "Root for the Live Component Editor monorepo",
+  "description": "Root for the Sorcery UI monorepo",
+  "packageManager": "pnpm@9.0.0",
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
-    "install": "npm install --workspaces --if-present",
+    "dev": "concurrently \"pnpm --filter server dev\" \"pnpm --filter client dev\"",
+    "build": "pnpm --filter client build",
     "generate:inspector": "node ./scripts/generate-inspector-def.js"
   },
-  "workspaces": [
-    "client",
-    "server"
-  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {

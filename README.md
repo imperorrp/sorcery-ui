@@ -36,7 +36,7 @@ Work on the browser client directly by copy pasting code in and copy pasting you
 
 ### Prerequisites
 *   Node.js (v18+)
-*   npm / yarn / pnpm
+*   pnpm (recommended) or npm / yarn
 *   A MongoDB Atlas account (or a local MongoDB instance)
 
 ### Installation & Setup
@@ -45,18 +45,22 @@ Work on the browser client directly by copy pasting code in and copy pasting you
     git clone https://github.com/imperorrp/runable-task.git
     cd runable-task
     ```
-2.  **Install all dependencies:**
+2.  **Install pnpm globally (if not already installed):**
+    ```bash
+    npm install -g pnpm
+    ```
+3.  **Install all dependencies:**
     *(This will install for the root, client, and server workspaces)*
     ```bash
-    npm install
+    pnpm install
     ```
-3.  **Configure environment variables:**
+4.  **Configure environment variables:**
     *   In the `/server` directory, create a `.env` file from the `.env.example`.
     *   Add your MongoDB connection string: `MONGO_URI=your_connection_string`
-4.  **Run the application:**
+5.  **Run the application:**
     ```bash
     # This concurrently starts the client (localhost:5173) and the server (localhost:3000)
-    npm run dev
+    pnpm run dev
     ```
 
 ## Project Structure

@@ -1,0 +1,6 @@
+# pnpm workspace configuration
+# Defines the workspace packages for the Sorcery UI monorepo
+
+packages:
+  - 'client'
+  - 'server'

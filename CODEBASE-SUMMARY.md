@@ -47,10 +47,13 @@ This architecture treats the user's Source Code as the ultimate source of truth 
 
 ### `imperorrp-runable-task/` (Root)
 
-- `package.json`: Defines the npm workspaces for client and server and contains scripts to run both concurrently.
+- `package.json`: Defines the pnpm workspaces for client and server and contains scripts to run both concurrently.
 - `README.md`: High-level overview of the project, features, and setup instructions.
 - `PLAN.md`: A detailed technical planning document outlining the architecture, feature specifications, and development roadmap.
 - `.github/prompts/usefulprompts.prompt.md`: AI prompt template for automated codebase analysis and documentation updates.
+- `.npmrc`: pnpm configuration file with settings for peer dependencies and hoisting.
+- `pnpm-workspace.yaml`: Defines the pnpm workspace structure for client and server.
+- `pnpm-lock.yaml`: Lockfile for pnpm dependencies.
 
 ### `client/`
 
@@ -58,7 +61,7 @@ This directory contains the entire frontend React application, built with Vite. 
 
 #### `main.tsx` & `App.tsx`
 
-- `main.tsx`: The entry point of the application, responsible for rendering the App component into the DOM.
+- `main.tsx`: The entry point of the application, responsible for rendering the App component into the DOM. Includes Buffer polyfill for browser compatibility with Babel packages.
 - `App.tsx`: The root component. It sets up the ThemeProvider for light/dark mode and renders the routing structure with BrowserRouter. Includes routes for the home page, editor page, and experimental editor page.
 
 #### `store/`
@@ -217,6 +220,7 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 - `vite.config.ts`: Configuration for the Vite build tool, including aliases and plugins for Tailwind CSS and Monaco Editor.
 - `tailwind.config.js`, `postcss.config.js`: Configuration for Tailwind CSS.
 - `tsconfig.*.json`: TypeScript configuration files.
+- `package.json`: Defines client dependencies including React, Vite, Tailwind CSS, and buffer polyfill for browser compatibility.
 - `test-analyze.js`: Development test file for testing the `analyzeCode` function and JSX location detection.
 - `TestAstToCode.tsx`: Development test component for testing the AST-to-Code generation functionality with sample AST structures and JSX output.
 
