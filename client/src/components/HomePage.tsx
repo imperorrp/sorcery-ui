@@ -34,7 +34,7 @@ export function HomePage() {
   return (
     <div className="relative min-h-screen bg-zinc-950 text-zinc-100">
       {/* Background layer to ensure dark background renders even if global CSS differs */}
-      <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 to-zinc-900 -z-10" aria-hidden />
+      <div className="absolute inset-0 bg-linear-to-br from-zinc-950 to-zinc-900 -z-10" aria-hidden />
       {/* Header */}
       <header className="border-b border-zinc-800/50">
         <div className="container mx-auto px-6 py-4">

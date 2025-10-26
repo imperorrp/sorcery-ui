@@ -1,25 +1,44 @@
+/**
+ * Vibe Layout - Traditional IDE-style Editor Layout
+ *
+ * Alternative layout implementation with a floating navigator panel that can be expanded/minimized.
+ * Features a compact design with inspector sidebar and floating navigator overlay,
+ * including expand/minimize functionality for better space utilization.
+ *
+ * @author Sorcery UI Team
+ */
+
 import React, { useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useComponentStore } from '@/store/componentStore';
+import { useResponsive } from '@/hooks/useResponsive';
 import { CanvasContainer } from '../components/containers/CanvasContainer';
 import { CodeEditorContainer } from '../components/containers/CodeEditorContainer';
 import { NavigatorContainer } from '../components/containers/NavigatorContainer';
 import { InspectorContainer } from '../components/containers/InspectorContainer';
+import { ConfigurerContainer } from '../components/containers/ConfigurerContainer';
+import { MobileLayout } from './MobileLayout';
 import { motion, AnimatePresence } from 'framer-motion';
 
+/**
+ * Props for the VibeLayout component.
+ */
 interface VibeLayoutProps {
-  mainView: string;
+  mainSection: 'preview' | 'code' | 'config';
   isInspectorVisible: boolean;
   isNavigatorVisible: boolean;
+  onNavigatorToggle?: () => void;
 }
 
 const VibeLayout: React.FC<VibeLayoutProps> = ({
-  mainView,
+  mainSection,
   isInspectorVisible,
   isNavigatorVisible,
+  onNavigatorToggle,
 }) => {
   const { theme } = useTheme();
+  const { isMobile } = useResponsive();
   const [isNavigatorExpanded, setIsNavigatorExpanded] = useState(false);
 
   /**
@@ -30,7 +49,19 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
   };
 
   // Get store state and actions
-  const { selectionMode, setSelectionMode, updateActiveComponentCode, undo, redo, isDirty, isCodeHighlighted, clearCodeHighlight, applyAstChangesToCode } = useComponentStore();
+  const {
+    selectionMode,
+    setSelectionMode,
+    updateActiveComponentCode,
+    undo,
+    redo,
+    isDirty,
+    isCodeHighlighted,
+    clearCodeHighlight,
+    applyAstChangesToCode,
+    renderActiveComponent,
+    isRendering,
+  } = useComponentStore();
 
   // Get active component data
   const activeComponent = useComponentStore((state) =>
@@ -61,6 +92,7 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
 
     if (newCode) {
       // Success - code will update automatically
+      await renderActiveComponent();
     } else {
       const { originalCode, jsxLocation } = useComponentStore.getState();
       if (!originalCode || !jsxLocation) {
@@ -77,6 +109,15 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
   const handleFullscreenToggle = () => {
     // TODO: Implement fullscreen logic for Vibe layout
   };
+
+  // Use mobile layout for small screens
+  if (isMobile) {
+    const mobileInitialView =
+      mainSection === 'preview' ? 'canvas' : mainSection === 'code' ? 'code' : 'config';
+    return <MobileLayout mainView={mobileInitialView} />;
+  }
+
+  // Desktop layout with resizable panels
   return (
     <div className={`h-screen w-full ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'} relative`}>
       <PanelGroup direction="horizontal">
@@ -106,19 +147,27 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
         {/* Main Content Area */}
         <Panel defaultSize={isInspectorVisible ? 75 : 100}>
           <div className="h-full relative">
-            {mainView === 'canvas' ? (
+            {mainSection === 'preview' && (
               <CanvasContainer
                 selectionMode={selectionMode}
                 isFullscreen={false}
                 onSelectionModeChange={setSelectionMode}
                 onFullscreenToggle={handleFullscreenToggle}
+                onRender={renderActiveComponent}
+                isRendering={isRendering}
               />
-            ) : (
+            )}
+            {mainSection === 'code' && (
               <CodeEditorContainer
                 activeComponent={activeComponent}
                 activeCode={activeCode}
                 onCodeChange={handleCodeChange}
               />
+            )}
+            {mainSection === 'config' && (
+              <div className="h-full overflow-hidden">
+                <ConfigurerContainer />
+              </div>
             )}
 
             {/* Floating Navigator Panel */}
@@ -139,6 +188,7 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
                   <NavigatorContainer
                     isExpanded={isNavigatorExpanded}
                     onToggleExpanded={handleNavigatorToggle}
+                    onMinimize={onNavigatorToggle}
                   />
                 </motion.div>
               )}

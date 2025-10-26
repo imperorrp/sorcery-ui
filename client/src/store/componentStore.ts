@@ -25,6 +25,7 @@ import { examples, multiComponentExamples } from '@/examples/examples';
  * - isRendering: Flag indicating whether a render operation is currently in progress
  * - examplesVersion: Incremented when example sets are loaded to notify UI
  * - lastOpenedTabId: Transient flag for tracking explicitly opened components
+ * - currentExampleName: The name of the currently loaded example for proper project naming
  *
  * Architecture:
  * - Multi-component library with full CRUD operations
@@ -102,6 +103,7 @@ interface ComponentState {
   components: Record<string, ComponentData>; // A map of component IDs to their data
   activeComponentId: string | null; // The ID of the component currently being edited
   examplesVersion: number; // Incremented when example sets are loaded to notify UI
+  currentExampleName: string | null; // The name of the currently loaded example
   // Transient helper used to tell UI which component was explicitly opened
   // (as opposed to simply activated via clicking an existing tab).
   lastOpenedTabId?: string | null;
@@ -284,6 +286,7 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
     isCodeHighlighted: false,
     isRendering: false,
   examplesVersion: 0,
+  currentExampleName: null,
   themeCss: `
 /* Paste your :root and .dark CSS variables here */
 `,
@@ -519,6 +522,7 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
       if (multiComponentExamples[key]) {
         const multiExample = multiComponentExamples[key];
         get().loadExampleSet(multiExample.components, multiExample.activeId);
+        set({ currentExampleName: key });
         return;
       }
 
@@ -533,6 +537,7 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
           dependencies: ex.dependency ? (Array.isArray(ex.dependency) ? ex.dependency : [ex.dependency]) : [],
         };
         get().loadExampleSet({ [newId]: singleComp }, newId);
+        set({ currentExampleName: key });
       }
     },
 

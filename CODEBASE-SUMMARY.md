@@ -77,6 +77,7 @@ This directory contains the entire frontend React application, built with Vite. 
   - `isRendering`: A flag indicating whether a render operation is currently in progress
   - `examplesVersion`: Incremented when example sets are loaded to notify UI
   - `lastOpenedTabId`: Transient flag for tracking explicitly opened components
+  - `currentExampleName`: The name of the currently loaded example for proper project naming in the navbar
   - For each component (`ComponentData`):
     - `componentAst`: The "Live AST" created with the real React library. It is rendered in "Interaction Mode" and allows the component to be fully stateful
     - `componentPreviewAst`: The "Preview AST" created with a shimmed React. This is a structurally complete map of the component used for the Navigator and as the blueprint for style updates
@@ -87,7 +88,7 @@ This directory contains the entire frontend React application, built with Vite. 
     - `wrapperCode`: Code for context wrapper components
     - `history`: An array of AST snapshots for undo/redo functionality
     - `historyIndex`: Current position in the history stack
-  - Key methods: `setRenderOutput` (initializes both ASTs after rendering), `updateNodeStyle` (applies style changes with proper immutable updates within set() callback), `applyAstChangesToCode` (surgical code updates), `undo`/`redo` (history management), `renderActiveComponent` (async rendering with error handling), plus multi-component management methods like `addComponent`, `setActiveComponent`, `deleteComponent`, etc.
+  - Key methods: `setRenderOutput` (initializes both ASTs after rendering), `updateNodeStyle` (applies style changes with proper immutable updates within set() callback), `applyAstChangesToCode` (surgical code updates), `undo`/`redo` (history management), `renderActiveComponent` (async rendering with error handling), plus multi-component management methods like `addComponent`, `setActiveComponent`, `deleteComponent`, etc. Includes currentExampleName tracking for proper project naming in navbar.
 
 #### `lib/`
 
@@ -113,6 +114,8 @@ This directory contains the entire frontend React application, built with Vite. 
 - `useDebounce.ts`: Custom hook for debouncing user input to prevent excessive re-renders and API calls.
 - `useResizableLayout.ts`: Custom hook that manages the resizable layout state for the editor panels, including panel sizes, minimization states, and resize handlers.
 - `useControlData.ts`: Custom hook for managing control state and data flow in inspector controls. Handles option generation, value synchronization, and utility class updates for various control types.
+- `useMediaQuery.ts`: Custom hook for responsive design that listens to media query changes. Provides a simple boolean state that updates when the media query matches/unmatches with comprehensive JSDoc documentation.
+- `useResponsive.ts`: High-level responsive design hook providing semantic breakpoint states. Built on top of useMediaQuery to provide commonly-used screen size classifications (mobile, tablet, desktop, wide) with comprehensive JSDoc documentation.
 
 #### `polyfills/`
 
@@ -120,10 +123,11 @@ This directory contains the entire frontend React application, built with Vite. 
 
 #### `components/`
 
-- `Navbar.tsx`: Navigation bar component with theme toggle functionality, layout controls, examples dropdown, render button, configuration panel toggle, panel visibility controls, and app branding with comprehensive JSDoc documentation.
+- `CompactNavbar.tsx`: Main navigation bar component with project dropdown, examples section, layout switching, mobile-responsive sheet interface, sliding pill animations, and settings integration. Features Projects card layout for examples, multi-component example descriptions, mobile sheet with settings access, experimental layout restrictions, and differentiated config icon (Settings2). Includes comprehensive JSDoc documentation with author attribution.
 - `HomePage.tsx`: Landing page component for Sorcery UI, featuring a hero section with gradient headline, feature cards, problem/solution explanation, and navigation to editor routes with comprehensive JSDoc documentation.
-- `EditorPage.tsx`: Editor page component using the Vibe layout, providing the main editing interface with navbar controls, panel visibility toggles, and configuration modal with comprehensive JSDoc documentation.
-- `ExperimentalEditorPage.tsx`: Experimental editor page component using the Experimental layout, featuring advanced panel controls, fullscreen mode, and comprehensive layout management with comprehensive JSDoc documentation.
+- `EditorPage.tsx`: Editor page component using the Vibe layout, providing the main editing interface with navbar controls, panel visibility toggles, and configuration modal. Uses currentExampleName from store for proper project naming with comprehensive JSDoc documentation.
+- `EditorLayout.tsx`: Main editor layout component that manages the entire application interface with panel layout, resizing, fullscreen mode, and floating dock controls. Includes comprehensive JSDoc documentation with author attribution.
+- `ExperimentalEditorPage.tsx`: Experimental editor page component using the Experimental layout, featuring advanced panel controls, fullscreen mode, and comprehensive layout management. Uses currentExampleName from store for proper project naming with comprehensive JSDoc documentation.
 - `ExperimentalLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Component Preview, Style Editor). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access, fullscreen mode with automatic panel hiding, floating dock for panel visibility controls, and enhanced...
 
 ##### `Canvas/`
@@ -184,7 +188,14 @@ This directory contains the entire frontend React application, built with Vite. 
 ##### `Library/`
 
 - `LibraryPanel.tsx`: Comprehensive component library management panel with full CRUD functionality (add, rename, delete, switch between components).
-- `ComponentList.tsx`: Placeholder for future component list interface (currently unused).
+- `SettingsDialog.tsx`: Modal dialog for application settings including layout preferences with mobile restrictions. Provides layout switching between Vibe and Experimental modes, with Experimental layout disabled on mobile screens with appropriate messaging. Includes comprehensive JSDoc documentation with author attribution.
+- `KeyboardShortcutsHelp.tsx`: Modal dialog showing all available keyboard shortcuts in the editor. Can be triggered by pressing '?' key and provides comprehensive shortcut documentation for navigation, actions, panels, editing, and general commands with comprehensive JSDoc documentation..
+
+##### `containers/`
+
+- `CanvasContainer.tsx`: Container component for the Component Preview panel with header and control buttons. Wraps ComponentCanvas with selection mode controls, fullscreen toggle, and render functionality with comprehensive JSDoc documentation.
+- `InspectorContainer.tsx`: Container component for the Style Editor panel with header and action buttons. Wraps InspectorPanel with undo/redo controls and apply changes functionality with comprehensive JSDoc documentation.
+- `NavigatorContainer.tsx`: Container component for the Component Navigator panel with header controls. Provides navigation tree interface for component structure exploration.
 
 ##### `ui/`
 
@@ -212,7 +223,7 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 #### `layouts/`
 
 - `ExperimentalLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Component Preview, Style Editor). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access, fullscreen mode with automatic panel hiding, floating dock for panel visibility controls, and enhanced...
-- `VibeLayout.tsx`: Alternative layout implementation with a floating navigator panel that can be expanded/minimized. Features a compact design with inspector sidebar and floating navigator overlay, including expand/minimize functionality for better space utilization.
+- `VibeLayout.tsx`: Alternative layout implementation with a floating navigator panel that can be expanded/minimized. Features a compact design with inspector sidebar and floating navigator overlay, including expand/minimize functionality for better space utilization. Includes comprehensive JSDoc documentation with author attribution.
 
 ##### `contexts/`
 
@@ -227,7 +238,7 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 
 #### `examples/`
 
-- `examples.ts`: Contains predefined example components and multi-component examples that users can load to try the editor. Includes the Card Dashboard example set demonstrating parent-child component relationships, and the Missing Component Demo showcasing automatic mock generation for missing components used in JSX.
+- `examples.ts`: Contains predefined example components and multi-component examples that users can load to try the editor. Includes the Card Dashboard example set demonstrating parent-child component relationships, and the Missing Component Demo showcasing automatic mock generation for missing components used in JSX. Multi-component examples now include descriptions for better dropdown organization.
 
 #### `test/`
 

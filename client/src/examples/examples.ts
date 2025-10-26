@@ -182,6 +182,7 @@ export default function DataChart(props) {
 // Multi-component example (CardList + Card)
 export const cardDashboardExample = {
   activeId: 'card-list-id',
+  description: 'demonstrates parent-child component relationships',
   components: [
     {
       id: 'card-list-id',
@@ -275,11 +276,12 @@ export const examples: Record<string, Example> = {
   'Data Visualization': dataVisualizationExample,
 };
 
-// Multi-component examples collection (separate from regular examples)
+// Multi-component examples collection (separate from regular examples for backward compatibility)
 export const multiComponentExamples: Record<string, typeof cardDashboardExample> = {
   'Card Dashboard': cardDashboardExample,
   'Missing Component Demo': {
     activeId: 'missing-demo-id',
+    description: 'showcases automatic mock generation for missing components',
     components: [
       {
         id: 'missing-demo-id',

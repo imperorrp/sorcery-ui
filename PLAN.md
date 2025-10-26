@@ -112,6 +112,13 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 - [x] **Feature:** Configurer panel with tabbed interface (Props, CSS, Context, Dependencies).
 - [x] **Feature:** CodeEditorWithTabs for multi-component editing.
 - [x] **Feature:** ComponentTabs with IDE-style tab management.
+- [x] **UI/UX:** CompactNavbar with icon-based design inspired by v0/Lovable.
+- [x] **UI/UX:** Responsive design system with mobile-friendly layouts.
+- [x] **UI/UX:** MobileLayout with swipeable tabbed interface.
+- [x] **UI/UX:** Minimizable Navigator with floating icon button.
+- [x] **Feature:** Keyboard shortcuts for common actions (Ctrl+R, Ctrl+B, etc.).
+- [x] **Feature:** Keyboard shortcuts help modal (press '?').
+- [x] **Responsive:** useMediaQuery and useResponsive hooks for screen size detection.
 
 ### Phase 6: Package Management & Polyfills (Completed)
 - [x] **Infrastructure:** Migrated from npm to pnpm workspace.

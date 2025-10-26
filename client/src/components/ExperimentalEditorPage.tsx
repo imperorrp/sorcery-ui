@@ -7,9 +7,10 @@
  * @author Sorcery UI Team
  */
 
-import { Navbar } from './Navbar';
+import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CompactNavbar } from './CompactNavbar';
 import { ExperimentalLayout } from '../layouts/ExperimentalLayout';
-import { useState } from 'react';
 import { examples, multiComponentExamples } from '../examples/examples';
 import { useComponentStore } from '../store/componentStore';
 
@@ -22,9 +23,8 @@ import { useComponentStore } from '../store/componentStore';
  * @returns {JSX.Element} The experimental editor page JSX element
  */
 export function ExperimentalEditorPage() {
-  // Layout state - lifted up to App.tsx for centralized control
-  const [layoutMode] = useState('experimental'); // Fixed to experimental for this route
-  const [mainView, setMainView] = useState('canvas'); // 'canvas' or 'code'
+  const navigate = useNavigate();
+  const [mainSection, setMainSection] = useState<'preview' | 'code' | 'config'>('preview');
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Panel visibility state for dock system
@@ -32,50 +32,112 @@ export function ExperimentalEditorPage() {
   const [isInspectorVisible, setIsInspectorVisible] = useState(true);
   const [isNavigatorVisible, setIsNavigatorVisible] = useState(true);
   const [isConfigurerVisible, setIsConfigurerVisible] = useState(true);
+  const [isPreviewVisible, setIsPreviewVisible] = useState(true);
 
   // Remember panel states before entering fullscreen
   const [preFullscreenStates, setPreFullscreenStates] = useState({
     codeEditor: true,
     inspector: true,
     navigator: true,
-    configurer: true
+    configurer: true,
+    preview: true
   });
 
-  // Store hooks for global actions
-  const { isRendering, loadExample, renderActiveComponent } = useComponentStore();
+  const { isRendering, loadExample, renderActiveComponent, examplesVersion, currentExampleName } = useComponentStore();
+  const activeComponent = useComponentStore((state) =>
+    state.activeComponentId ? state.components[state.activeComponentId] : null
+  );
+
+  const currentProjectName = currentExampleName ?? activeComponent?.name ?? Object.keys(examples)[0] ?? 'Loading...';
+
+  useEffect(() => {
+    void renderActiveComponent();
+  }, [renderActiveComponent]);
+
+  useEffect(() => {
+    if (examplesVersion > 0) {
+      void renderActiveComponent();
+    }
+  }, [examplesVersion, renderActiveComponent]);
+
+  // Auto-load the first example on initial load
+  useEffect(() => {
+    const firstExampleKey = Object.keys(examples)[0]; // 'Default'
+    if (firstExampleKey) {
+      loadExample(firstExampleKey);
+    }
+  }, [loadExample]); // Only depend on loadExample, not activeComponent
+
+  const handleExampleSelect = (key: string) => {
+    loadExample(key);
+    setMainSection('preview');
+  };
+
+  const handleLayoutChange = (layout: 'vibe' | 'experimental') => {
+    if (layout === 'vibe') {
+      navigate('/editor');
+    }
+    // Already on experimental layout, no need to navigate
+  };
+
+  const handleMainSectionChange = useCallback(
+    (section: 'preview' | 'code' | 'config') => {
+      setMainSection(section);
+
+      if (section === 'code') {
+        setIsCodeEditorVisible(true);
+      }
+
+      if (section === 'config') {
+        setIsConfigurerVisible(true);
+      }
+    },
+    [setIsCodeEditorVisible, setIsConfigurerVisible],
+  );
 
   return (
     <div className="h-screen overflow-hidden flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors">
-      <Navbar
-        layoutMode={layoutMode}
-        mainView={mainView}
+      <CompactNavbar
+        currentProjectName={currentProjectName}
+        mainSection={mainSection}
         isInspectorVisible={isInspectorVisible}
         isNavigatorVisible={isNavigatorVisible}
         examples={examples}
         multiComponentExamples={multiComponentExamples}
         isRendering={isRendering}
-        onLayoutModeChange={() => {}} // No-op since fixed
-        onMainViewChange={setMainView}
+        onMainSectionChange={handleMainSectionChange}
         onInspectorToggle={() => setIsInspectorVisible(!isInspectorVisible)}
         onNavigatorToggle={() => setIsNavigatorVisible(!isNavigatorVisible)}
-        onExampleSelect={loadExample}
+        onExampleSelect={handleExampleSelect}
         onRender={renderActiveComponent}
-        onConfigToggle={() => {}} // No config modal for experimental
+        isCodeEditorVisible={isCodeEditorVisible}
+        isConfigurerVisible={isConfigurerVisible}
+        isPreviewVisible={isPreviewVisible}
+        onCodeEditorToggle={() => setIsCodeEditorVisible(!isCodeEditorVisible)}
+        onConfigurerToggle={() => setIsConfigurerVisible(!isConfigurerVisible)}
+        onPreviewToggle={() => setIsPreviewVisible(!isPreviewVisible)}
+        currentLayout="experimental"
+        onLayoutChange={handleLayoutChange}
       />
       <div className="flex-1 overflow-hidden">
         <ExperimentalLayout
+          mainSection={mainSection}
           isFullscreen={isFullscreen}
           isCodeEditorVisible={isCodeEditorVisible}
           isInspectorVisible={isInspectorVisible}
           isNavigatorVisible={isNavigatorVisible}
           isConfigurerVisible={isConfigurerVisible}
+          isPreviewVisible={isPreviewVisible}
           preFullscreenStates={preFullscreenStates}
           setIsFullscreen={setIsFullscreen}
           setIsCodeEditorVisible={setIsCodeEditorVisible}
           setIsInspectorVisible={setIsInspectorVisible}
           setIsNavigatorVisible={setIsNavigatorVisible}
           setIsConfigurerVisible={setIsConfigurerVisible}
+          setIsPreviewVisible={setIsPreviewVisible}
           setPreFullscreenStates={setPreFullscreenStates}
+          onRender={renderActiveComponent}
+          isRendering={isRendering}
         />
       </div>
     </div>

@@ -5,6 +5,12 @@ import { Undo2, Redo2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PanelHeader } from '@/components/ui/PanelHeader';
 import { IconPalette } from '@tabler/icons-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 /**
  * InspectorContainer - Container component for the Style Editor panel
@@ -43,42 +49,73 @@ export const InspectorContainer: React.FC<InspectorContainerProps> = ({
   return (
     <div className="h-full flex flex-col">
       <PanelHeader title="Style Editor" icon={<IconPalette className="h-5 w-5" />}>
-        <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-          <Button
-            onClick={onUndo}
-            disabled={!canUndo}
-            size="sm"
-            variant="outline"
-            title="Undo last change"
-            className="overflow-hidden whitespace-nowrap flex-1 min-w-0"
-          >
-            <Undo2 className="h-4 w-4 flex-shrink-0" />
-          </Button>
-          <Button
-            onClick={onRedo}
-            disabled={!canRedo}
-            size="sm"
-            variant="outline"
-            title="Redo last change"
-            className="overflow-hidden whitespace-nowrap flex-1 min-w-0"
-          >
-            <Redo2 className="h-4 w-4 flex-shrink-0" />
-          </Button>
-          <Button
-            onClick={() => {
-              void onApplyChanges();
-            }}
-            disabled={!isDirty}
-            size="sm"
-            title={isDirty ? 'Apply inspector changes into the code editor' : 'No changes to apply'}
-            className="px-2 sm:px-3 flex items-center gap-2 overflow-hidden whitespace-nowrap flex-none"
-          >
-            <Check className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden sm:inline whitespace-nowrap">Apply Changes</span>
-          </Button>
+        <div className="flex items-center gap-1 min-w-0 overflow-hidden">
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-block">
+                  <Button
+                    onClick={onUndo}
+                    disabled={!canUndo}
+                    size="sm"
+                    variant="outline"
+                    className="h-7 w-7 p-0 shrink-0 hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <Undo2 className="h-3.5 w-3.5" />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p className="text-xs">Undo last change</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Ctrl+Z</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-block">
+                  <Button
+                    onClick={onRedo}
+                    disabled={!canRedo}
+                    size="sm"
+                    variant="outline"
+                    className="h-7 w-7 p-0 shrink-0 hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <Redo2 className="h-3.5 w-3.5" />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p className="text-xs">Redo last change</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Ctrl+Y</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-block">
+                  <Button
+                    onClick={() => {
+                      void onApplyChanges();
+                    }}
+                    disabled={!isDirty}
+                    size="sm"
+                    variant="outline"
+                    className="h-7 px-2 flex items-center gap-1 shrink-0 hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                    <span className="text-xs hidden sm:inline">Apply</span>
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p className="text-xs">{isDirty ? 'Apply changes to code' : 'No changes to apply'}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </PanelHeader>
-      <div className={`flex-grow overflow-auto ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+      <div className={`grow overflow-auto ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
         <InspectorPanel />
       </div>
     </div>

@@ -129,7 +129,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 Examples
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-background border border-border shadow-lg z-[100]">
+            <DropdownMenuContent className="bg-background border border-border shadow-lg z-100">
               <DropdownMenuLabel>Load an Example</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-xs font-medium text-muted-foreground px-2 py-1">

@@ -24,6 +24,7 @@ import { ConfigurerContainer } from './containers/ConfigurerContainer';
  * - Fullscreen mode with automatic panel hiding
  * - Floating dock for panel visibility controls
  *
+ * @author Sorcery UI Team
  * @returns {JSX.Element} The complete editor layout with all panels and functionality
  */
 export const EditorLayout: React.FC = () => {
@@ -71,7 +72,19 @@ export const EditorLayout: React.FC = () => {
     setIsFullscreen(!isFullscreen);
   };
 
-  const { selectionMode, setSelectionMode, applyAstChangesToCode, isCodeHighlighted, clearCodeHighlight, undo, redo, isDirty, updateActiveComponentCode } = useComponentStore();
+  const {
+    selectionMode,
+    setSelectionMode,
+    applyAstChangesToCode,
+    isCodeHighlighted,
+    clearCodeHighlight,
+    undo,
+    redo,
+    isDirty,
+    updateActiveComponentCode,
+    renderActiveComponent,
+    isRendering,
+  } = useComponentStore();
 
   // ▼▼▼ THIS IS THE FIX ▼▼▼
   // Create selectors to get the data for the *active* component.
@@ -107,8 +120,7 @@ export const EditorLayout: React.FC = () => {
     const newCode = await applyAstChangesToCode();
 
     if (newCode) { // This block only runs on success
-      // The editor will automatically update because it's controlled by the store
-      // Highlighting is now handled by useEffect based on isCodeHighlighted state
+      await renderActiveComponent();
     } else { // This block now runs on failure
       // Let's check the store to give a specific reason
       const { originalCode, jsxLocation } = useComponentStore.getState();
@@ -183,6 +195,8 @@ export const EditorLayout: React.FC = () => {
             isFullscreen={isFullscreen}
             onSelectionModeChange={setSelectionMode}
             onFullscreenToggle={handleFullscreenToggle}
+            onRender={renderActiveComponent}
+            isRendering={isRendering}
           />
         </Panel>
 
