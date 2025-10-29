@@ -86,15 +86,19 @@ export const EditorLayout: React.FC = () => {
     isRendering,
   } = useComponentStore();
 
-  // ▼▼▼ THIS IS THE FIX ▼▼▼
-  // Create selectors to get the data for the *active* component.
-  const activeComponent = useComponentStore((state) =>
-    state.activeComponentId ? state.components[state.activeComponentId] : null
-  );
+  // Get the active component - access state directly through project structure
+  const activeProjectId = useComponentStore((state) => state.activeProjectId);
+  const projects = useComponentStore((state) => state.projects);
+  
+  const activeProject = activeProjectId ? projects[activeProjectId] : null;
+  const activeComponentId = activeProject?.activeComponentId ?? null;
+  const activeComponent = activeComponentId && activeProject 
+    ? activeProject.components[activeComponentId] 
+    : null;
+  
   const activeCode = activeComponent?.code ?? '';
   const activeHistory = activeComponent?.history ?? [];
   const activeHistoryIndex = activeComponent?.historyIndex ?? 0;
-  // ▲▲▲ END OF FIX ▲▲▲
 
   /**
    * Handle code changes from the editor

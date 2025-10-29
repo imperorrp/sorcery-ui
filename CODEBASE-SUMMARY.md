@@ -2,8 +2,10 @@
 
 This document provides a summary of the "Sorcery UI" codebase, outlining its architecture, the purpose of each major file and folder, and the core data flow.
 
+**Documentation Status**: All file documentation has been systematically updated to reflect current codebase state, removing historical references and repetitive mentions. Direct state access pattern is now the standard throughout the application.
+
 - `index.css`: Global stylesheet containing CSS custom properties for theming, utility classes for theme tokens, react-resizable-panels styling, Monaco editor code highlighting, and glassmorphic panel effects with comprehensive JSDoc documentation.
-- `ComponentList.tsx`: **NEW (v1.2)** - Placeholder for future component list interface (currently unused)
+- `ComponentList.tsx`: Placeholder for future component list interface (currently unused)
 
 ## Overall Architecture
 
@@ -30,8 +32,11 @@ The application operates on a sophisticated Three-AST system to ensure both a fl
 This architecture treats the user's Source Code as the ultimate source of truth for logic, while using the Visual ASTs as the source of truth for UI state and interaction.
 
 **Key Features:**
+- **Project-First Architecture**: Hierarchical organization with projects containing multiple components, enabling complex multi-component applications
+- **Direct State Access Pattern**: Eliminates infinite loops by accessing state directly instead of using getter functions
+- **Modular Store Architecture**: Zustand slices for better maintainability and scalability across component, AST, render, config, and UI actions
 - Advanced drill-down selection system for overlapping elements (Shift+click)
-- Comprehensive debug logging for selection state tracking
+- Comprehensive debug logging for selection state tracking and component data availability
 - Context isolation fixes for iframe-to-parent window store access
 - Enhanced visual feedback with live element highlighting
 - Improved documentation with JSDoc comments throughout the codebase
@@ -67,28 +72,23 @@ This directory contains the entire frontend React application, built with Vite. 
 
 #### `store/`
 
-- `componentStore.ts`: This is the most critical state management file. It uses Zustand to create a global store that holds:
-  - `components`: A map of component IDs to their data, supporting multiple components in a library
-  - `activeComponentId`: The ID of the component currently being edited
-  - `selectedNodeId`: The ID of the currently selected element
-  - `selectionMode`: Either 'interact' or 'select' mode for the canvas
-  - `isDirty`: A flag indicating that visual changes have been made but not yet applied to the source code
-  - `isCodeHighlighted`: A flag to control the persistent highlighting in the code editor after changes are applied
-  - `isRendering`: A flag indicating whether a render operation is currently in progress
-  - `examplesVersion`: Incremented when example sets are loaded to notify UI
-  - `lastOpenedTabId`: Transient flag for tracking explicitly opened components
-  - `currentExampleName`: The name of the currently loaded example for proper project naming in the navbar
-  - For each component (`ComponentData`):
-    - `componentAst`: The "Live AST" created with the real React library. It is rendered in "Interaction Mode" and allows the component to be fully stateful
-    - `componentPreviewAst`: The "Preview AST" created with a shimmed React. This is a structurally complete map of the component used for the Navigator and as the blueprint for style updates
-    - `code`: The user's source code string, which is treated as the source of truth for all component logic
-    - `jsxLocation`: The character start/end position of the JSX block within the code
-    - `propsJson`: JSON string for mock props
-    - `dependencies`: Array of external dependency URLs
-    - `wrapperCode`: Code for context wrapper components
-    - `history`: An array of AST snapshots for undo/redo functionality
-    - `historyIndex`: Current position in the history stack
-  - Key methods: `setRenderOutput` (initializes both ASTs after rendering), `updateNodeStyle` (applies style changes with proper immutable updates within set() callback), `applyAstChangesToCode` (surgical code updates), `undo`/`redo` (history management), `renderActiveComponent` (async rendering with error handling), plus multi-component management methods like `addComponent`, `setActiveComponent`, `deleteComponent`, etc. Includes currentExampleName tracking for proper project naming in navbar.
+The state management system supports project-based organization with nested component structures using Zustand slices for maintainability and scalability.
+
+- `types.ts`: TypeScript type definitions for the entire store state, including ProjectData, ComponentData, and all action interfaces. Defines the hierarchical data structure where projects contain multiple components.
+- `componentStore.ts`: Main store composition file that combines all Zustand slices using spread composition. Initializes the project layer architecture and provides the unified store interface.
+- `componentActions.ts`: Actions for managing components within projects, including CRUD operations, active component switching, and component data updates.
+- `astActions.ts`: Actions for managing AST (Abstract Syntax Tree) data, including component and preview AST updates, history management, and AST-based operations.
+- `renderActions.ts`: Actions for rendering pipeline, including code-to-AST conversion, dependency injection, and render output management with error handling.
+- `configActions.ts`: Actions for configuration management, including theme settings, Tailwind config, and global CSS management.
+- `uiActions.ts`: Actions for UI state management, including selection modes, panel visibility, fullscreen state, and user interface preferences.
+- `selectors.ts`: Selector functions for accessing store state, providing computed values and preventing subscription issues.
+
+The store uses a project-first architecture where:
+- `projects`: A map of project IDs to ProjectData objects
+- `activeProjectId`: The currently active project
+- Each ProjectData contains `components` (Record<string, ComponentData>) and `activeComponentId`
+
+Key methods include project management (`addProject`, `setActiveProject`), component management within projects, and all existing functionality.
 
 #### `lib/`
 
@@ -123,24 +123,25 @@ This directory contains the entire frontend React application, built with Vite. 
 
 #### `components/`
 
-- `CompactNavbar.tsx`: Main navigation bar component with project dropdown, examples section, layout switching, mobile-responsive sheet interface, sliding pill animations, and settings integration. Features Projects card layout for examples, multi-component example descriptions, mobile sheet with settings access, experimental layout restrictions, and differentiated config icon (Settings2). Includes comprehensive JSDoc documentation with author attribution.
+- `CompactNavbar.tsx`: Main navigation bar component with project dropdown, examples section, layout switching, mobile-responsive sheet interface, sliding pill animations, and settings integration. Features Projects card layout for examples, multi-component example descriptions, mobile sheet with settings access, experimental layout restrictions, and differentiated config icon (Settings2). Includes ComponentSwitcher integration for seamless component navigation within projects. Includes comprehensive JSDoc documentation with author attribution.
+- `ComponentSwitcher.tsx`: UI component integrated into the navbar for switching between components within the active project. Provides a dropdown interface for component navigation in project-based architecture.
 - `HomePage.tsx`: Landing page component for Sorcery UI, featuring a hero section with gradient headline, feature cards, problem/solution explanation, and navigation to editor routes with comprehensive JSDoc documentation.
 - `EditorPage.tsx`: Editor page component using the Vibe layout, providing the main editing interface with navbar controls, panel visibility toggles, and configuration modal. Uses currentExampleName from store for proper project naming with comprehensive JSDoc documentation.
-- `EditorLayout.tsx`: Main editor layout component that manages the entire application interface with panel layout, resizing, fullscreen mode, and floating dock controls. Includes comprehensive JSDoc documentation with author attribution.
+- `EditorLayout.tsx`: Main editor layout component that manages the entire application interface with panel layout, resizing, fullscreen mode, and floating dock controls. Includes fullscreen mode with automatic panel hiding, floating dock for panel visibility controls, and enhanced visual feedback.
 - `ExperimentalEditorPage.tsx`: Experimental editor page component using the Experimental layout, featuring advanced panel controls, fullscreen mode, and comprehensive layout management. Uses currentExampleName from store for proper project naming with comprehensive JSDoc documentation.
-- `ExperimentalLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Component Preview, Style Editor). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access, fullscreen mode with automatic panel hiding, floating dock for panel visibility controls, and enhanced...
+- `ExperimentalLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Component Preview, Style Editor). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access, fullscreen mode with automatic panel hiding, floating dock for panel visibility controls, and enhanced visual feedback.
 
 ##### `Canvas/`
 
-- `ComponentCanvas.tsx`: Acts as a container for the rendered component. It renders `IframeCanvas` and is responsible for displaying the `SelectionHighlighter` overlay when an element is selected.
-- `IframeCanvas.tsx`: A key component that creates a sandboxed `<iframe>` for rendering. It uses `createPortal` to render the component AST into the iframe's document body. Includes dependency injection with stabilization to prevent infinite loops, enhanced selection handling for custom components, and AST sanitization for error handling. **NEW**: Features an advanced drill-down selection system with Shift+click for overlapping elements, visual layer indicators, live element highlighting, and proper context bridging between iframe and parent window for store access.
+- `ComponentCanvas.tsx`: Main canvas component that renders components in an iframe and handles element selection highlighting. Manages the SelectionHighlighter overlay for visual feedback during element selection.
+- `IframeCanvas.tsx`: Advanced sandboxed iframe environment for isolated component rendering with comprehensive selection capabilities. Features dependency injection with stabilization, advanced drill-down selection for overlapping elements (Shift+click), live element highlighting, debug logging to trace component data availability and rendering issues, and proper context bridging between iframe and parent window.
 - `SelectionHighlighter.tsx`: An unused component, with the active implementation located inside `ComponentCanvas.tsx` for more accurate positioning.
 
 ##### `CodeEditor/`
 
 - `MonacoEditor.tsx`: Integrates the Monaco Editor, providing a rich code editing experience with TSX/JSX support. It exposes a ref to get the current code and supports code range highlighting for JSX element inspection.
-- `CodeEditorWithTabs.tsx`: Combines Monaco editor with integrated tab system for multi-component editing experience
-- `ComponentTabs.tsx`: IDE-style component tab bar with overflow management, drag-and-drop reordering, integrated library access, theme support, and comprehensive JSDoc documentation
+- `CodeEditorWithTabs.tsx`: Combines Monaco editor with integrated tab system for multi-component editing experience.
+- `ComponentTabs.tsx`: IDE-style component tab bar with overflow management, drag-and-drop reordering, integrated library access, theme support, and comprehensive JSDoc documentation.
 - `ExamplesDropdown.tsx`: Placeholder for future example loading interface (currently unused)
 
 ##### `Inspector/`
@@ -187,7 +188,7 @@ This directory contains the entire frontend React application, built with Vite. 
 
 ##### `Library/`
 
-- `LibraryPanel.tsx`: Comprehensive component library management panel with full CRUD functionality (add, rename, delete, switch between components).
+- `LibraryPanel.tsx`: Comprehensive component library management panel with full CRUD functionality (add, rename, delete, switch between components). Updated to support project-based architecture with editable project names and component list management within projects.
 - `SettingsDialog.tsx`: Modal dialog for application settings including layout preferences with mobile restrictions. Provides layout switching between Vibe and Experimental modes, with Experimental layout disabled on mobile screens with appropriate messaging. Includes comprehensive JSDoc documentation with author attribution.
 - `KeyboardShortcutsHelp.tsx`: Modal dialog showing all available keyboard shortcuts in the editor. Can be triggered by pressing '?' key and provides comprehensive shortcut documentation for navigation, actions, panels, editing, and general commands with comprehensive JSDoc documentation..
 
@@ -222,8 +223,9 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 
 #### `layouts/`
 
-- `ExperimentalLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Component Preview, Style Editor). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access, fullscreen mode with automatic panel hiding, floating dock for panel visibility controls, and enhanced...
+- `ExperimentalLayout.tsx`: The main UI component that assembles the different panels (Library, Navigator, Code Editor, Component Preview, Style Editor). It manages the resizing and collapsing state for these panels using react-resizable-panels. It also triggers the rendering process by calling `renderCodeToAst` and handles example loading. Includes active component selectors for proper multi-component data access, fullscreen mode with automatic panel hiding, floating dock for panel visibility controls, and enhanced visual feedback.
 - `VibeLayout.tsx`: Alternative layout implementation with a floating navigator panel that can be expanded/minimized. Features a compact design with inspector sidebar and floating navigator overlay, including expand/minimize functionality for better space utilization. Includes comprehensive JSDoc documentation with author attribution.
+- `MobileLayout.tsx`: Touch-optimized layout system for mobile devices that replaces react-resizable-panels with a tabbed/stacked interface. Features bottom tab bar for panel switching, full-screen panels with smooth transitions, swipe gestures for navigation, touch-optimized UI elements, and floating action button for quick actions.
 
 ##### `contexts/`
 

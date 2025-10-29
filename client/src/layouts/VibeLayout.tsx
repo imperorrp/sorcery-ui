@@ -64,9 +64,15 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
   } = useComponentStore();
 
   // Get active component data
-  const activeComponent = useComponentStore((state) =>
-    state.activeComponentId ? state.components[state.activeComponentId] : null
-  );
+  const activeProjectId = useComponentStore((state) => state.activeProjectId);
+  const projects = useComponentStore((state) => state.projects);
+  
+  const activeProject = activeProjectId ? projects[activeProjectId] : null;
+  const activeComponentId = activeProject?.activeComponentId ?? null;
+  const activeComponent = activeComponentId && activeProject 
+    ? activeProject.components[activeComponentId] 
+    : null;
+  
   const activeCode = activeComponent?.code ?? '';
   const activeHistory = activeComponent?.history ?? [];
   const activeHistoryIndex = activeComponent?.historyIndex ?? 0;

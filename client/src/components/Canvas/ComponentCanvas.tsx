@@ -1,9 +1,9 @@
 /**
- * Component Canvas - Live Component Rendering
+ * ComponentCanvas - Live Component Rendering with Selection Highlighting
  *
- * Main canvas component that renders components in an iframe and handles
- * element selection with visual highlighting. Manages the display of
- * rendered components with interactive selection capabilities.
+ * Main canvas component that renders components in an iframe environment with interactive
+ * element selection capabilities. Provides visual feedback through selection highlighting
+ * and manages the display of rendered components with hover and selection states.
  */
 import React from 'react';
 import { useComponentStore } from '@/store/componentStore';
@@ -11,12 +11,21 @@ import type { SerializableElement } from '@/store/componentStore';
 import { IframeCanvas } from './IframeCanvas';
 
 /**
- * Canvas component that orchestrates component rendering and selection.
- * Handles iframe rendering, selection highlighting, and state management.
+ * ComponentCanvas - Main canvas component orchestrating rendering and selection
+ *
+ * Handles iframe-based component rendering, selection highlighting, and state management.
+ * Coordinates between the iframe canvas and overlay selection indicators.
  */
 export const ComponentCanvas = () => {
-  // Use active component selectors for proper data access
-  const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
+  // Access active component directly through project structure to avoid getter function issues
+  const activeComponent = useComponentStore((s) => {
+    const { activeProjectId, projects } = s;
+    if (!activeProjectId) return null;
+    const project = projects[activeProjectId];
+    if (!project?.activeComponentId) return null;
+    return project.components[project.activeComponentId] ?? null;
+  });
+
   const componentAst = activeComponent?.componentAst ?? null;
   const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
   const selectionMode = useComponentStore((s) => s.selectionMode);
@@ -26,6 +35,7 @@ export const ComponentCanvas = () => {
   const historyIndex = activeComponent?.historyIndex ?? 0;
   const latestPreview = componentPreviewAst ?? history?.[historyIndex]?.preview ?? null;
   const chosenAst = selectionMode === 'select' ? latestPreview : componentAst;
+
   return (
     <div className="relative w-full h-full" data-canvas-overlay-container>
       <IframeCanvas />
@@ -35,8 +45,11 @@ export const ComponentCanvas = () => {
 };
 
 /**
- * Visual highlighter for selected elements in the canvas.
- * Draws blue outline around selected components for user feedback.
+ * SelectionHighlighter - Visual overlay for selected and hovered elements
+ *
+ * Renders highlight borders around selected and hovered DOM elements within the iframe canvas.
+ * Provides visual feedback for user interactions with solid borders for selections and
+ * dashed borders for hover states. Calculates positioning relative to iframe and container.
  */
 const SelectionHighlighter = ({ ast }: { ast: SerializableElement | null }) => {
   const selectedNodeId = useComponentStore((s) => s.selectedNodeId);
@@ -45,7 +58,7 @@ const SelectionHighlighter = ({ ast }: { ast: SerializableElement | null }) => {
   const [selectedEl, setSelectedEl] = React.useState<HTMLElement | null>(null);
   const [hoveredEl, setHoveredEl] = React.useState<HTMLElement | null>(null);
 
-  // lookup selected element
+  // Lookup selected element in iframe document
   React.useEffect(() => {
     const t = setTimeout(() => {
       const iframe = document.querySelector('iframe[title="Component Canvas"]') as HTMLIFrameElement | null;
@@ -59,7 +72,7 @@ const SelectionHighlighter = ({ ast }: { ast: SerializableElement | null }) => {
     return () => clearTimeout(t);
   }, [selectedNodeId, ast]);
 
-  // lookup hovered element (transient)
+  // Lookup hovered element in iframe document (transient highlighting)
   React.useEffect(() => {
     const t = setTimeout(() => {
       const iframe = document.querySelector('iframe[title="Component Canvas"]') as HTMLIFrameElement | null;
@@ -80,6 +93,10 @@ const SelectionHighlighter = ({ ast }: { ast: SerializableElement | null }) => {
 
   if (!iframeRect || !containerRect) return null;
 
+  /**
+   * Create highlight style for element positioning and visual appearance
+   * Positions highlight relative to iframe within container and applies appropriate border styling
+   */
   const makeStyle = (rect: DOMRect, zIndex: number, dashed: boolean): React.CSSProperties => ({
     position: 'absolute',
     left: `${iframeRect.left + rect.left - containerRect.left}px`,

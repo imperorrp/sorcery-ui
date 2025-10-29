@@ -20,11 +20,20 @@ import { cn } from '@/lib/utils';
  * which propagates to the Inspector and Canvas for editing.
  */
 export const ComponentTree: React.FC = () => {
-	// Use active component selectors for proper data access
-	const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
+	console.log('[ComponentTree] Render');
+	
+	// Access state directly
+	const activeProjectId = useComponentStore((s) => s.activeProjectId);
+	const projects = useComponentStore((s) => s.projects);
+	
+	const activeProject = activeProjectId ? projects[activeProjectId] : null;
+	const activeComponentId = activeProject?.activeComponentId ?? null;
+	const activeComponent = activeComponentId && activeProject 
+		? activeProject.components[activeComponentId] 
+		: null;
 	const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
-	const activeComponentId = useComponentStore((s) => s.activeComponentId);
-	const components = useComponentStore((s) => s.components);
+	
+	console.log('[ComponentTree] Active component:', activeComponent?.name);
 
 	return (
 		<div className="h-full flex flex-col">
@@ -34,7 +43,7 @@ export const ComponentTree: React.FC = () => {
 					<h3 className="text-sm font-semibold text-foreground">Component Structure</h3>
 					{activeComponentId && (
 						<p className="text-xs text-muted-foreground">
-							{components[activeComponentId]?.name || 'Unknown Component'}
+							{activeComponent?.name || 'Unknown Component'}
 						</p>
 					)}
 				</div>
@@ -133,7 +142,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, depth }) => {
 				{hasChildren ? (
 					<ChevronRight
 						className={cn(
-							"h-4 w-4 mr-1 flex-shrink-0 transition-transform",
+							"h-4 w-4 mr-1 shrink-0 transition-transform",
 							expanded && "rotate-90",
 							isSelected ? "text-accent-foreground" : "text-muted-foreground"
 						)}

@@ -12,8 +12,14 @@ import { Code2 } from "lucide-react";
  * @returns The rendered ContextWrapperEditor component
  */
 export function ContextWrapperEditor() {
-  // Use active component selectors for proper data access
-  const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
+  const activeComponent = useComponentStore((s) => {
+    const { activeProjectId, projects } = s;
+    if (!activeProjectId) return null;
+    const project = projects[activeProjectId];
+    if (!project?.activeComponentId) return null;
+    return project.components[project.activeComponentId] ?? null;
+  });
+  
   const wrapperCode = activeComponent?.wrapperCode ?? '';
   const setWrapperCode = useComponentStore((s) => s.setWrapperCode);
   const { theme } = useTheme();

@@ -48,6 +48,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { SettingsDialog } from './SettingsDialog';
+import { ComponentSwitcher } from './ComponentSwitcher';
 import type { Example } from '@/examples/examples';
 import type { ComponentData } from '@/store/componentStore';
 
@@ -248,9 +249,9 @@ export const CompactNavbar: React.FC<CompactNavbarProps> = ({
     // Combine all examples (single and multi-component)
     const allExamples = [
       ...singleExamples.map(([key, example]) => ({ key, example, isMulti: false })),
-      ...multiExamples.map(([key, multiExample]) => ({ 
+      ...multiExamples.map(([key]) => ({ 
         key, 
-        example: { description: multiExample.description } as Example, 
+        example: { description: `Multi-component example: ${key}` } as Example, 
         isMulti: true 
       })),
     ];
@@ -661,8 +662,10 @@ export const CompactNavbar: React.FC<CompactNavbarProps> = ({
 
             {/* Project Selector - Compact & Stylish */}
             {!isMobile && (
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <div className="h-5 mx-2 border-l border-border/60" />
+                
+                {/* Project Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <motion.button
@@ -677,6 +680,9 @@ export const CompactNavbar: React.FC<CompactNavbarProps> = ({
                   </DropdownMenuTrigger>
                   {renderProjectMenuItems()}
                 </DropdownMenu>
+
+                {/* Component Switcher */}
+                <ComponentSwitcher />
               </div>
             )}
 

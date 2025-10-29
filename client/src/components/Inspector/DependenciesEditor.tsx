@@ -13,8 +13,14 @@ import { useState } from "react";
  * @returns The rendered DependenciesEditor component
  */
 export function DependenciesEditor() {
-  // Use active component selectors for proper data access
-  const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
+  const activeComponent = useComponentStore((s) => {
+    const { activeProjectId, projects } = s;
+    if (!activeProjectId) return null;
+    const project = projects[activeProjectId];
+    if (!project?.activeComponentId) return null;
+    return project.components[project.activeComponentId] ?? null;
+  });
+  
   const dependencies = activeComponent?.dependencies ?? [];
   const addDependency = useComponentStore((s) => s.addDependency);
   const removeDependency = useComponentStore((s) => s.removeDependency);

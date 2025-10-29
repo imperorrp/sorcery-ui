@@ -14,8 +14,14 @@ import { Button } from '@/components/ui/button';
  * @returns The rendered PropsEditor component
  */
 export const PropsEditor: React.FC = () => {
-  // Use active component selectors for proper data access
-  const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
+  const activeComponent = useComponentStore((s) => {
+    const { activeProjectId, projects } = s;
+    if (!activeProjectId) return null;
+    const project = projects[activeProjectId];
+    if (!project?.activeComponentId) return null;
+    return project.components[project.activeComponentId] ?? null;
+  });
+  
   const propsJson = activeComponent?.propsJson ?? '{}';
   const setPropsJson = useComponentStore((s) => s.setPropsJson);
 

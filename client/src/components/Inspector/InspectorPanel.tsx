@@ -134,8 +134,14 @@ export const InspectorPanel: React.FC = () => {
     }
   }, []);
 
-  // Get current className from the store
-  const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
+  const activeComponent = useComponentStore((s) => {
+    const { activeProjectId, projects } = s;
+    if (!activeProjectId) return null;
+    const project = projects[activeProjectId];
+    if (!project?.activeComponentId) return null;
+    return project.components[project.activeComponentId] ?? null;
+  });
+  
   const selectedNodeId = useComponentStore((s) => s.selectedNodeId);
   const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
   const updateNodeClassName = useComponentStore((s) => s.updateNodeClassName);

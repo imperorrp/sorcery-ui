@@ -47,8 +47,14 @@ const findNodeById = (node: SerializableElement, id: string): SerializableElemen
  * Includes smart component boundary detection to prevent editing child components.
  */
 export const StyleEditor: React.FC = () => {
-  // Use active component selectors for proper data access
-  const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
+  const activeComponent = useComponentStore((s) => {
+    const { activeProjectId, projects } = s;
+    if (!activeProjectId) return null;
+    const project = projects[activeProjectId];
+    if (!project?.activeComponentId) return null;
+    return project.components[project.activeComponentId] ?? null;
+  });
+  
   const selectedNodeId = useComponentStore((s) => s.selectedNodeId);
   const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
   const updateNodeStyle = useComponentStore((s) => s.updateNodeStyle);

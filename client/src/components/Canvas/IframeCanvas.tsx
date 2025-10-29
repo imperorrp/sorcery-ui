@@ -1,13 +1,13 @@
 /**
- * Iframe Canvas - Isolated Component Rendering with Advanced Selection
+ * IframeCanvas - Isolated Component Rendering with Advanced Selection
  *
  * Renders components in a sandboxed iframe environment with comprehensive selection
  * and interaction capabilities. Features include:
  * - Dependency injection with stabilization
  * - Advanced drill-down selection for overlapping elements (Shift+click)
- * - Live element highlighting during selection
- * - DOM event handling and portal rendering
- * - Context isolation management for proper store access
+ * - Live element highlighting during selection with visual feedback
+ * - DOM event handling and portal rendering for isolated execution
+ * - Context isolation management for proper store access across iframe boundaries
  * - Multi-layer element selection with visual layer indicators
  * - Automatic mock generation for missing components
  */
@@ -24,14 +24,34 @@ import type { SerializableElement } from '@/store/componentStore';
  * - Multi-layer element selection via Shift+click drill-down menu
  * - Real-time element highlighting and visual feedback
  * - Proper context bridging between iframe and parent window
- * - Dependency management and script injection
+ * - Dependency management and script injection with stabilization
  * - Selection mode switching (interact/select)
  */
 export const IframeCanvas: React.FC = () => {
-  // Use active component selectors for proper data access
-  const activeComponent = useComponentStore((s) => s.activeComponentId ? s.components[s.activeComponentId] : null);
+  // Access active component directly through project structure to avoid getter function issues
+  const activeComponent = useComponentStore((s) => {
+    const { activeProjectId, projects } = s;
+    if (!activeProjectId) return null;
+    const project = projects[activeProjectId];
+    if (!project?.activeComponentId) return null;
+    return project.components[project.activeComponentId] ?? null;
+  });
+
   const componentAst = activeComponent?.componentAst ?? null;
   const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
+
+  // Debug logging to trace component data availability and rendering issues
+  React.useEffect(() => {
+    console.log('[IframeCanvas] Component data:', {
+      hasActiveComponent: !!activeComponent,
+      componentName: activeComponent?.name,
+      hasComponentAst: !!componentAst,
+      hasComponentPreviewAst: !!componentPreviewAst,
+      astType: componentAst?.type,
+      previewAstType: componentPreviewAst?.type,
+    });
+  }, [activeComponent, componentAst, componentPreviewAst]);
+  
   const selectionMode = useComponentStore((s) => s.selectionMode);
   const setSelectedNodeId = useComponentStore((s) => s.setSelectedNodeId);
   const setHoveredNodeId = useComponentStore((s) => s.setHoveredNodeId);

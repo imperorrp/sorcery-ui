@@ -126,6 +126,28 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 - [x] **Infrastructure:** Process shim polyfill for Node.js globals.
 - [x] **Infrastructure:** pnpm workspace configuration with .npmrc settings.
 
+### Phase 6.5: Project Architecture (Completed)
+- [x] **Architecture:** Introduce Project layer as a first-class concept in the data model.
+- [x] **Store:** Add ProjectData type and projects state to componentStore.
+- [x] **Store:** Implement initProjectLayer() for migration from legacy component-only structure.
+- [x] **Store:** Add Project CRUD actions (createProject, renameProject, deleteProject, setActiveProject).
+- [x] **Store:** Add computed selectors (getActiveProject, getActiveComponent, getAllComponents).
+- [x] **Store:** Refactor all component actions to scope to active project.
+- [x] **Store:** Update renderActiveComponent, updateNodeStyle, applyAstChangesToCode to use project-scoped data.
+- [x] **Store:** Update undo/redo history to be per-component within project.
+- [x] **Store:** Break down monolithic componentStore.ts into 9 modular files by concern.
+- [x] **UI:** Create reusable ComponentSwitcher component for navbar.
+- [x] **UI:** Add ComponentSwitcher to CompactNavbar as primary global control.
+- [x] **UI:** Update LibraryPanel to show project name (editable) and component list.
+- [x] **UI:** Add active component indicator (blue dot) in LibraryPanel.
+- [x] **UI:** Update all 10+ UI components to use new nested project structure.
+- [x] **Bug Fix:** Fixed preview rendering by correcting data access patterns.
+- [x] **Bug Fix:** Fixed IframeCanvas, ComponentCanvas, and all Inspector panels.
+- [x] **Bug Fix:** Fixed CodeEditorWithTabs to access correct component data.
+- [ ] **Testing:** Verify migration from legacy structure preserves all data.
+- [ ] **Testing:** Test component switching updates all panels correctly.
+- [ ] **Testing:** Test example loading creates proper Project structure.
+
 ### Phase 7: Testing & Quality Assurance (Planned)
 - [ ] **Testing:** Unit tests for core utilities (renderer, parser, styleUpdater).
 - [ ] **Testing:** Integration tests for store actions and state management.

@@ -44,9 +44,16 @@ export function ExperimentalEditorPage() {
   });
 
   const { isRendering, loadExample, renderActiveComponent, examplesVersion, currentExampleName } = useComponentStore();
-  const activeComponent = useComponentStore((state) =>
-    state.activeComponentId ? state.components[state.activeComponentId] : null
-  );
+  
+  // Access state directly through project structure to avoid getter function issues
+  const activeProjectId = useComponentStore((state) => state.activeProjectId);
+  const projects = useComponentStore((state) => state.projects);
+  
+  const activeProject = activeProjectId ? projects[activeProjectId] : null;
+  const activeComponentId = activeProject?.activeComponentId ?? null;
+  const activeComponent = activeComponentId && activeProject 
+    ? activeProject.components[activeComponentId] 
+    : null;
 
   const currentProjectName = currentExampleName ?? activeComponent?.name ?? Object.keys(examples)[0] ?? 'Loading...';
 

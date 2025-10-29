@@ -2,9 +2,6 @@
  * ComponentTabs - IDE-Style Component Tab Bar
  *
  * A modern tab interface for switching between components, inspired by VS Code tabs.
- * Features overflow management with a popover for additional components, drag-and-drop
- * reordering, and integrated actions for adding/deleting components. Supports theme
- * switching and maintains tab state across component library changes.
  *
  * @returns {JSX.Element} The rendered ComponentTabs component
  */
@@ -33,13 +30,35 @@ import { LibraryPanel } from '@/components/Library/LibraryPanel';
  * @returns {JSX.Element} The rendered ComponentTabs component
  */
 export const ComponentTabs: React.FC = () => {
-  // Subscribe to only the slices we need to avoid stale closures
-  const components = useComponentStore((s) => s.components);
-  const activeComponentId = useComponentStore((s) => s.activeComponentId);
+  console.log('[ComponentTabs] Render');
+  
+  // Access state directly through project structure to avoid getter function issues
+  const activeProjectId = useComponentStore((s) => s.activeProjectId);
+  const projects = useComponentStore((s) => s.projects);
+  
+  const activeProject = activeProjectId ? projects[activeProjectId] : null;
+  const activeComponentId = activeProject?.activeComponentId ?? null;
+  
+  console.log('[ComponentTabs] Active project:', activeProject?.name);
+  console.log('[ComponentTabs] Active component ID:', activeComponentId);
+  
   const setActiveComponent = useComponentStore((s) => s.setActiveComponent);
   const addComponent = useComponentStore((s) => s.addComponent);
 
-  const componentList = React.useMemo(() => Object.values(components), [components]);
+  const componentList = React.useMemo(() => {
+    if (!activeProject) return [];
+    return Object.values(activeProject.components);
+  }, [activeProject]);
+  
+  console.log('[ComponentTabs] Component list length:', componentList.length);
+  
+  // Create a components map for O(1) lookups
+  const components = React.useMemo(() => {
+    const map: Record<string, typeof componentList[0]> = {};
+    componentList.forEach(c => map[c.id] = c);
+    return map;
+  }, [componentList]);
+  
   const tabsContainerRef = useRef<HTMLDivElement>(null);
   // Track user-closed tabs (they remain in the library, but hidden from tab bar)
   const [closedTabIds, setClosedTabIds] = useState<string[]>([]);
@@ -163,9 +182,12 @@ export const ComponentTabs: React.FC = () => {
   // re-opening all tabs when the user adds a single component.
   useEffect(() => {
     setClosedTabIds([]);
-  // Reset open order to match fresh example set (read directly from store to avoid hook lint)
-  const freshComponents = useComponentStore.getState().components;
-  setOpenOrder(Object.values(freshComponents).map((c) => c.id));
+    // Reset open order to match fresh example set
+    const state = useComponentStore.getState();
+    const freshProjectId = state.activeProjectId;
+    const freshProject = freshProjectId ? state.projects[freshProjectId] : null;
+    const freshComponents = freshProject ? Object.values(freshProject.components) : [];
+    setOpenOrder(freshComponents.map((c) => c.id));
   }, [examplesVersion]);
 
   // Keep openOrder in sync when components are added/removed (preserve order)
@@ -195,10 +217,9 @@ export const ComponentTabs: React.FC = () => {
       const openTabs = componentList.filter((c) => !closedTabIds.includes(c.id));
       if (openTabs.length > 0) {
         setActiveComponent(openTabs[0].id);
-      } else {
-        // No open tabs left — clear active component so editor shows nothing
-        useComponentStore.setState({ activeComponentId: null });
       }
+      // Note: If no tabs are open, we leave the active component as is.
+      // The component still exists in the library, just not visible in the tab bar.
     }
   }, [closedTabIds, activeComponentId, componentList, setActiveComponent]);
 
@@ -267,7 +288,7 @@ export const ComponentTabs: React.FC = () => {
       </div>
 
       {/* Tabs Container */}
-  <div ref={tabsContainerRef} className="flex items-center gap-1 overflow-x-auto overflow-y-hidden no-scrollbar flex-grow">
+  <div ref={tabsContainerRef} className="flex items-center gap-1 overflow-x-auto overflow-y-hidden no-scrollbar grow">
         {visibleTabs
           .filter((c) => !closedTabIds.includes(c.id))
           .map((component) => (
@@ -351,7 +372,7 @@ export const ComponentTabs: React.FC = () => {
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[320px] p-0 z-[100]" align="end">
+            <PopoverContent className="w-[320px] p-0 z-100" align="end">
               <div className="p-3 border-b border-border">
                 <h4 className="font-semibold text-sm">All Components</h4>
                 <p className="text-xs text-muted-foreground">Manage your component library</p>
@@ -369,7 +390,7 @@ export const ComponentTabs: React.FC = () => {
               <BookOpenCheck className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[320px] p-0 z-[100]">
+          <PopoverContent className="w-[320px] p-0 z-100">
             <div className="p-3 border-b border-border">
               <h4 className="font-semibold text-sm">Library</h4>
               <p className="text-xs text-muted-foreground">Manage components</p>
@@ -387,10 +408,17 @@ export const ComponentTabs: React.FC = () => {
           onClick={() => {
             // Add a component via the store. addComponent sets it active.
             addComponent();
-            const newActive = useComponentStore.getState().activeComponentId;
-            if (newActive) {
-              setClosedTabIds((s) => s.filter((id) => id !== newActive));
-              setActiveComponent(newActive);
+            const state = useComponentStore.getState();
+            const newProjectId = state.activeProjectId;
+            const newProject = newProjectId ? state.projects[newProjectId] : null;
+            const newComponentId = newProject?.activeComponentId ?? null;
+            const newActiveComponent = newComponentId && newProject 
+              ? newProject.components[newComponentId] 
+              : null;
+            
+            if (newActiveComponent) {
+              setClosedTabIds((s) => s.filter((id) => id !== newActiveComponent.id));
+              setActiveComponent(newActiveComponent.id);
             }
           }}
           title="Add new component"
