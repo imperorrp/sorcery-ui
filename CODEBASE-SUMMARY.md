@@ -2,7 +2,7 @@
 
 This document provides a summary of the "Sorcery UI" codebase, outlining its architecture, the purpose of each major file and folder, and the core data flow.
 
-**Documentation Status**: All file documentation has been systematically updated to reflect current codebase state, removing historical references and repetitive mentions. Direct state access pattern is now the standard throughout the application.
+**Documentation Status**: All file documentation has been systematically updated to reflect current codebase state, removing historical references and repetitive mentions. Direct state access pattern is now the standard throughout the application. Comprehensive test suite implemented with 44 tests covering core architectural guarantees.
 
 - `index.css`: Global stylesheet containing CSS custom properties for theming, utility classes for theme tokens, react-resizable-panels styling, Monaco editor code highlighting, and glassmorphic panel effects with comprehensive JSDoc documentation.
 - `ComponentList.tsx`: Placeholder for future component list interface (currently unused)
@@ -35,6 +35,7 @@ This architecture treats the user's Source Code as the ultimate source of truth 
 - **Project-First Architecture**: Hierarchical organization with projects containing multiple components, enabling complex multi-component applications
 - **Direct State Access Pattern**: Eliminates infinite loops by accessing state directly instead of using getter functions
 - **Modular Store Architecture**: Zustand slices for better maintainability and scalability across component, AST, render, config, and UI actions
+- **Comprehensive Test Suite**: 44 tests covering core architectural guarantees with 100% pass rate, protecting non-destructive updates and state integrity
 - Advanced drill-down selection system for overlapping elements (Shift+click)
 - Comprehensive debug logging for selection state tracking and component data availability
 - Context isolation fixes for iframe-to-parent window store access
@@ -55,6 +56,7 @@ This architecture treats the user's Source Code as the ultimate source of truth 
 - `package.json`: Defines the pnpm workspaces for client and server and contains scripts to run both concurrently.
 - `README.md`: High-level overview of the project, features, and setup instructions.
 - `PLAN.md`: A detailed technical planning document outlining the architecture, feature specifications, and development roadmap.
+- `TEST-IMPLEMENTATION-SUMMARY.md`: Comprehensive documentation of the test suite implementation, including setup, coverage areas, test results, and maintenance guidelines for the Vitest-based testing infrastructure.
 - `ARCHITECTURE.md`: Comprehensive documentation of architectural decisions, design principles, security considerations, and technical guidelines.
 - `.github/prompts/usefulprompts.prompt.md`: AI prompt template for automated codebase analysis and documentation updates.
 - `.npmrc`: pnpm configuration file with settings for peer dependencies and hoisting.
@@ -231,12 +233,12 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 
 - `ThemeContext.tsx`: A simple React context to manage and persist the application's light/dark theme preference in localStorage.
 
-- `vite.config.ts`: Configuration for the Vite build tool, including aliases and plugins for Tailwind CSS and Monaco Editor.
+- `vite.config.ts`: Configuration for the Vite build tool, including aliases and plugins for Tailwind CSS and Monaco Editor. Includes comprehensive test configuration with happy-dom environment, coverage settings, and global test utilities.
 - `tailwind.config.js`, `postcss.config.js`: Configuration for Tailwind CSS.
 - `tsconfig.*.json`: TypeScript configuration files.
-- `package.json`: Defines client dependencies including React, Vite, Tailwind CSS, and buffer polyfill for browser compatibility.
+- `package.json`: Defines client dependencies including React, Vite, Tailwind CSS, and buffer polyfill for browser compatibility. Includes comprehensive test scripts for running Vitest test suite with coverage reporting and UI mode.
 - `test-analyze.js`: Development test file for testing the `analyzeCode` function and JSX location detection.
-- `TestAstToCode.tsx`: Development test component for testing the AST-to-Code generation functionality with sample AST structures and JSX output.
+- `TestAstToCode.tsx`: Development test component for testing the AST-to-Code generation functionality with sample AST structures and JSX output. Replaced by comprehensive test suite in `__tests__/` directories.
 
 #### `examples/`
 
@@ -244,7 +246,29 @@ Contains reusable UI components built using shadcn/ui principles and Tailwind CS
 
 #### `test/`
 
-- `ComponentStoreTest.tsx`: Test component for verifying the multi-component state management functionality.
+- `vitest.setup.ts`: Global test configuration file providing jest-dom matchers, cleanup utilities, and browser API mocks (matchMedia, IntersectionObserver, ResizeObserver) for consistent test environment across all test files.
+
+#### `lib/__tests__/`
+
+- `componentParser.test.ts`: Comprehensive test suite for AST serialization and deserialization functionality. Includes 14 tests covering element serialization, nested structures, primitive types, style preservation, unique ID generation, and round-trip integrity validation.
+- `styleUpdater.test.ts`: Critical test suite validating non-destructive code update capabilities. Includes 8 tests ensuring style modifications preserve event handlers, hooks, state, TypeScript types, and component logic while only modifying style attributes.
+
+#### `store/__tests__/`
+
+- `componentStore.test.ts`: Complete test suite for Zustand state management. Includes 22 tests covering project/component CRUD operations, AST management, history functionality (undo/redo), configuration management, and selector integrity.
+
+#### `lib/__tests__/`
+
+- `componentParser.test.ts`: Comprehensive test suite for AST serialization and deserialization functionality. Includes 14 tests covering element serialization, nested structures, primitive types, style preservation, unique ID generation, and round-trip integrity validation.
+- `styleUpdater.test.ts`: Critical test suite validating non-destructive code update capabilities. Includes 8 tests ensuring style modifications preserve event handlers, hooks, state, TypeScript types, and component logic while only modifying style attributes.
+
+#### `store/__tests__/`
+
+- `componentStore.test.ts`: Complete test suite for Zustand state management. Includes 22 tests covering project/component CRUD operations, AST management, history functionality (undo/redo), configuration management, and selector integrity.
+
+#### `test/`
+
+- `ComponentStoreTest.tsx`: Legacy test component, replaced by comprehensive test suite in `__tests__/` directories.
 
 ### `server/`
 
