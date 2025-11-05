@@ -153,18 +153,12 @@ export const ExperimentalLayout: React.FC<ExperimentalLayoutProps> = ({
   const handleApplyChanges = async () => {
     const newCode = await applyAstChangesToCode();
 
-    if (newCode) { // This block only runs on success
-      // The editor will automatically update because it's controlled by the store
-      // Highlighting is now handled by useEffect based on isCodeHighlighted state
+    if (newCode) {
+      // Success: re-render with updated code
       await onRender();
-    } else { // This block now runs on failure
-      // Let's check the store to give a specific reason
-      const { originalCode, jsxLocation } = useComponentStore.getState();
-      if (!originalCode || !jsxLocation) {
-        alert('Cannot apply changes yet. Click "Render" first to parse the component, then try again.');
-      } else {
-        alert('Failed to apply changes. Check the console for errors.');
-      }
+    } else {
+      // Failure: applyAstChangesToCode logs specific errors to console
+      alert('Failed to apply changes. Check the console for details.');
     }
   };
 

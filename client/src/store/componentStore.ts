@@ -22,7 +22,7 @@
  */
 
 import { create } from 'zustand';
-import type { StoreType, ProjectData, ComponentData } from './types';
+import type { StoreType, ProjectData, ComponentData, ComponentSchema } from './types';
 import { createProjectActions, initialWrapperCode } from './projectActions';
 import { createComponentActions } from './componentActions';
 import { createASTActions } from './astActions';
@@ -50,6 +50,7 @@ const createDefaultComponent = (id: string = generateId()): ComponentData => ({
   code: defaultExample.code,
   componentAst: null,
   componentPreviewAst: null,
+  componentSchemaAst: null,
   jsxLocation: null,
   propsJson: JSON.stringify(defaultExample.props || {}, null, 2),
   originalPropsJson: JSON.stringify(defaultExample.props || {}, null, 2),
@@ -104,6 +105,7 @@ const getInitialState = () => {
     isDirty: false,
     isCodeHighlighted: false,
     isRendering: false,
+    selectedComponentMetadata: null as ComponentSchema | null,
     
     // Example tracking
     examplesVersion: 0,
@@ -111,10 +113,115 @@ const getInitialState = () => {
     lastOpenedTabId: null as string | null,
     
     // Global configuration
-    themeCss: `/* Paste your :root and .dark CSS variables here */`,
+    themeCss: `@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+  }
+}
+
+@layer utilities {
+  .bg-background { background-color: hsl(var(--background)); }
+  .bg-card { background-color: hsl(var(--card)); }
+  .bg-popover { background-color: hsl(var(--popover)); }
+  .bg-muted { background-color: hsl(var(--muted)); }
+  .bg-accent { background-color: hsl(var(--accent)); }
+
+  .text-foreground { color: hsl(var(--foreground)); }
+  .text-muted-foreground { color: hsl(var(--muted-foreground)); }
+  .text-accent-foreground { color: hsl(var(--accent-foreground)); }
+  .text-primary { color: hsl(var(--primary)); }
+
+  .text-popover-foreground { color: hsl(var(--popover-foreground)); }
+
+  .border-border { border-color: hsl(var(--border)); }
+
+  .ring-offset-background { --tw-ring-offset-color: hsl(var(--background)); }
+}`,
     tailwindConfig: `{
   theme: {
-    extend: {}
+    extend: {
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))"
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))"
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))"
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))"
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))"
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))"
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))"
+        }
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)"
+      }
+    }
   }
 }`,
   };

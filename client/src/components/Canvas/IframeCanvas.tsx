@@ -39,6 +39,7 @@ export const IframeCanvas: React.FC = () => {
 
   const componentAst = activeComponent?.componentAst ?? null;
   const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
+  const componentMap = React.useMemo(() => activeComponent?.componentMap ?? {}, [activeComponent?.componentMap]);
 
   // Debug logging to trace component data availability and rendering issues
   React.useEffect(() => {
@@ -58,6 +59,7 @@ export const IframeCanvas: React.FC = () => {
   const dependencies = React.useMemo(() => activeComponent?.dependencies ?? [], [activeComponent?.dependencies]);
   const themeCss = useComponentStore((s) => s.themeCss);
   const tailwindConfig = useComponentStore((s) => s.tailwindConfig);
+  const cssImports = React.useMemo(() => activeComponent?.cssImports ?? [], [activeComponent?.cssImports]);
   
   // Pull snapshot history to recover preview if current state lost it
   const history = activeComponent?.history ?? [];
@@ -68,8 +70,24 @@ export const IframeCanvas: React.FC = () => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeBody, setIframeBody] = useState<HTMLBodyElement | null>(null);
   const [depTick, setDepTick] = useState(0);
-  // acknowledge depTick is intentionally present to force re-renders when deps load
-  void depTick;
+  const [isTailwindReady, setIsTailwindReady] = useState(false);
+  // ▼▼▼ COMPONENT INJECTION INTO IFRAME ▼▼▼
+  // Inject resolved component functions into iframe global scope
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframe.contentWindow) return;
+
+    // Inject each component into the iframe's global scope
+    console.log('[IframeCanvas] injecting components into iframe:', Object.keys(componentMap));
+    Object.entries(componentMap).forEach(([name, component]) => {
+      try {
+        (iframe.contentWindow as unknown as Record<string, unknown>)[name] = component;
+      } catch {
+        // Ignore injection errors for non-writable globals
+      }
+    });
+  }, [iframeBody, componentMap]);
+  // ▲▲▲ END COMPONENT INJECTION ▲▲▲
 
   // ▼▼▼ DRILL-DOWN SELECTION STATE ▼▼▼
   // State for managing the drill-down menu when Shift+clicking overlapping elements
@@ -188,6 +206,9 @@ export const IframeCanvas: React.FC = () => {
     const doc = iframeBody.ownerDocument;
     const head = doc.head;
 
+  // Cleanup any previously injected component CSS links
+  head.querySelectorAll('link[data-component-css]').forEach(el => el.remove());
+
     // Safely parse the user's tailwindConfig string
     let parsedConfig: unknown = {};
     try {
@@ -198,26 +219,204 @@ export const IframeCanvas: React.FC = () => {
       parsedConfig = {};
     }
 
-    // Find or create the config script
+    // Always include shadcn color definitions
+    const shadcnConfig = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            border: 'hsl(var(--border))',
+            input: 'hsl(var(--input))',
+            ring: 'hsl(var(--ring))',
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            primary: {
+              DEFAULT: 'hsl(var(--primary))',
+              foreground: 'hsl(var(--primary-foreground))',
+            },
+            secondary: {
+              DEFAULT: 'hsl(var(--secondary))',
+              foreground: 'hsl(var(--secondary-foreground))',
+            },
+            destructive: {
+              DEFAULT: 'hsl(var(--destructive))',
+              foreground: 'hsl(var(--destructive-foreground))',
+            },
+            muted: {
+              DEFAULT: 'hsl(var(--muted))',
+              foreground: 'hsl(var(--muted-foreground))',
+            },
+            accent: {
+              DEFAULT: 'hsl(var(--accent))',
+              foreground: 'hsl(var(--accent-foreground))',
+            },
+            popover: {
+              DEFAULT: 'hsl(var(--popover))',
+              foreground: 'hsl(var(--popover-foreground))',
+            },
+            card: {
+              DEFAULT: 'hsl(var(--card))',
+              foreground: 'hsl(var(--card-foreground))',
+            },
+          },
+          borderRadius: {
+            lg: 'var(--radius)',
+            md: 'calc(var(--radius) - 2px)',
+            sm: 'calc(var(--radius) - 4px)',
+          },
+        },
+      },
+    };
+
+    // Merge shadcn config with user config (user overrides)
+    parsedConfig = { ...shadcnConfig, ...(parsedConfig as object) };
+
+    // STEP 1: Find or create the config script (must be BEFORE Tailwind loads)
     let configScript = head.querySelector('#tailwind-config-script') as HTMLScriptElement;
     if (!configScript) {
       configScript = doc.createElement('script');
       configScript.id = 'tailwind-config-script';
-      head.appendChild(configScript);
+      // Insert at the beginning of head
+      head.insertBefore(configScript, head.firstChild);
     }
 
     // Set the config on window.tailwind
     configScript.innerHTML = `window.tailwind = { config: ${JSON.stringify(parsedConfig)} };`;
 
-    // Ensure Tailwind Play CDN is loaded after the config
+    console.log('[IframeCanvas] Setting tailwind config:', parsedConfig);
+
+    // Inject any per-component CSS imports BEFORE Tailwind loads so their base/@layer rules
+    // are available when Tailwind scans the DOM. We prefer <link> tags for remote/local
+    // assets and keep a data attribute so they can be cleaned up on re-render.
+    try {
+      const cssNodes: HTMLLinkElement[] = [];
+      (cssImports || []).forEach((href) => {
+        try {
+          let resolved: string;
+          // If it's an absolute or protocol-relative URL, leave as-is
+          if (/^https?:\/\//.test(href) || /^\/\//.test(href)) {
+            resolved = href;
+          } else if (href.startsWith('/')) {
+            resolved = window.location.origin + href;
+          } else {
+            // Resolve relative imports against the current location
+            resolved = new URL(href, window.location.href).toString();
+          }
+
+          const link = doc.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = resolved;
+          link.setAttribute('data-component-css', 'true');
+          head.appendChild(link);
+          cssNodes.push(link);
+        } catch (e) {
+          console.warn('[IframeCanvas] Failed to attach css import', href, e);
+        }
+      });
+
+      // Ensure cleanup of added css links when effect re-runs or unmounts
+      // We will remove them at the end of this effect via returned cleanup function
+      // (see below where tailwind script is appended). For simplicity we don't inline.
+    } catch (err) {
+      console.warn('[IframeCanvas] error processing cssImports', err);
+    }
+
+    // Inject CSS variables BEFORE Tailwind loads so they are available when Tailwind generates styles
+    const styleEl = doc.createElement('style');
+    styleEl.innerHTML = `
+      :root {
+        --background: 0 0% 100%;
+        --foreground: 222.2 84% 4.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 222.2 84% 4.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222.2 84% 4.9%;
+        --primary: 221.2 83.2% 53.3%;
+        --primary-foreground: 210 40% 98%;
+        --secondary: 210 40% 96%;
+        --secondary-foreground: 222.2 84% 4.9%;
+        --muted: 210 40% 96%;
+        --muted-foreground: 215.4 16.3% 46.9%;
+        --accent: 210 40% 96%;
+        --accent-foreground: 222.2 84% 4.9%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 214.3 31.8% 91.4%;
+        --input: 214.3 31.8% 91.4%;
+        --ring: 221.2 83.2% 53.3%;
+        --radius: 0.5rem;
+        --chart-1: 12 76% 61%;
+        --chart-2: 173 58% 39%;
+        --chart-3: 197 37% 24%;
+        --chart-4: 43 74% 66%;
+        --chart-5: 27 87% 67%;
+      }
+      .dark {
+        --background: 222.2 84% 4.9%;
+        --foreground: 210 40% 98%;
+        --card: 222.2 84% 4.9%;
+        --card-foreground: 210 40% 98%;
+        --popover: 222.2 84% 4.9%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 217.2 91.2% 59.8%;
+        --primary-foreground: 222.2 84% 4.9%;
+        --secondary: 217.2 32.6% 17.5%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 217.2 32.6% 17.5%;
+        --muted-foreground: 215 20.2% 65.1%;
+        --accent: 217.2 32.6% 17.5%;
+        --accent-foreground: 210 40% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 217.2 32.6% 17.5%;
+        --input: 217.2 32.6% 17.5%;
+        --ring: 224.3 76.3% 94.1%;
+        --chart-1: 220 70% 50%;
+        --chart-2: 160 60% 45%;
+        --chart-3: 30 80% 55%;
+        --chart-4: 280 65% 60%;
+        --chart-5: 340 75% 55%;
+      }
+      * {
+        border-color: hsl(var(--border));
+      }
+      body {
+        color: hsl(var(--foreground));
+        background: hsl(var(--background));
+      }
+    `;
+    head.appendChild(styleEl);
+
+    // STEP 2: Ensure Tailwind Play CDN is loaded AFTER the config and CSS
     let tailwindScript = head.querySelector('script[src="https://cdn.tailwindcss.com"]') as HTMLScriptElement;
     if (!tailwindScript) {
       tailwindScript = doc.createElement('script');
       tailwindScript.src = 'https://cdn.tailwindcss.com';
-      tailwindScript.async = true;
+      // Mark as not ready initially
+      setIsTailwindReady(false);
+      
+      // Wait for Tailwind to fully load and initialize
+      tailwindScript.onload = () => {
+        // Tailwind needs a moment to scan the DOM and generate styles
+        // Wait for next tick to ensure styles are applied
+        setTimeout(() => {
+          setIsTailwindReady(true);
+          console.log('[IframeCanvas] Tailwind CSS ready');
+        }, 100);
+      };
+      
+      tailwindScript.onerror = () => {
+        console.error('[IframeCanvas] Failed to load Tailwind CSS');
+        setIsTailwindReady(true); // Still render even if Tailwind fails
+      };
+      
+      // Insert AFTER the config script and style to ensure proper order
       head.appendChild(tailwindScript);
+    } else {
+      // Script already exists, assume it's ready
+      setIsTailwindReady(true);
     }
-  }, [iframeBody, tailwindConfig]);
+  }, [iframeBody, tailwindConfig, cssImports]);
   // ▲▲▲ END TAILWIND CONFIG INJECTION ▲▲▲
 
   // ▼▼▼ UPDATE REF WHEN DEPENDENCIES CHANGE ▼▼▼
@@ -416,6 +615,16 @@ export const IframeCanvas: React.FC = () => {
         sandbox="allow-scripts allow-same-origin"
       >
         {iframeBody && (() => {
+          // Don't render component until Tailwind is ready
+          if (!isTailwindReady) {
+            return createPortal(
+              <div style={{ minHeight: '100%', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ color: '#666', fontSize: '14px' }}>Loading styles...</div>
+              </div>,
+              iframeBody
+            );
+          }
+
           // small stable key for portal children to avoid unnecessary remounts
           const combinedKey = `${activeComponent?.id ?? 'no-comp'}|${depTick}|${selectionMode}`;
           // Use preview AST only in selection mode; use runtime AST for interaction mode so state works.

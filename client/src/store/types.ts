@@ -3,9 +3,83 @@
  * 
  * This file contains all TypeScript interfaces and types used throughout the component store.
  * Separating types improves maintainability and makes the architecture clearer.
+ * 
+ * Phase 9 additions: Component schema types for shadcn/variant-aware components
  */
 
 import React from 'react';
+
+/**
+ * Phase 9: Component Schema Types for Variant-Aware Components
+ * 
+ * These types support schema-on-demand extraction for shadcn-like components
+ * that use class-variance-authority (CVA) or similar variant patterns.
+ */
+
+/**
+ * VariantOption - Single variant choice with associated classes
+ */
+export interface VariantOption {
+  value: string;           // e.g., "outline", "ghost", "default"
+  label?: string;          // Human-readable label (defaults to value if omitted)
+  classes: string;         // Tailwind classes applied when this variant is selected
+  description?: string;    // Optional description for tooltip
+  preview?: string;        // Optional preview image URL
+}
+
+/**
+ * VariantDefinition - Complete definition for a variant axis (e.g., "variant", "size")
+ */
+export interface VariantDefinition {
+  name: string;            // e.g., "variant", "size"
+  type: 'enum';            // Currently only enum supported; could add 'boolean' later
+  options: VariantOption[]; // All possible values for this variant axis
+  default?: string;        // Default value if not specified
+}
+
+/**
+ * PropDefinition - Component prop metadata
+ */
+export interface PropDefinition {
+  name: string;
+  type: 'string' | 'number' | 'boolean' | 'enum';
+  options?: string[];      // For enum types
+  default?: unknown;
+  description?: string;
+}
+
+/**
+ * ComponentSchema - Complete metadata for a variant-aware component
+ * 
+ * Extracted from source code via CVA/AST parsing or provided via project schema files.
+ * Used to drive the VariantEditor and PropEditor UI.
+ */
+export interface ComponentSchema {
+  name: string;                          // Component name (e.g., "Button")
+  library?: string;                      // e.g., "shadcn/ui", "aceternity"
+  importPath?: string;                   // e.g., "@/components/ui/button"
+  
+  variants: Record<string, VariantDefinition>; // All variant axes
+  props?: Record<string, PropDefinition>;      // Component props
+  
+  cssVariables?: Record<string, string[]>;     // Maps variant values to CSS custom properties
+  
+  // Metadata for code updates
+  cvaLocation?: {
+    file: string;          // File path where CVA is defined
+    exportName?: string;   // Export name if not default
+  };
+  
+  // Detection confidence (for diagnostics)
+  detectionMethod?: 
+    | 'cva-ast'              // Detected via CVA call expression in AST
+    | 'typescript-signature' // Detected via TypeScript interface patterns
+    | 'runtime-sampling'     // Detected via runtime prop analysis
+    | 'project-schema'       // User-provided schema file
+    | 'registry'             // From shadcn registry
+    | 'heuristic-multi'      // Multiple heuristic signals
+    | 'heuristic-single';    // Single heuristic signal
+}
 
 /**
  * SerializableElement - Lightweight AST representation of React elements
@@ -23,6 +97,7 @@ export interface SerializableElement {
     style?: React.CSSProperties;
   };
   utilityClassState?: Record<string, string>; // Structured state for utility classes
+  componentMetadata?: ComponentSchema | null; // Phase 9: Extracted schema for variant-aware components
 }
 
 /**
@@ -68,6 +143,7 @@ export interface ComponentData {
   code: string; // The user's source code string (source of truth for logic)
   componentAst: SerializableElement | null; // Runtime AST created with real React (interactive)
   componentPreviewAst: SerializableElement | null; // Preview AST created with shimmed React (safe for editing)
+  componentSchemaAst: SerializableElement | null; // Schema AST with unexpanded components for variant detection
   jsxLocation: JsxLocation | null; // Location of JSX block in source code for highlighting
   propsJson: string; // JSON string of mock props for component rendering
   originalPropsJson?: string; // Original props from example, used for reset functionality
@@ -75,6 +151,8 @@ export interface ComponentData {
   wrapperCode: string; // Code for React context providers/wrappers
   history: HistorySnapshot[]; // Array of AST snapshots for undo/redo
   historyIndex: number; // Current position in history stack
+  componentMap?: Record<string, unknown>; // Map of resolved component functions for iframe injection
+  cssImports?: string[]; // Per-component CSS imports captured during transpilation (e.g. './globals.css')
 }
 
 /**
@@ -90,6 +168,10 @@ export interface ProjectData {
   activeComponentId: string | null; // Which component is currently being edited
   createdAt: number; // Timestamp when project was created
   updatedAt: number; // Timestamp when project was last modified
+  
+  // Phase 9: Project-level overrides for variant-aware components
+  customVariants?: Record<string, VariantDefinition[]>; // Custom variants per component (keyed by component name)
+  themeOverrides?: Record<string, string>; // CSS variable overrides (e.g., "--primary": "147 51 234")
 }
 
 /**
@@ -120,6 +202,9 @@ export interface ComponentState {
   isRendering: boolean; // Flag indicating whether a render operation is in progress
   themeCss: string; // Theme CSS for CSS variables and arbitrary global styles
   tailwindConfig: string; // Tailwind configuration JavaScript string
+  
+  // Phase 9: Component schema detection state
+  selectedComponentMetadata: ComponentSchema | null; // Extracted schema for currently selected component (ephemeral)
 }
 
 /**
@@ -155,13 +240,14 @@ export interface ComponentCRUDActions {
 /**
  * ASTActions - AST manipulation operations
  * 
- * Actions for modifying the component's AST (styles, classes, structure)
+ * Actions for modifying the component's AST (styles, classes, structure, props)
  */
 export interface ASTActions {
   setAst: (ast: SerializableElement | null) => void;
   setAstWithPreview: (ast: SerializableElement | null, preview: SerializableElement | null) => void;
   updateNodeStyle: (nodeId: string, newStyle: React.CSSProperties) => void;
   updateNodeClassName: (nodeId: string, newClassName: string) => void;
+  updateNodeProp: (nodeId: string, propName: string, propValue: unknown) => void;
   updateUtilityClass: (nodeId: string, category: string, newClass: string | null) => void;
   undo: () => void;
   redo: () => void;
@@ -178,7 +264,10 @@ export interface RenderActions {
     code: string,
     runtimeAst: SerializableElement | null,
     previewAst: SerializableElement | null,
-    jsxLocation: JsxLocation | null
+    schemaAst: SerializableElement | null,
+    jsxLocation: JsxLocation | null,
+    componentMap?: Record<string, unknown>,
+    cssImports?: string[]
   ) => void;
   applyAstChangesToCode: () => Promise<string | null>;
   loadExample: (key: string) => void;

@@ -26,6 +26,12 @@ export interface Example {
 
 // Import ComponentData for the multi-component example
 import type { ComponentData } from '@/store/componentStore';
+import {
+  shadcnButtonMultiExample,
+  shadcnBadgeMultiExample,
+  shadcnAlertMultiExample,
+  shadcnCardMultiExample
+} from './shadcn-multi-examples';
 
 // Default minimal template
 export const defaultExample: Example = {
@@ -279,6 +285,13 @@ export const examples: Record<string, Example> = {
 // Multi-component examples collection (separate from regular examples for backward compatibility)
 export const multiComponentExamples: Record<string, typeof cardDashboardExample> = {
   'Card Dashboard': cardDashboardExample,
+  
+  // Phase 9: Authentic Shadcn/UI components for testing variant editing
+  'Shadcn Button': shadcnButtonMultiExample,
+  'Shadcn Badge': shadcnBadgeMultiExample,
+  'Shadcn Alert': shadcnAlertMultiExample,
+  'Shadcn Card': shadcnCardMultiExample,
+  
   'Missing Component Demo': {
     activeId: 'missing-demo-id',
     description: 'showcases automatic mock generation for missing components',

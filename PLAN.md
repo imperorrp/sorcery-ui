@@ -163,14 +163,54 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 - [ ] **MCP:** Support for opening specific components from IDE selection.
 - [ ] **MCP:** Bidirectional sync between IDE and Sorcery UI.
 
-### Phase 9: Enhanced Component Support (Planned)
-- [ ] **Support:** Full shadcn/ui component support with proper prop handling.
-- [ ] **Support:** Aceternity UI components integration.
-- [ ] **Support:** Magic UI components integration.
-- [ ] **Support:** 21st.dev components integration.
-- [ ] **Support:** Radix UI primitives support.
-- [ ] **Support:** Headless UI components support.
-- [ ] **Support:** Custom component library SDK for third-party integrations.
+### Phase 9: Enhanced Component Support — Schema-on-demand + Project Overrides (In Progress)
+
+Goal: enable visual editing for shadcn-like components (variants, props, theme variables) using a schema-on-demand approach that extracts metadata from the project's source code, with optional project-level overrides and the ability to browse public shadcn registries.
+
+Notes / design decisions:
+- We will NOT rely on a single global curated registry. Instead we will extract variant/prop metadata from the component source (CVA/AST parsing) at edit time. This keeps the editor accurate for that project's code and supports custom components.
+- Projects may add optional local schema files (project-owned) or use the registry-browser to import public shadcn templates. Custom variants are saved as project overrides by default; writing changes back into library/component source is an explicit, opt-in action.
+
+#### 9.1: Schema-on-demand extraction
+- [x] **CVA extractor:** Parse component files for `cva(...)` (or common variant patterns) and extract `variants`, `defaultVariants`, and class strings (implemented in `lib/cvaExtractor.ts` with 11 passing tests)
+- [x] **Type definitions:** Added ComponentSchema, VariantDefinition, VariantOption, PropDefinition types to `store/types.ts`
+- [x] **Store integration:** Extended SerializableElement, ProjectData, and ComponentState with component metadata fields
+- [ ] **Prop inference:** Read TS/JS signatures and heuristics to list props (enum detection when possible)
+- [ ] **Theme variable detection:** Scan variant classes for tokens that map to CSS custom properties and surface relevant variables
+
+#### 9.2: Inspector UI & UX
+- [x] **VariantEditor component:** Created React component that displays variant options as visual cards with class previews (VariantEditor.tsx)
+- [x] **Store integration:** Enhanced setSelectedNodeId to detect component metadata on selection using detectAndExtractSchema
+- [x] **Conditional Inspector tabs:** Added conditional Component tab that appears when shadcn-like component is selected
+- [x] **Wire up VariantEditor:** Connected VariantEditor to Inspector UI with store selector for selectedComponentMetadata
+- [x] **Shadcn examples:** Added 4 shadcn-style component examples (Button, Badge, Alert, Card) to examples for manual testing
+- [ ] **PropEditor:** Dynamic controls for props (enum → dropdown, boolean → toggle, string → input)
+
+#### 9.3: Project overrides & custom variants
+- [ ] **Project overrides storage:** Persist `customVariants` and `themeOverrides` in project/component state (safe, reversible)
+- [ ] **Custom variant workflow:** Create variant in-project (stored as override); offer explicit "persist to source" action that runs a surgical CVA update
+
+#### 9.4: shadcn registry browsing & templates
+- [ ] **Registry browser:** Use the shadcn MCP tools to list public registry items and examples; let users preview templates and import component templates/snippets into their project or insert into the editor
+- [ ] **Caching:** Cache fetched templates per project to avoid repeated network calls
+
+#### 9.5: Code modification (opt-in)
+- [ ] **variantUpdater (opt-in):** Surgical AST updater to add/modify CVA variant objects in source — must be explicitly confirmed by user
+- [ ] **propUpdater:** Surgical JSX attribute updater (used for switching variants and prop edits)
+
+#### 9.6: Theme integration
+- [ ] **ThemeVariableEditor:** UI for editing CSS variables (color picker, number/size inputs)
+- [ ] **Import/Export:** Allow pasting theme CSS (e.g., from tweakcn) into project config; parse and extract variables
+- [ ] **Live injection:** Update `themeCss` in store and re-inject into iframe for immediate preview
+
+#### 9.7: Fallbacks & diagnostics
+- [ ] **Fallback UI:** If extractor cannot parse variants, show a lightweight quick-props UI and offer "Infer schema" (LLM-assisted) or "Add project schema" options
+- [ ] **Diagnostics:** Log ambiguous patterns and surface warnings in the inspector so users can choose project schema or manual edit
+
+#### 9.8: Integration & docs
+- [ ] **Inspector polish:** Ensure layout and UX is smooth when toggling between component types
+- [ ] **Examples:** Add shadcn example set for testing (Button, Card, Badge, Dialog, Select)
+- [ ] **Docs:** Update `PLAN.md` and architecture docs to reflect schema-on-demand approach and registry browser
 
 ### Phase 10: Inspector Panel Refinement (Planned)
 - [ ] **UX:** Streamline inspector panel UI controls for better usability.

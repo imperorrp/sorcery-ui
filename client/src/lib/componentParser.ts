@@ -39,14 +39,23 @@ export let idCounter = 0;
  * 1. Handles primitive values (strings, numbers, null)
  * 2. Preserves component function references for custom components
  * 3. Serializes explicit children passed to elements
- * 4. Attempts to expand function components to show their internal structure
+ * 4. Optionally expands function components (controlled by expandComponents flag)
  * 5. Generates unique IDs for element selection
  * 6. Maintains all props and their values
  *
+ * PHASE 9 ENHANCEMENT: Added expandComponents flag to control component expansion.
+ * - For RUNTIME AST: expandComponents=true (default) - expand for interactivity
+ * - For PREVIEW AST: expandComponents=false - keep component structure for prop editing
+ *
  * @param element - The React element or node to serialize
+ * @param options - Configuration options
+ * @param options.expandComponents - Whether to expand function components (default: true)
  * @returns A SerializableElement, string, or null representing the serialized form
  */
-export function serializeComponent(element: React.ReactNode): SerializableElement | string | null {
+export function serializeComponent(
+  element: React.ReactNode,
+  options: { expandComponents: boolean } = { expandComponents: true }
+): SerializableElement | string | null {
   // Handle non-object types like strings, numbers, booleans, null, undefined
   if (typeof element !== 'object' || element === null) {
     // Return strings directly, convert numbers to strings, and ignore others (null/undefined/boolean)
@@ -75,13 +84,14 @@ export function serializeComponent(element: React.ReactNode): SerializableElemen
   // CRITICAL FIX: Prevents TypeError when children is not an array
   const childrenArray = React.Children.toArray((reactElement.props as { children?: React.ReactNode })?.children);
   const serializedChildren = childrenArray
-    .map(child => serializeComponent(child)) // Recursively call serialize on each child
+    .map(child => serializeComponent(child, options)) // Pass options to recursive calls
     .filter(c => c !== null) as (SerializableElement | string)[]; // Filter out any null results
   // ▲▲▲ END OF CHILDREN HANDLING FIX ▲▲▲
 
   // Enhancement: if this is a function component, try to resolve its rendered output
   // so the tree contains its internal structure for the Navigator.
-  if (typeof type === 'function' && serializedChildren.length === 0) {
+  // PHASE 9: Only expand when expandComponents=true AND there are NO children passed as props
+  if (typeof type === 'function' && options.expandComponents && serializedChildren.length === 0) {
     try {
       // Try to expand function components by calling them.
       // Note: This may throw for hook-using components; we'll catch and ignore.
@@ -97,7 +107,7 @@ export function serializeComponent(element: React.ReactNode): SerializableElemen
         rendered = result instanceof Promise ? null : result; // Skip async components for now
       }
       if (rendered) {
-        const resolved = serializeComponent(rendered);
+        const resolved = serializeComponent(rendered, options); // Pass options to recursive call
         if (Array.isArray(resolved)) {
           serializedChildren.push(...(resolved as (SerializableElement | string)[]));
         } else if (resolved) {
@@ -193,12 +203,18 @@ export function renderFromAst(
  * This is a convenience function that ensures each serialization starts with
  * fresh IDs, preventing ID conflicts when serializing multiple components.
  *
+ * PHASE 9 ENHANCEMENT: Added expandComponents parameter to control component expansion.
+ *
  * @param rootElement - The root React element to serialize
+ * @param expandComponents - Whether to expand function components (default: true)
  * @returns A SerializableElement representing the serialized component
  */
-export function createAst(rootElement: React.ReactElement): SerializableElement {
+export function createAst(
+  rootElement: React.ReactElement, 
+  expandComponents = true
+): SerializableElement {
     idCounter = 0;
-    return serializeComponent(rootElement) as SerializableElement;
+    return serializeComponent(rootElement, { expandComponents }) as SerializableElement;
 }
 
 /**

@@ -16,7 +16,8 @@ import { StyleEditor } from './StyleEditor';
 import { ClassNameEditor } from './ClassNameEditor';
 import { ModifierBuilder } from './ModifierBuilder';
 import { ModifierStack, type ModifierValue } from './ModifierStack';
-import { Layers, Brush, Search } from 'lucide-react';
+import { VariantEditor } from './VariantEditor';
+import { Layers, Brush, Search, Component as ComponentIcon } from 'lucide-react';
 import { useComponentStore } from '@/store/componentStore';
 import type { SerializableElement } from '@/store/componentStore';
 
@@ -145,6 +146,9 @@ export const InspectorPanel: React.FC = () => {
   const selectedNodeId = useComponentStore((s) => s.selectedNodeId);
   const componentPreviewAst = activeComponent?.componentPreviewAst ?? null;
   const updateNodeClassName = useComponentStore((s) => s.updateNodeClassName);
+  
+  // Phase 9: Get component metadata for variant editing
+  const selectedComponentMetadata = useComponentStore((s) => s.selectedComponentMetadata);
 
   // Find the selected node
   const selectedNode = React.useMemo(() => {
@@ -192,7 +196,7 @@ export const InspectorPanel: React.FC = () => {
   const displayNode = React.useMemo(() => {
     // During undo/redo (selectedNodeId is null), we need to find the element in the current AST
     // that corresponds to the last selected element, so we can show its classes
-    if (selectedNodeId === null && lastSelectedNode && componentPreviewAst) {
+  if (selectedNodeId === null && lastSelectedNode && componentPreviewAst) {
       /**
        * Recursively searches the component AST to find a node matching the last selected node's ID.
        * 
@@ -217,6 +221,9 @@ export const InspectorPanel: React.FC = () => {
       };
       const currentSelectedNode = findNode(componentPreviewAst);
       if (currentSelectedNode) return currentSelectedNode;
+
+      // No fuzzy fallback here - prefer deterministic fixes in serialization
+      // to preserve IDs and props between render passes.
     }
     
     return selectedNode || lastSelectedNode || effectiveNode;
@@ -241,13 +248,42 @@ export const InspectorPanel: React.FC = () => {
       : [];
     
     // Get classes from className prop that aren't already in utility state
-    const classNameString = (displayNode.props.className as string) || '';
+    let classNameString = (displayNode.props.className as string) || '';
+    
+    // ENHANCEMENT: For function components that compute className (like shadcn Button),
+    // read the ACTUAL className from the rendered DOM element instead of the React prop.
+    // This allows us to see computed classes from CVA, cn(), etc.
+    if (selectedNodeId !== null && typeof displayNode.type === 'function') {
+      try {
+        // Try to get the actual DOM element from the iframe
+        const iframe = document.querySelector('iframe');
+        if (iframe?.contentDocument) {
+          // Get the wrapper span (for function components, we wrap in <span data-node-id>)
+          const wrapperSpan = iframe.contentDocument.querySelector(
+            `[data-node-id="${selectedNodeId}"]`
+          ) as HTMLElement;
+          
+          // Get the first actual element child (skip text nodes)
+          const firstElementChild = wrapperSpan?.querySelector('*') as HTMLElement;
+          
+          if (firstElementChild?.className && typeof firstElementChild.className === 'string') {
+            // Use the actual computed className from the first rendered element
+            classNameString = firstElementChild.className;
+            console.log('[Inspector] Reading computed className from DOM:', classNameString);
+          }
+        }
+      } catch (err) {
+        // Fall back to React prop if DOM query fails
+        console.log('[Inspector] DOM className query failed, using React prop:', err);
+      }
+    }
+    
     const classNameClasses = classNameString.split(/\s+/).filter(Boolean);
     
     // Combine and deduplicate
     const allClasses = [...utilityClasses, ...classNameClasses];
     return [...new Set(allClasses)]; // Remove duplicates
-  }, [displayNode]);
+  }, [displayNode, selectedNodeId]);
 
   // Keep a ref with the exact displayed class string (all tokens joined)
   React.useEffect(() => {
@@ -404,6 +440,11 @@ export const InspectorPanel: React.FC = () => {
    * through the component store. Only non-duplicate classes are added to avoid
    * redundancy in the class list.
    * 
+   * ENHANCEMENT (React Components): For React components (like Button, Card),
+   * we only store user-added classes in the AST, not computed classes from CVA/cn.
+   * This prevents duplicates when the component merges its computed classes with
+   * the className prop.
+   * 
    * @param {string} text - Space-separated string of CSS class names to add
    * @returns {void}
    */
@@ -417,9 +458,28 @@ export const InspectorPanel: React.FC = () => {
       // For manual additions, update the className directly
       const targetId = selectedNodeId || displayNode?.id || null;
       if (targetId) {
-        const currentClassName = displayClassNameRef.current;
-        const updatedClassName = currentClassName ? `${currentClassName} ${newClasses.join(' ')}` : newClasses.join(' ');
-        updateNodeClassName(targetId, updatedClassName);
+        // Determine if this is a React component or native element
+        const isReactComponent = typeof displayNode.type !== 'string';
+        
+        if (isReactComponent) {
+          // For React components: Only store user-added classes, not computed baseline
+          // Get current user-added classes from AST (not from DOM)
+          const currentAstClassName = (displayNode.props.className as string) || '';
+          const userClasses = currentAstClassName.split(/\s+/).filter(Boolean);
+          const userClassSet = new Set(userClasses);
+          
+          // Add new classes to user class set
+          newClasses.forEach(cls => userClassSet.add(cls));
+          
+          // Update AST with only user-added classes
+          const updatedClassName = [...userClassSet].join(' ');
+          updateNodeClassName(targetId, updatedClassName);
+        } else {
+          // For native elements: Store full className (original behavior)
+          const currentClassName = displayClassNameRef.current;
+          const updatedClassName = currentClassName ? `${currentClassName} ${newClasses.join(' ')}` : newClasses.join(' ');
+          updateNodeClassName(targetId, updatedClassName);
+        }
       }
     }
   }, [classTokens, displayNode, selectedNodeId, updateNodeClassName]);
@@ -557,15 +617,47 @@ export const InspectorPanel: React.FC = () => {
     <div className="p-4 min-w-0">
       <Tabs defaultValue="classes" className="w-full">
         <TabsList className="flex w-full flex-wrap h-auto">
+          {/* Phase 9: Conditional Component tab for shadcn-like components */}
+          {selectedComponentMetadata && (
+            <TabsTrigger value="component" className="flex items-center gap-2 flex-1 min-w-0">
+              <ComponentIcon className="h-4 w-4 shrink-0" />
+              <span className="font-medium truncate">Component</span>
+            </TabsTrigger>
+          )}
           <TabsTrigger value="style" className="flex items-center gap-2 flex-1 min-w-0">
-            <Brush className="h-4 w-4 flex-shrink-0" />
+            <Brush className="h-4 w-4 shrink-0" />
             <span className="font-medium truncate">Style</span>
           </TabsTrigger>
           <TabsTrigger value="classes" className="flex items-center gap-2 flex-1 min-w-0">
-            <Layers className="h-4 w-4 flex-shrink-0" />
+            <Layers className="h-4 w-4 shrink-0" />
             <span className="font-medium truncate">Classes</span>
           </TabsTrigger>
         </TabsList>
+
+        {/* Phase 9: Component tab for variant editing */}
+        {selectedComponentMetadata && displayNode && (
+          <TabsContent value="component" className="mt-6">
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold mb-2">Component Variants & Props</h3>
+              <p className="text-xs text-muted-foreground mb-4">
+                Edit component variants and properties visually. Changes update the component's JSX attributes.
+              </p>
+            </div>
+            <VariantEditor
+              schema={selectedComponentMetadata}
+              currentValues={displayNode.props as Record<string, string>}
+              onVariantChange={(variantName, value) => {
+                console.log('[Phase 9] Variant changed:', variantName, '=', value);
+                const targetId = selectedNodeId || displayNode?.id || null;
+                if (targetId) {
+                  // Update the node's prop in the AST using the new updateNodeProp action
+                  const store = useComponentStore.getState();
+                  store.updateNodeProp(targetId, variantName, value);
+                }
+              }}
+            />
+          </TabsContent>
+        )}
 
         <TabsContent value="style" className="mt-6">
           <div className="mb-4">
@@ -632,7 +724,7 @@ export const InspectorPanel: React.FC = () => {
                               </span>
                             </button>
                           </TooltipTrigger>
-                          <TooltipContent align="start" className="max-w-sm whitespace-pre-wrap break-words font-mono text-[11px]">
+                          <TooltipContent align="start" className="max-w-sm whitespace-pre-wrap wrap-break-word font-mono text-[11px]">
                             {classTooltip}
                           </TooltipContent>
                         </Tooltip>
@@ -652,7 +744,7 @@ export const InspectorPanel: React.FC = () => {
                               </span>
                             </button>
                           </TooltipTrigger>
-                          <TooltipContent align="start" className="max-w-sm whitespace-pre-wrap break-words font-mono text-[11px]">
+                          <TooltipContent align="start" className="max-w-sm whitespace-pre-wrap wrap-break-word font-mono text-[11px]">
                             {modifierTooltip}
                           </TooltipContent>
                         </Tooltip>
@@ -707,9 +799,20 @@ export const InspectorPanel: React.FC = () => {
                                 }
                               }
 
-                              const currentClassName = displayClassNameRef.current;
-                              const updatedClassName = currentClassName.split(/\s+/).filter(t => t !== token).join(' ');
-                              updateNodeClassName(targetId, updatedClassName);
+                              // Determine if this is a React component or native element
+                              const isReactComponent = typeof displayNode.type !== 'string';
+                              
+                              if (isReactComponent) {
+                                // For React components: Remove from user-added classes only
+                                const currentAstClassName = (displayNode.props.className as string) || '';
+                                const updatedClassName = currentAstClassName.split(/\s+/).filter(t => t !== token).join(' ');
+                                updateNodeClassName(targetId, updatedClassName);
+                              } else {
+                                // For native elements: Remove from full className
+                                const currentClassName = displayClassNameRef.current;
+                                const updatedClassName = currentClassName.split(/\s+/).filter(t => t !== token).join(' ');
+                                updateNodeClassName(targetId, updatedClassName);
+                              }
                             }
                           }
                         }}

@@ -123,16 +123,12 @@ export const EditorLayout: React.FC = () => {
   const handleApplyChanges = async () => {
     const newCode = await applyAstChangesToCode();
 
-    if (newCode) { // This block only runs on success
+    if (newCode) {
+      // Success: re-render with updated code
       await renderActiveComponent();
-    } else { // This block now runs on failure
-      // Let's check the store to give a specific reason
-      const { originalCode, jsxLocation } = useComponentStore.getState();
-      if (!originalCode || !jsxLocation) {
-        alert('Cannot apply changes yet. Click "Render" first to parse the component, then try again.');
-      } else {
-        alert('Failed to apply changes. Check the console for errors.');
-      }
+    } else {
+      // Failure: applyAstChangesToCode logs specific errors to console
+      alert('Failed to apply changes. Check the console for details.');
     }
   };
 

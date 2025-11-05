@@ -41,6 +41,12 @@ import * as t from '@babel/types';
  * Recursively walks the Babel AST and our visual AST in parallel, applying className
  * from the visual nodes to their corresponding Babel nodes. This structural matching
  * is robust and avoids the flaws of counter-based or index-based matching.
+ * 
+ * ENHANCEMENT (Shadcn Components): When encountering React components (like Button, Card),
+ * we merge className changes into the component's className prop instead of trying to
+ * recurse into internal structure. This allows users to add custom classes to library
+ * components, which will be merged with the component's computed classes via cn().
+ * 
  * @param babelNode - The current node in the Babel AST traversal (from user code).
  * @param visualNode - The corresponding node in our visual `SerializableElement` AST.
  */
@@ -48,6 +54,63 @@ function applyClassNamesRecursively(
   babelNode: t.JSXElement,
   visualNode: SerializableElement
 ): void {
+  // Determine if this is a React component (starts with uppercase) vs native element (lowercase)
+  const jsxElementName = t.isJSXIdentifier(babelNode.openingElement.name) 
+    ? babelNode.openingElement.name.name 
+    : null;
+  const isReactComponent = jsxElementName && /^[A-Z]/.test(jsxElementName);
+  
+  // SPECIAL CASE: React components (shadcn Button, Card, custom components, etc.)
+  // For components, we merge className into the component's className prop.
+  // The component will handle merging with its computed classes (e.g., via cn()).
+  if (isReactComponent && visualNode.props.className && typeof visualNode.props.className === 'string') {
+    const classNameAttr = babelNode.openingElement.attributes.find(
+      (attr): attr is t.JSXAttribute =>
+        t.isJSXAttribute(attr) && attr.name.name === 'className'
+    );
+
+    const newClassName = visualNode.props.className as string;
+
+    if (classNameAttr) {
+      // Merge with existing className if it exists
+      if (t.isStringLiteral(classNameAttr.value)) {
+        // Existing className is a string literal - merge the classes
+        const existingClasses = classNameAttr.value.value;
+        const existingSet = new Set(existingClasses.split(/\s+/).filter(Boolean));
+        const newClasses = newClassName.split(/\s+/).filter(Boolean);
+        newClasses.forEach(cls => existingSet.add(cls));
+        classNameAttr.value = t.stringLiteral([...existingSet].join(' '));
+      } else if (t.isJSXExpressionContainer(classNameAttr.value)) {
+        // Existing className is an expression (e.g., {cn(...)} or {clsx(...)})
+        // Wrap both in a cn() call to merge them
+        const existingExpr = classNameAttr.value.expression;
+        if (t.isExpression(existingExpr)) {
+          classNameAttr.value = t.jsxExpressionContainer(
+            t.callExpression(
+              t.identifier('cn'),
+              [existingExpr, t.stringLiteral(newClassName)]
+            )
+          );
+        }
+      } else {
+        // Fallback: replace with string literal
+        classNameAttr.value = t.stringLiteral(newClassName);
+      }
+    } else {
+      // Create new className attribute
+      const newAttr = t.jsxAttribute(
+        t.jsxIdentifier('className'),
+        t.stringLiteral(newClassName)
+      );
+      babelNode.openingElement.attributes.push(newAttr);
+    }
+    
+    // Don't recurse into React component children - they're passed as props
+    // and the component itself handles rendering
+    return;
+  }
+
+  // NORMAL CASE: Native HTML elements (div, span, button, etc.)
   // Apply the className from the visual node to the source code node.
   if (visualNode.props.className && typeof visualNode.props.className === 'string') {
     const classNameAttr = babelNode.openingElement.attributes.find(

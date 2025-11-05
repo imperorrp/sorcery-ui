@@ -90,15 +90,9 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
   const handleApplyChanges = async () => {
     const newCode = await applyAstChangesToCode();
 
-    if (newCode) {
-      // Success - code will update automatically
-    } else {
-      const { originalCode, jsxLocation } = useComponentStore.getState();
-      if (!originalCode || !jsxLocation) {
-        alert('Cannot apply changes yet. Click "Render" first to parse the component, then try again.');
-      } else {
-        alert('Failed to apply changes. Check the console for errors.');
-      }
+    if (!newCode) {
+      // Failure: applyAstChangesToCode logs specific errors to console
+      alert('Failed to apply changes. Check the console for details.');
     }
   };
 

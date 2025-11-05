@@ -61,6 +61,7 @@ export const createASTActions: StateCreator<
     | 'setAstWithPreview'
     | 'updateNodeStyle'
     | 'updateNodeClassName'
+    | 'updateNodeProp'
     | 'updateUtilityClass'
     | 'undo'
     | 'redo'
@@ -305,6 +306,79 @@ export const createASTActions: StateCreator<
     });
 
     console.log('[AST] Updated node className:', nodeId);
+  },
+
+  /**
+   * Update a prop (other than style/className) on a specific node in the active component's AST
+   * 
+   * This updates the specified prop and adds the change to the history stack.
+   * Used for variant-based editing of shadcn components (e.g., changing variant="outline").
+   * 
+   * @param nodeId - The ID of the node to update
+   * @param propName - The name of the prop to update (e.g., 'variant', 'size')
+   * @param propValue - The new value for the prop
+   */
+  updateNodeProp: (nodeId: string, propName: string, propValue: unknown) => {
+    const { projects, activeProjectId, getActiveProject, getActiveComponent } = get();
+    const project = getActiveProject();
+    const component = getActiveComponent();
+
+    if (!project || !activeProjectId || !component) {
+      console.warn('[AST] Cannot update prop: no active component');
+      return;
+    }
+
+    const { componentAst, componentPreviewAst, history, historyIndex } = component;
+
+    // Define the update function for prop
+    const updateFn = (node: SerializableElement): SerializableElement => ({
+      ...node,
+      props: {
+        ...node.props,
+        [propName]: propValue,
+      },
+    });
+
+    // If previewAst is missing but runtime ast exists, use runtime as base
+    const basePreviewAst = componentPreviewAst || componentAst;
+
+    const newComponentAst = componentAst
+      ? findAndCloneUpdateNode(componentAst, nodeId, updateFn)
+      : null;
+    const newComponentPreviewAst = basePreviewAst
+      ? findAndCloneUpdateNode(basePreviewAst, nodeId, updateFn)
+      : null;
+
+    // Add to history
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push({ ast: newComponentAst, preview: newComponentPreviewAst });
+
+    const updatedComponent = {
+      ...component,
+      componentAst: newComponentAst,
+      componentPreviewAst: newComponentPreviewAst,
+      history: newHistory,
+      historyIndex: newHistory.length - 1,
+    };
+
+    const updatedProject = {
+      ...project,
+      components: {
+        ...project.components,
+        [component.id]: updatedComponent,
+      },
+      updatedAt: Date.now(),
+    };
+
+    set({
+      projects: {
+        ...projects,
+        [activeProjectId]: updatedProject,
+      },
+      isDirty: true,
+    });
+
+    console.log('[AST] Updated node prop:', nodeId, propName, '→', propValue);
   },
 
   /**

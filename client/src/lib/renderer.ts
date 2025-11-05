@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { serializeComponent, resetIdCounter } from '@/lib/componentParser';
-import type { SerializableElement, JsxLocation, ElementLocationMap, ComponentData } from '@/store/componentStore';
+import type { SerializableElement, ComponentData } from '@/store/componentStore';
+import type { JsxLocation, ElementLocationMap } from '@/store/types';
 
 /**
  * Renderer Library - Dual-AST Strategy for Interactive Component Editing
@@ -197,8 +198,11 @@ export async function renderCodeToAst(
 ): Promise<{
   runtimeAst: SerializableElement;
   previewAst: SerializableElement;
+  schemaAst: SerializableElement;
   jsxLocation: JsxLocation | null;
   elementLocationMap: ElementLocationMap;
+  componentMap: Record<string, any>;
+  cssImports?: string[];
 }> {
   const { jsxLocation, elementLocationMap } = await analyzeCode(code);
 
@@ -211,18 +215,146 @@ export async function renderCodeToAst(
     // Silently fail to an empty object if JSON is invalid
   }
 
-  const sourceForTranspile = code
-    .replace(/export\s+default\s+/, 'globalThis.USER_COMPONENT = ')
-    .replace(/function\s+([A-Z][A-Za-z0-9_]*)\s*\(/g, 'globalThis.$1 = function $1(');
+  // Keep a copy of the original source for diagnostics and safe fallback
+  const originalSource = code;
+  // Diagnostic: show the original snippet (helps debug when regex empties the source)
+  try {
+    console.log('renderer: original source snippet:', originalSource.substring(0, 400));
+  } catch {
+    // ignore diagnostic logging failure
+  }
+
+  // Use the original code as the source for transpilation. Export/import
+  // nodes will be handled at the AST level by the plugin.
+  const sourceForTranspile = code;
 
   // Dynamic import to avoid process reference before shim loads
   const Babel = await import('@babel/standalone');
+  const presetTypeScript: any = await import('@babel/preset-typescript');
 
   // Create a Babel plugin to resolve local component imports
   const componentMap: Record<string, any> = {};
 
-  const resolveLocalComponentsPlugin = () => {
+  /**
+   * Create a Babel plugin that strips `import` declarations and rewrites `export`
+   * declarations into assignments to `globalThis`. This is an AST-level transform
+   * which is far safer than regex-based string replacements.
+   *
+   * - For `export default ...` we assign the value to `globalThis.USER_COMPONENT`.
+   * - If `componentName` is provided (dependency processing), we also assign the
+   *   default export to `globalThis[componentName]` so `import Card from './Card'`
+   *   resolves correctly.
+   * - For named exports we keep the declarations but append `globalThis.<name> = <name>`
+   *   statements. For `export { A, B }` we replace with those assignments.
+   */
+  const createStripExportImportPlugin = (componentName?: string, exportedNames?: string[]) => {
+    return (babel: any) => {
+      const t = babel.types;
+      return {
+        visitor: {
+          ImportDeclaration(path: any) {
+            // Remove all imports; resolving local imports happens outside of this
+            path.remove();
+          },
+
+          ExportNamedDeclaration(path: any) {
+            const node = path.node;
+            const nodesToInsert: any[] = [];
+
+            if (node.declaration) {
+              // Keep the original declaration (function/var/class)
+              nodesToInsert.push(node.declaration);
+
+              // Collect names from the declaration
+              const names: string[] = [];
+              const decl = node.declaration;
+              if (decl.type === 'FunctionDeclaration' || decl.type === 'ClassDeclaration') {
+                if (decl.id && decl.id.name) names.push(decl.id.name);
+              } else if (decl.type === 'VariableDeclaration') {
+                decl.declarations.forEach((d: any) => {
+                  if (d.id && d.id.type === 'Identifier') names.push(d.id.name);
+                });
+              }
+
+              names.forEach(name => {
+                nodesToInsert.push(
+                  t.expressionStatement(
+                    t.assignmentExpression('=', t.memberExpression(t.identifier('globalThis'), t.identifier(name)), t.identifier(name))
+                  )
+                );
+                if (exportedNames) exportedNames.push(name);
+              });
+
+              path.replaceWithMultiple(nodesToInsert);
+            } else if (node.specifiers && node.specifiers.length) {
+              // export { A, B }
+              const assignNodes = node.specifiers.map((spec: any) => {
+                const local = spec.local.name;
+                const exported = spec.exported.name;
+                if (exportedNames) exportedNames.push(exported);
+                return t.expressionStatement(
+                  t.assignmentExpression('=', t.memberExpression(t.identifier('globalThis'), t.identifier(exported)), t.identifier(local))
+                );
+              });
+              path.replaceWithMultiple(assignNodes);
+            } else {
+              // No declaration and no specifiers - remove safely
+              path.remove();
+            }
+          },
+
+          ExportDefaultDeclaration(path: any) {
+            const node = path.node;
+            const decl = node.declaration;
+
+            // Helper to create an assignment `globalThis.USER_COMPONENT = <id|uid>`
+            const assignUserComponent = (idNode: any) => t.expressionStatement(
+              t.assignmentExpression('=', t.memberExpression(t.identifier('globalThis'), t.identifier('USER_COMPONENT')), idNode)
+            );
+
+            // Helper to also assign to file-specific global name when provided
+            const assignNamed = (idNode: any, name?: string) => {
+              if (!name) return null;
+              return t.expressionStatement(
+                t.assignmentExpression('=', t.memberExpression(t.identifier('globalThis'), t.identifier(name)), idNode)
+              );
+            };
+
+            if (decl.type === 'FunctionDeclaration' || decl.type === 'ClassDeclaration') {
+              if (decl.id && decl.id.name) {
+                // function Foo() {} => keep declaration, then assign USER_COMPONENT = Foo
+                const nodes = [decl, assignUserComponent(t.identifier(decl.id.name))];
+                if (componentName) nodes.push(assignNamed(t.identifier(decl.id.name), componentName));
+                if (exportedNames) exportedNames.push(componentName || 'USER_COMPONENT');
+                path.replaceWithMultiple(nodes);
+                return;
+              }
+            }
+
+            // For expressions or anonymous default exports, create a uid var and assign
+            const uid = path.scope.generateUidIdentifier('defaultExport');
+            const varDecl = t.variableDeclaration('const', [t.variableDeclarator(uid, decl)]);
+            const nodes: any[] = [varDecl, assignUserComponent(uid)];
+            if (componentName) {
+              nodes.push(assignNamed(uid, componentName));
+              if (exportedNames) exportedNames.push(componentName);
+            } else if (exportedNames) {
+              exportedNames.push('USER_COMPONENT');
+            }
+            path.replaceWithMultiple(nodes);
+          }
+        }
+      };
+    };
+  };
+
+  const resolveLocalComponentsPlugin = (babel: any) => {
+    const t = babel.types;
     const detectedJsxComponents = new Set<string>();
+    // names imported from external packages (e.g. `import { Button } from '@shadcn/ui'`)
+    const externalLibraryNames = new Set<string>();
+    // cssImports encountered during transform (e.g. './globals.css' or remote urls)
+    const cssImports: string[] = [];
 
     return {
       visitor: {
@@ -235,52 +367,121 @@ export async function renderCodeToAst(
           }
         },
 
+        // Rewrite named exports into global assignments for the main source
+        ExportNamedDeclaration(path: any) {
+          const node = path.node as any;
+          if (node.declaration) {
+            const nodes: any[] = [node.declaration];
+            const names: string[] = [];
+            const decl = node.declaration;
+            if (decl.type === 'FunctionDeclaration' || decl.type === 'ClassDeclaration') {
+              if (decl.id && decl.id.name) names.push(decl.id.name);
+            } else if (decl.type === 'VariableDeclaration') {
+              decl.declarations.forEach((d: any) => {
+                if (d.id && d.id.type === 'Identifier') names.push(d.id.name);
+              });
+            }
+            names.forEach((name: string) => {
+              nodes.push(
+                t.expressionStatement(t.assignmentExpression('=', t.memberExpression(t.identifier('globalThis'), t.identifier(name)), t.identifier(name)))
+              );
+            });
+            path.replaceWithMultiple(nodes);
+            return;
+          }
+          if (node.specifiers && node.specifiers.length) {
+            const assignNodes = node.specifiers.map((spec: any) => {
+              return t.expressionStatement(
+                t.assignmentExpression('=', t.memberExpression(t.identifier('globalThis'), t.identifier(spec.exported.name)), t.identifier(spec.local.name))
+              );
+            });
+            path.replaceWithMultiple(assignNodes);
+            return;
+          }
+          path.remove();
+        },
+
+        // Rewrite default export into globalThis.USER_COMPONENT for the main source
+        ExportDefaultDeclaration(path: any) {
+          const node = path.node as any;
+          const decl = node.declaration;
+          if (decl.type === 'FunctionDeclaration' || decl.type === 'ClassDeclaration') {
+            if (decl.id && decl.id.name) {
+              const nodes = [decl, t.expressionStatement(t.assignmentExpression('=', t.memberExpression(t.identifier('globalThis'), t.identifier('USER_COMPONENT')), t.identifier(decl.id.name)))];
+              path.replaceWithMultiple(nodes);
+              return;
+            }
+          }
+          const uid = path.scope.generateUidIdentifier('defaultExport');
+          const varDecl = t.variableDeclaration('const', [t.variableDeclarator(uid, decl)]);
+          const assign = t.expressionStatement(t.assignmentExpression('=', t.memberExpression(t.identifier('globalThis'), t.identifier('USER_COMPONENT')), uid));
+          path.replaceWithMultiple([varDecl, assign]);
+        },
+
         // Find `import { Card } from './Card'` or `import Card from './Card'`
         ImportDeclaration(path: any) {
           const source = path.node.source.value;
-          // A simple heuristic: if the import is local, treat it as a library component
+
+          // If it's a CSS import (local or remote), record it and remove the import.
+          if (typeof source === 'string' && source.endsWith('.css')) {
+            cssImports.push(source);
+            path.remove();
+            return;
+          }
+
+          // A simple heuristic: if the import is local, try to resolve a project component
           if (source.startsWith('./')) {
             const componentName = source.substring(2); // Get "Card" from "./Card"
             const componentData = Object.values(allComponents).find(c => c.name === componentName);
 
             if (componentData) {
-              // Transpile the dependency component's code on the fly
+              // Process dependency code with an AST-level plugin that strips imports
+              // and rewrites exports into globalThis assignments.
+              const exportedNames: string[] = [];
+              const stripPlugin = createStripExportImportPlugin(componentName, exportedNames);
               const result = Babel.transform(componentData.code, {
-                presets: ['react', 'typescript'],
-                filename: `${componentName}.tsx`, // e.g., 'Card.tsx'
+                presets: ['react', presetTypeScript.default],
+                plugins: [stripPlugin],
+                filename: `${componentName}.tsx`,
               });
-              if (result.code) {
-                // We need to get the actual exported function. We can do this with a trick.
-                const getComponentFunc = new Function('React', 'exports', `${result.code.replace(/export default/, 'exports.default =')}; return exports.default;`);
-                const ComponentFunction = getComponentFunc(React, {});
-                componentMap[componentName] = ComponentFunction;
+              if (result && typeof result.code === 'string') {
+                const processedCode = result.code;
+                try {
+                  const componentCreator = new Function('React', processedCode);
+                  componentCreator(React);
+                } catch (e) {
+                  console.error('renderer: failed to execute processed dependency code for', componentName, e);
+                }
 
-                // We've resolved it, so we can remove the import statement from the final code.
+                exportedNames.forEach(name => {
+                  const globalComponent = (globalThis as any)[name];
+                  if (globalComponent !== undefined) componentMap[name] = globalComponent;
+                });
+
+                if (!exportedNames.length && (globalThis as any)[componentName]) {
+                  componentMap[componentName] = (globalThis as any)[componentName];
+                }
+
                 path.remove();
               }
             } else {
-              // ▼▼▼ MISSING COMPONENT DETECTION: Create mock for imported but missing components ▼▼▼
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const MockComponent = (_props: any) => {
-                return React.createElement(
-                  'div',
-                  {
-                    style: {
-                      border: '2px dashed #ff4757',
-                      padding: '1rem',
-                      backgroundColor: 'rgba(255, 71, 87, 0.05)',
-                      color: '#ff4757',
-                      fontFamily: 'monospace',
-                    },
-                  },
-                  `Missing Component: <${componentName} />`
-                );
-              };
+              // Create a mock for missing local component imports
+                const MockComponent = () => React.createElement('div', {
+                style: { border: '2px dashed #ff4757', padding: '1rem', backgroundColor: 'rgba(255,71,87,0.05)', color: '#ff4757', fontFamily: 'monospace' }
+              }, `Missing Component: <${componentName} />`);
               componentMap[componentName] = MockComponent;
-              // We still remove the import declaration.
               path.remove();
-              // ▲▲▲ END OF MISSING COMPONENT DETECTION ▲▲▲
             }
+          } else {
+            // Non-local imports (third-party packages). Record any capitalized
+            // specifiers as external library component names (for pruning) then remove.
+            const specifiers = path.node.specifiers || [];
+            specifiers.forEach((spec: any) => {
+              if (spec.local && spec.local.name && /^[A-Z]/.test(spec.local.name)) {
+                externalLibraryNames.add(spec.local.name);
+              }
+            });
+            path.remove();
           }
         },
 
@@ -294,8 +495,7 @@ export async function renderCodeToAst(
                 // Check if it's in the library (not just imported)
                 const componentData = Object.values(allComponents).find(c => c.name === componentName);
                 if (!componentData) {
-                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                  const MockComponent = (_props: any) => {
+                  const MockComponent = () => {
                     return React.createElement(
                       'div',
                       {
@@ -334,32 +534,78 @@ export async function renderCodeToAst(
               }
             });
             // ▲▲▲ END OF DIRECT GLOBAL REFERENCE FIX ▲▲▲
+            try {
+              // Expose captured metadata for later stages (pruning and css injection)
+              (resolveLocalComponentsPlugin as any).__externalLibraryNames = Array.from(externalLibraryNames);
+              (resolveLocalComponentsPlugin as any).__cssImports = cssImports;
+            } catch {
+              // ignore
+            }
           }
         },
-
-        // Identifier visitor - simplified for direct global resolution
-        Identifier(path: any) {
-          // Don't modify identifiers that are in componentMap
-          // They will resolve to global components injected before execution
-          if (componentMap[path.node.name]) {
-            // Keep original identifier name for global scope resolution
-          }
-        }
       }
     };
   };
 
-  const result = Babel.transform(sourceForTranspile, {
-    presets: ['react', 'typescript'],
-    plugins: [resolveLocalComponentsPlugin], // Use the plugin here
-    filename: 'UserComponent.tsx',
-  });
-  const transpiledCode = result?.code;
-  if (!transpiledCode) throw new Error('Babel transpilation failed.');
+  // We rely on the AST-level plugin to remove/transform import/export nodes
+  // instead of brittle regex replacements.
+  let processedMainSource = sourceForTranspile;
+
+  // Diagnostic: show processed main source snippet
+  try {
+    console.log('renderer: processedMainSource snippet:', processedMainSource.substring(0, 400));
+  } catch (e) {
+    console.warn('renderer: failed to log processedMainSource', e);
+  }
+
+  // Safety: if our regex normalization accidentally emptied the source, fall back to the
+  // original source (safer than passing an empty string to Babel.transform).
+  if (!processedMainSource || processedMainSource.trim().length === 0) {
+    console.warn('renderer: processedMainSource is empty after normalization — falling back to original source');
+    processedMainSource = originalSource;
+  }
+
+  let transpiledCode: string | undefined;
+  try {
+    const result = Babel.transform(processedMainSource, {
+      presets: ['react', presetTypeScript.default],
+      plugins: [resolveLocalComponentsPlugin], // Use the plugin here
+      filename: 'UserComponent.tsx',
+    });
+    transpiledCode = typeof result?.code === 'string' ? result.code : undefined;
+    if (!transpiledCode) {
+      throw new Error('Babel.transform returned no code (result.code is falsy)');
+    }
+  } catch (err: any) {
+    // Provide much more context in the console so the caller can paste diagnostics
+    try {
+      console.error('renderer: Babel.transform ERROR -', err && err.message ? err.message : err);
+      console.error('renderer: processedMainSource (first 2000 chars):\n', processedMainSource.slice(0, 2000));
+    } catch (e) {
+      console.error('renderer: failed to log processedMainSource for Babel error', e);
+    }
+    // Re-throw so higher-level code sees the original error (keeps existing behavior)
+    throw err;
+  }
+  // Diagnostic logs to help trace why components may not render in iframe
+  try {
+    console.log('renderer: transpiledCode snippet:', transpiledCode.substring(0, 400));
+    console.log('renderer: componentMap keys:', Object.keys(componentMap));
+  } catch (e) {
+    // Non-fatal diagnostic failure
+    console.warn('renderer: diagnostic logging failed', e);
+  }
 
   const ReactShim = { ...(React as any), useState: (v: any) => [v, () => {}], useEffect: () => {} };
 
   // The context object now includes our resolved library components
+  // Build a minimal execution scope to avoid parameter name collisions when
+  // creating the function via `new Function(...keys, code)`. Spreading
+  // `componentMap` into the function parameters can collide with declarations
+  // in the user's file (e.g. `const buttonVariants = ...`) and cause
+  // "Identifier ... has already been declared" errors. We instead inject
+  // resolved components into `globalThis` (done above) and only pass React
+  // plus a pointer to the local components map.
   const executionScope = {
     React: ReactShim,
     __localComponents__: componentMap,
@@ -380,10 +626,129 @@ export async function renderCodeToAst(
   // We use `new Function` to execute the code in a controlled scope
   const keys = Object.keys(executionScope);
   const values = Object.values(executionScope);
+  // Parse the processed main source to discover exported names before executing
+  // the code. This lets us check which globals should appear after execution
+  // and log useful diagnostics.
+  let exportedNamesMain: string[] = [];
+  try {
+    const [{ parse }, traverseModule] = await Promise.all([
+      import('@babel/parser'),
+      import('@babel/traverse'),
+    ]);
+    const traverse = traverseModule.default;
+    const mainAst = parse(processedMainSource, { sourceType: 'module', plugins: ['jsx', 'typescript'] });
+    exportedNamesMain = [];
+    traverse(mainAst, {
+      ExportNamedDeclaration(path: any) {
+        const node = path.node as any;
+        if (node.declaration) {
+          const decl = node.declaration;
+          if (decl.type === 'FunctionDeclaration' || decl.type === 'ClassDeclaration') {
+            if (decl.id && decl.id.name) exportedNamesMain.push(decl.id.name);
+          } else if (decl.type === 'VariableDeclaration') {
+            decl.declarations.forEach((d: any) => {
+              if (d.id && d.id.type === 'Identifier') exportedNamesMain.push(d.id.name);
+            });
+          }
+        }
+        if (node.specifiers && node.specifiers.length) {
+          node.specifiers.forEach((s: any) => exportedNamesMain.push(s.exported.name));
+        }
+      },
+      ExportDefaultDeclaration() {
+        exportedNamesMain.push('USER_COMPONENT');
+      }
+    });
+  } catch (e) {
+    console.warn('renderer: could not parse main source to collect exports before exec', e);
+  }
+
   const componentCreator = new Function(...keys, transpiledCode);
 
   (globalThis as any).USER_COMPONENT = undefined;
   componentCreator(...values); // This will attach USER_COMPONENT to globalThis
+
+  // After execution, check which exported names are present on globalThis and
+  // populate componentMap appropriately. Also log the presence of the globals
+  // for debugging why the wrong export may have been chosen.
+  try {
+    console.log('renderer: exportedNamesMain (pre-exec):', exportedNamesMain);
+    exportedNamesMain.forEach(name => {
+      const g = (globalThis as any)[name];
+      console.log(`renderer: global ${name} ->`, typeof g);
+      if (g !== undefined) componentMap[name] = g;
+    });
+  } catch (e) {
+    console.warn('renderer: error inspecting globals after exec', e);
+  }
+
+  // Select USER_COMPONENT if none set by default export. Use runtime verification
+  // to ensure we pick a real React component (handles forwardRef objects too).
+  // Heuristic order:
+  // 1. If USER_COMPONENT already assigned by a default export, verify it.
+  // 2. Uppercase-named exports (likely components) in declaration order.
+  // 3. Any exported names.
+  // 4. Any keys present in componentMap.
+  // For each candidate we try React.createElement and React.isValidElement using the
+  // shim React (ReactShim). If none validate, fall back to a visible placeholder component.
+  if ((globalThis as any).USER_COMPONENT === undefined) {
+    const verifyIsComponent = (candidate: any, reactForTest: any) => {
+      try {
+        const maybeEl = reactForTest.createElement(candidate, {});
+        const isValid = reactForTest.isValidElement(maybeEl);
+        console.log('renderer: verify candidate', typeof candidate, 'isValid:', isValid);
+        return isValid;
+      } catch (e) {
+        console.log('renderer: verify candidate failed:', e instanceof Error ? e.message : String(e));
+        return false;
+      }
+    };
+
+    const candidates: string[] = [];
+    // If a default export already wrote USER_COMPONENT, test it first
+    if ((globalThis as any).USER_COMPONENT !== undefined) candidates.push('USER_COMPONENT');
+
+    // Uppercase exports are likely components
+    exportedNamesMain.forEach(n => { if (n && /^[A-Z]/.test(n)) candidates.push(n); });
+    // Then include any remaining exported names
+    exportedNamesMain.forEach(n => { if (n && !candidates.includes(n)) candidates.push(n); });
+    // Finally include any resolved componentMap keys as a last resort
+    Object.keys(componentMap).forEach(k => { if (!candidates.includes(k)) candidates.push(k); });
+
+    console.log('renderer: candidates for selection:', candidates);
+
+    let selectedName: string | null = null;
+    for (const name of candidates) {
+      const val = (globalThis as any)[name];
+      if (val === undefined) continue;
+      if (verifyIsComponent(val, ReactShim)) {
+        (globalThis as any).USER_COMPONENT = val;
+        selectedName = name;
+        console.log('renderer: selected candidate:', name);
+        break;
+      }
+    }
+
+    if (!selectedName) {
+      console.log('renderer: no valid component found, using placeholder');
+      // Nothing validated as a component — use a friendly placeholder so we don't
+      // end up rendering primitive strings (like class lists) to the preview.
+      const Placeholder = () => React.createElement(
+        'div',
+        { style: { padding: 12, border: '1px dashed #f39c12', color: '#333', fontFamily: 'monospace' } },
+        'No renderable component found in this file. (preview placeholder)'
+      );
+      (globalThis as any).USER_COMPONENT = Placeholder;
+      componentMap['__PLACEHOLDER__'] = (globalThis as any).USER_COMPONENT;
+    }
+  }
+
+  try {
+    console.log('renderer: componentMap keys after main exec:', Object.keys(componentMap));
+    console.log('renderer: USER_COMPONENT selected after exec:', (globalThis as any).USER_COMPONENT && ((globalThis as any).USER_COMPONENT.displayName || (globalThis as any).USER_COMPONENT.name || typeof (globalThis as any).USER_COMPONENT));
+  } catch {
+    // ignore
+  }
 
   const UserComponentForPreview = (globalThis as any).USER_COMPONENT;
 
@@ -411,24 +776,66 @@ export async function renderCodeToAst(
   runtimeComponentCreator(...runtimeValues); // This will attach USER_COMPONENT to globalThis
 
   const UserComponentForRuntime = (globalThis as any).USER_COMPONENT;
-  if (typeof UserComponentForRuntime !== 'function' && typeof UserComponentForPreview !== 'function') {
+  const isRuntimeValid = (() => {
+    try {
+      return React.isValidElement(React.createElement(UserComponentForRuntime, {}));
+    } catch {
+      return false;
+    }
+  })();
+  const isPreviewValid = (() => {
+    try {
+      return React.isValidElement(React.createElement(UserComponentForPreview, {}));
+    } catch {
+      return false;
+    }
+  })();
+  if (!isRuntimeValid && !isPreviewValid) {
     throw new Error('The code must have a default export that is a React component.');
   }
 
+  // PHASE 9 ENHANCEMENT: Different expansion strategies for different AST purposes
+  // RUNTIME AST: Expand components for full interactivity and rendering
   resetIdCounter();
   const runtimeElement = React.createElement(UserComponentForRuntime || UserComponentForPreview, parsedProps);
-  const runtimeAst = serializeComponent(runtimeElement) as SerializableElement;
+  const runtimeAst = serializeComponent(runtimeElement, { expandComponents: true }) as SerializableElement;
 
+  // PREVIEW AST: Expand components for selection/navigation/updates (DOM structure matching)
+  // This maintains compatibility with existing selection mechanism and surgical updaters
   resetIdCounter();
   const previewElement = React.createElement(UserComponentForPreview || UserComponentForRuntime, parsedProps);
-  const previewAst = serializeComponent(previewElement) as SerializableElement;
+  const previewAst = serializeComponent(previewElement, { expandComponents: true }) as SerializableElement;
 
-  // ▼▼▼ SMART SELECTION: Prune child components to enforce component boundaries ▼▼▼
-  // This prevents users from selecting elements inside child components
-  // and enforces the principle that you can only edit what's in your current editor
-  const libraryNames = Object.values(allComponents).map(c => c.name);
+  // SCHEMA AST: DO NOT expand components - keep component structure for prop editing and schema detection
+  // This allows the inspector to detect Button/Card/etc and show variant editors
+  resetIdCounter();
+  const schemaElement = React.createElement(UserComponentForPreview || UserComponentForRuntime, parsedProps);
+  const schemaAst = serializeComponent(schemaElement, { expandComponents: false }) as SerializableElement;
+
+  // ▼▼▼ SMART SELECTION: Prune child components that come from external libraries
+  // (not project-local components). Try to use the set captured by the plugin,
+  // otherwise infer external names from the resolved componentMap.
+  let libraryNames: string[] = [];
+  try {
+    libraryNames = (resolveLocalComponentsPlugin as any).__externalLibraryNames || [];
+  } catch {
+    libraryNames = [];
+  }
+
+  if (!libraryNames || libraryNames.length === 0) {
+    const projectNames = new Set(Object.values(allComponents).map(c => c.name));
+    libraryNames = Object.keys(componentMap).filter(k => !projectNames.has(k));
+  }
+
   const prunedPreviewAst = pruneChildComponents(previewAst, libraryNames);
-  // ▲▲▲ END OF SMART SELECTION ▲▲▲
-  
-  return { runtimeAst, previewAst: prunedPreviewAst, jsxLocation, elementLocationMap };
+
+  // Collect cssImports captured by the plugin for the caller
+  let capturedCssImports: string[] = [];
+  try {
+    capturedCssImports = (resolveLocalComponentsPlugin as any).__cssImports || [];
+  } catch {
+    capturedCssImports = [];
+  }
+
+  return { runtimeAst, previewAst: prunedPreviewAst, schemaAst, jsxLocation, elementLocationMap, componentMap, cssImports: capturedCssImports };
 }

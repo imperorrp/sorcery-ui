@@ -62,6 +62,10 @@ function styleObjectToAst(style: React.CSSProperties): t.ObjectExpression {
  * Recursively walks the Babel AST and our visual AST in parallel, applying styles
  * from the visual nodes to their corresponding Babel nodes. This structural matching
  * is robust and avoids the flaws of counter-based or index-based matching.
+ * 
+ * ENHANCEMENT (Shadcn Components): When encountering React components (like Button, Card),
+ * we apply style changes to the component's style prop, not its internal structure.
+ * 
  * @param babelNode - The current node in the Babel AST traversal (from user code).
  * @param visualNode - The corresponding node in our visual `SerializableElement` AST.
  */
@@ -69,6 +73,12 @@ function applyStylesRecursively(
   babelNode: t.JSXElement,
   visualNode: SerializableElement
 ): void {
+  // Determine if this is a React component (starts with uppercase) vs native element (lowercase)
+  const jsxElementName = t.isJSXIdentifier(babelNode.openingElement.name) 
+    ? babelNode.openingElement.name.name 
+    : null;
+  const isReactComponent = jsxElementName && /^[A-Z]/.test(jsxElementName);
+  
   // Apply the style from the visual node to the source code node.
   if (visualNode.props.style) {
     const styleAttr = babelNode.openingElement.attributes.find(
@@ -86,6 +96,11 @@ function applyStylesRecursively(
       );
       babelNode.openingElement.attributes.push(newAttr);
     }
+  }
+
+  // For React components, don't recurse into children - they're props and internally rendered
+  if (isReactComponent) {
+    return;
   }
 
   // Get the children of both nodes that are actual JSX elements, ignoring text/whitespace.

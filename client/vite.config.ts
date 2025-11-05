@@ -15,7 +15,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      'esbuild': path.resolve(__dirname, './src/lib/esbuild-shim.js'), // Shim esbuild for browser
     },
+  },
+  optimizeDeps: {
+    exclude: ['esbuild'],
   },
   test: {
     globals: true,

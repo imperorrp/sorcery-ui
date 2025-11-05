@@ -13,6 +13,7 @@ import { initialWrapperCode } from './projectActions';
 import { renderCodeToAst } from '@/lib/renderer';
 import { updateStylesInCode } from '@/lib/styleUpdater';
 import { updateClassNameInCode } from '@/lib/classNameUpdater';
+import { updatePropsInCode } from '@/lib/propUpdater';
 import { examples, multiComponentExamples } from '@/examples/examples';
 
 /**
@@ -97,13 +98,13 @@ export const createRenderActions: StateCreator<
       // renderCodeToAst needs access to all components for child component resolution
       const allComponents = project.components;
 
-      const { runtimeAst, previewAst, jsxLocation } = await renderCodeToAst(
+      const { runtimeAst, previewAst, schemaAst, jsxLocation, componentMap, cssImports } = await renderCodeToAst(
         activeCode,
         allComponents,
         activeComponentPropsJson
       );
       
-      get().setRenderOutput(activeCode, runtimeAst, previewAst, jsxLocation);
+      get().setRenderOutput(activeCode, runtimeAst, previewAst, schemaAst, jsxLocation, componentMap, cssImports);
       
       console.log('[Render] Successfully rendered component:', component.name);
     } catch (error: unknown) {
@@ -126,7 +127,7 @@ export const createRenderActions: StateCreator<
    * @param previewAst - The safe AST created with shimmed React
    * @param jsxLocation - Location of the main JSX block for highlighting
    */
-  setRenderOutput: (code, runtimeAst, previewAst, jsxLocation) => {
+  setRenderOutput: (code, runtimeAst, previewAst, schemaAst, jsxLocation, componentMap, cssImports) => {
     const { projects, activeProjectId } = get();
     
     const project = activeProjectId ? projects[activeProjectId] : null;
@@ -152,6 +153,9 @@ export const createRenderActions: StateCreator<
       jsxLocation,
       componentAst: runtimeAst,
       componentPreviewAst: previewAst,
+      componentSchemaAst: schemaAst,
+      componentMap,
+      cssImports: cssImports || [],
       history: newHistory,
       historyIndex: newHistory.length - 1,
     };
@@ -216,13 +220,14 @@ export const createRenderActions: StateCreator<
     }
 
     try {
-      // Chain the updaters: first apply styles, then className
+      // Chain the updaters: first apply styles, then className, then props
       const codeWithStyles = await updateStylesInCode(originalCode, componentPreviewAst);
       const codeWithStylesAndClasses = await updateClassNameInCode(codeWithStyles, componentPreviewAst);
+      const codeWithAllChanges = await updatePropsInCode(codeWithStylesAndClasses, component.componentSchemaAst || componentPreviewAst);
 
       const updatedComponent = {
         ...component,
-        code: codeWithStylesAndClasses,
+        code: codeWithAllChanges,
       };
 
       const updatedProject = {
@@ -244,7 +249,7 @@ export const createRenderActions: StateCreator<
       });
       
       console.log('[Render] Applied AST changes to code for component:', component.name);
-      return codeWithStylesAndClasses;
+      return codeWithAllChanges;
 
     } catch (error) {
       console.error('[Render] Failed to apply style changes to code:', error);
@@ -328,6 +333,7 @@ export const createRenderActions: StateCreator<
           originalPropsJson: partial.propsJson || '{}',
           componentAst: null,
           componentPreviewAst: null,
+        componentSchemaAst: null,
           jsxLocation: null,
           dependencies: partial.dependencies || ['https://cdn.tailwindcss.com'],
           wrapperCode: initialWrapperCode,

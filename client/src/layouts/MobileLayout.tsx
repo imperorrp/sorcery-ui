@@ -111,15 +111,11 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({ mainView = 'canvas' 
     const newCode = await applyAstChangesToCode();
 
     if (newCode) {
+      // Success: re-render with updated code
       await renderActiveComponent();
-      return;
-    }
-
-    const { originalCode, jsxLocation } = useComponentStore.getState();
-    if (!originalCode || !jsxLocation) {
-      alert('Cannot apply changes yet. Click "Render" first to parse the component, then try again.');
     } else {
-      alert('Failed to apply changes. Check the console for errors.');
+      // Failure: applyAstChangesToCode logs specific errors to console
+      alert('Failed to apply changes. Check the console for details.');
     }
   };
 
