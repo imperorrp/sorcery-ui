@@ -13,9 +13,12 @@ import {
   Wand2,
   ArrowRight,
   Github,
-  Terminal,
   Sparkles,
-  Code2
+  Code2,
+  Layers,
+  Zap,
+  Cpu,
+  MousePointer2
 } from 'lucide-react';
 
 /**
@@ -32,21 +35,30 @@ import {
  */
 export function HomePage() {
   return (
-    <div className="relative min-h-screen bg-zinc-950 text-zinc-100">
-      {/* Background layer to ensure dark background renders even if global CSS differs */}
-      <div className="absolute inset-0 bg-linear-to-br from-zinc-950 to-zinc-900 -z-10" aria-hidden />
-      {/* Header */}
-      <header className="border-b border-zinc-800/50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-              <Wand2 className="h-5 w-5 text-teal-400" />
-              <span className="font-semibold text-zinc-100">Sorcery UI</span>
-              <span className="text-xs px-2 py-0.5 bg-violet-500/10 text-violet-400 rounded-full border border-violet-500/20">
-                Beta
-              </span>
-            </Link>
-            <Button variant="ghost" size="sm" asChild className="text-zinc-400 hover:text-zinc-100">
+    <div className="relative min-h-screen bg-white text-zinc-900 overflow-hidden font-sans selection:bg-zinc-900 selection:text-white">
+      {/* Grid Background */}
+      <div className="absolute inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-size-[24px_24px]"></div>
+
+      {/* Navbar */}
+      <header className="fixed top-0 w-full z-50 border-b border-zinc-100 bg-white/80 backdrop-blur-md">
+        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity group">
+            <div className="p-1.5 rounded-lg bg-zinc-100 border border-zinc-200 group-hover:bg-zinc-200 transition-colors">
+              <Wand2 className="h-4 w-4 text-zinc-900" />
+            </div>
+            <span className="font-bold text-zinc-900 tracking-tight">Sorcery UI</span>
+          </Link>
+          
+          <div className="flex items-center gap-4">
+            <a 
+              href="https://github.com/imperorrp/runable-task" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors hidden sm:block"
+            >
+              Documentation
+            </a>
+            <Button variant="ghost" size="sm" asChild className="text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100">
               <a href="https://github.com/imperorrp/runable-task" target="_blank" rel="noopener noreferrer">
                 <Github className="h-4 w-4 mr-2" />
                 GitHub
@@ -57,160 +69,226 @@ export function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <div className="container mx-auto px-6">
-        <div className="max-w-4xl mx-auto pt-12 md:pt-20 pb-12 md:pb-16 min-h-[55vh] md:min-h-[50vh]">
-          <div className="text-center space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-full text-sm text-zinc-400">
-              <Terminal className="h-3.5 w-3.5" />
-              A tool for frontend developers
+      <section className="pt-32 pb-20 px-6 relative">
+        <div className="container mx-auto max-w-5xl text-center">
+            {/* Beta Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-medium text-zinc-600 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-zinc-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-zinc-500"></span>
+                </span>
+                Public Beta v0.1
             </div>
-            
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight">
-              <span className="block text-zinc-100">Visual editor for</span>
-              <span
-                className="block mt-1"
-                style={{
-                  backgroundImage: 'linear-gradient(90deg, #06b6d4, #fb923c)',
-                  WebkitBackgroundClip: 'text',
-                  backgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent'
-                }}
-              >
-                UI components
-              </span>
+
+            {/* Main Title */}
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100 text-zinc-900">
+                Stop prompting. <br />
+                <span className="text-zinc-500">
+                    Start refining.
+                </span>
             </h1>
 
-            <p className="text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-              GUI tool to fine-tune React components. Stop prompting AI for minor tweaks. Adjust styles yourself. 
-              Saves AI calls/tokens, saves time.
+            {/* Subtitle */}
+            <p className="text-xl text-zinc-500 max-w-2xl mx-auto mb-10 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 font-light">
+                The missing GUI for your AI-generated React components. 
+                Paste code, tweak styles visually with Tailwind controls, and export clean JSX.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-              <Button 
-                asChild 
-                size="lg" 
-                className="bg-violet-600 hover:bg-violet-700 text-white border-0"
-              >
-                <Link to="/editor">
-                  Open Editor
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button 
-                asChild 
-                variant="outline" 
-                size="lg"
-                className="border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-100"
-              >
-                <Link to="/editor-experimental">
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Experimental
-                </Link>
-              </Button>
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+                <Button asChild size="lg" className="h-12 px-8 text-base bg-zinc-900 text-white hover:bg-zinc-800 hover:scale-105 transition-all duration-300 shadow-lg shadow-zinc-900/20">
+                    <Link to="/editor">
+                        Open Editor <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="h-12 px-8 text-base border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-600 hover:text-zinc-900 transition-all duration-300">
+                    <Link to="/editor-experimental">
+                        <Sparkles className="mr-2 h-4 w-4 text-zinc-400" /> Try Experimental
+                    </Link>
+                </Button>
             </div>
-          </div>
         </div>
+      </section>
 
-        {/* Features */}
-        <div className="max-w-5xl mx-auto py-20">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="space-y-3">
-              <div className="h-10 w-10 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
-                <Code2 className="h-5 w-5 text-teal-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-zinc-100">Low/No-code visual controls</h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                Use Tailwind utility pickers, box model editors, color swatches. Or write CSS directly.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="h-10 w-10 rounded-lg bg-amber-400/10 border border-amber-400/20 flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-amber-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-zinc-100">Real component preview</h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                WYSIWYG. Load props, context providers, dependencies. See state and interactivity work. 
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="h-10 w-10 rounded-lg bg-sky-400/10 border border-sky-400/20 flex items-center justify-center">
-                <Terminal className="h-5 w-5 text-sky-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-zinc-100">Two workflows</h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                Paste code in browser, or connect via MCP so your AI copilot opens it for you.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Why Section */}
-        <div className="max-w-3xl mx-auto py-20">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 md:p-12 space-y-6">
-            <h2 className="text-2xl font-semibold text-zinc-100">The problem</h2>
-            <div className="space-y-4 text-zinc-400">
-              <p>
-                You're building UI with AI assistants. They generate 90% of what you need, but the final polish—
-                padding tweaks, color adjustments, responsive spacing—takes forever through prompts. You describe changes, wait for regeneration, 
-                and repeat until it's right.
-              </p>
-              <p>
-                Each iteration costs tokens and time. You end up describing visual details in text, 
-                waiting for regeneration, and repeating.
-              </p>
-            </div>
-            <div className="pt-2">
-              <h3 className="text-lg font-semibold text-zinc-100 mb-3">This tool solves that</h3>
-              <p className="text-zinc-400">
-                Paste your AI-generated component (or any React component). Use visual controls to fine-tune styles 
-                and Tailwind classes. See changes live with real props and dependencies loaded. Copy the updated code back.
-              </p>
-              <p className="text-zinc-400 mt-4">
-                Perfect for the last 10-20% of design work that's frustrating to articulate in prompts.
-              </p>
-            </div>
-            <div className="pt-4 border-t border-zinc-800">
-              <div className="grid sm:grid-cols-2 gap-6 text-sm">
-                <div>
-                  <div className="text-zinc-500 mb-2">How to use</div>
-                  <ul className="space-y-1.5 text-zinc-400">
-                    <li>• Direct: Paste code in browser</li>
-                    <li>• MCP: Let your AI copilot open it</li>
-                    <li>• Configure props & context</li>
-                    <li>• Export clean JSX/TSX</li>
-                  </ul>
+      {/* Visual Demo Section */}
+      <section className="px-6 pb-32">
+         <div className="container mx-auto max-w-5xl">
+            <div className="relative rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-500">
+                {/* Fake Window Header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 bg-zinc-50">
+                    <div className="flex items-center gap-2">
+                        <div className="flex gap-1.5">
+                            <div className="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+                        </div>
+                        <div className="h-4 w-px bg-white/10 mx-2"></div>
+                        <div className="flex items-center gap-1.5 text-xs font-mono text-zinc-400">
+                            <Code2 className="w-3 h-3" />
+                            <span>Card.tsx</span>
+                        </div>
+                    </div>
+                    <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">Read-Write Mode</div>
                 </div>
-                <div>
-                  <div className="text-zinc-500 mb-2">Current support</div>
-                  <ul className="space-y-1.5 text-zinc-400">
-                    <li>• React components</li>
-                    <li>• Tailwind CSS utilities</li>
-                    <li>• Standard CSS</li>
-                    <li>• Multi-component editing</li>
-                  </ul>
+
+                {/* Split View Content */}
+                <div className="p-8 md:p-12 grid md:grid-cols-2 gap-12 items-center relative">
+                    {/* Code Side */}
+                    <div className="space-y-3 font-mono text-sm relative z-10">
+                        <div className="text-zinc-500 italic">// 1. Paste AI Code</div>
+                        <div className="text-purple-400">export function <span className="text-blue-400">PricingCard</span>() {'{'}</div>
+                        <div className="pl-4 text-zinc-300">return (</div>
+                        <div className="pl-8 text-zinc-400">
+                            &lt;<span className="text-pink-400">div</span> className="
+                            <span className="text-emerald-400 bg-emerald-400/10 px-1 rounded border border-emerald-400/20 animate-pulse">p-8 rounded-2xl bg-zinc-900</span>
+                            "&gt;
+                        </div>
+                        <div className="pl-12 text-zinc-500">...content</div>
+                        <div className="pl-8 text-zinc-400">&lt;/<span className="text-pink-400">div</span>&gt;</div>
+                        <div className="pl-4 text-zinc-300">)</div>
+                        <div className="text-purple-400">{'}'}</div>
+                    </div>
+
+                    {/* Visual Side */}
+                    <div className="relative group cursor-default perspective-1000">
+                        <div className="absolute -inset-4 bg-transparent rounded-3xl blur-xl opacity-0 group-hover:opacity-20 transition duration-700"></div>
+
+                        <div className="relative bg-zinc-900 text-white border border-zinc-200 rounded-2xl p-6 shadow-md transform transition-transform duration-500 group-hover:-translate-y-1 group-hover:shadow-lg">
+                          <div className="absolute -top-3 -right-3 bg-zinc-800 text-white text-[10px] font-semibold px-2 py-1 rounded-full shadow flex items-center gap-1 z-20">
+                            <MousePointer2 className="w-3 h-3" /> You are here
+                          </div>
+
+                          <div className="h-3 w-24 bg-zinc-800 rounded mb-6"></div>
+                          <div className="space-y-3 mb-8">
+                            <div className="h-2 w-full bg-zinc-800/60 rounded"></div>
+                            <div className="h-2 w-2/3 bg-zinc-800/60 rounded"></div>
+                          </div>
+                          <div className="flex gap-3">
+                            <div className="h-9 w-full bg-white rounded flex items-center justify-center text-xs font-medium text-zinc-900">Get Started</div>
+                          </div>
+
+                          {/* Overlay UI Controls */}
+                          <div className="absolute inset-0 bg-black/5 border-2 border-zinc-200 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[1px]">
+                            <div className="bg-zinc-900 border border-zinc-700 p-2 rounded-lg shadow-xl flex gap-2">
+                              <div className="w-6 h-6 rounded bg-zinc-800 border border-zinc-700 hover:border-zinc-400 cursor-pointer"></div>
+                              <div className="w-6 h-6 rounded bg-zinc-800 border border-zinc-700 hover:border-zinc-400 cursor-pointer"></div>
+                              <div className="w-px h-6 bg-zinc-800"></div>
+                              <div className="text-xs text-zinc-400 flex items-center px-1">p-8</div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-center mt-4 text-xs text-zinc-500 font-mono">2. Tweak Visually</div>
+                    </div>
                 </div>
+            </div>
+         </div>
+      </section>
+
+      {/* The Problem & Solution */}
+      <section className="py-24 px-6 relative bg-zinc-50 border-y border-zinc-200">
+        <div className="container mx-auto max-w-5xl">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <h2 className="text-3xl font-bold tracking-tight text-zinc-900">The "Last Mile" Problem</h2>
+              <div className="space-y-4 text-zinc-600 text-lg leading-relaxed font-light">
+                <p>
+                  AI assistants are incredible. They generate 90% of what you need instantly. 
+                  But that final 10%—the padding tweaks, color adjustments, responsive spacing—takes forever through prompts.
+                </p>
+                <p>
+                  You describe changes, wait for regeneration, and repeat. 
+                  Each iteration costs tokens, time, and mental energy.
+                </p>
               </div>
+            </div>
+            
+            <div className="relative bg-white border border-zinc-200 rounded-2xl p-8 shadow-sm">
+               <div className="absolute -top-4 -left-4 bg-zinc-900 text-white px-4 py-1 rounded-full text-sm font-medium shadow-lg">
+                  The Solution
+               </div>
+               <h3 className="text-xl font-semibold text-zinc-900 mb-4 mt-2">Stop describing. Start clicking.</h3>
+               <p className="text-zinc-600 mb-6 font-light">
+                 Sorcery UI is designed for that specific frustration. Don't prompt for pixel-perfect design. 
+                 Just fix it yourself in seconds.
+               </p>
+               
+               <div className="grid grid-cols-2 gap-6 pt-6 border-t border-zinc-100">
+                  <div>
+                    <h4 className="text-sm font-medium text-zinc-900 mb-3">How to use</h4>
+                    <ul className="space-y-2 text-sm text-zinc-500">
+                      <li className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-zinc-400"></div>Direct: Paste code</li>
+                      <li className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-zinc-400"></div>MCP: AI copilot opens it</li>
+                      <li className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-zinc-400"></div>Configure props & context</li>
+                      <li className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-zinc-400"></div>Export clean JSX/TSX</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-zinc-900 mb-3">Current support</h4>
+                    <ul className="space-y-2 text-sm text-zinc-500">
+                      <li className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-zinc-900"></div>React Components</li>
+                      <li className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-zinc-900"></div>Tailwind CSS utilities</li>
+                      <li className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-zinc-900"></div>Standard CSS</li>
+                      <li className="flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-zinc-900"></div>Multi-component editing</li>
+                    </ul>
+                  </div>
+               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="py-24 px-6">
+        <div className="container mx-auto max-w-6xl">
+            <div className="text-center mb-16">
+                <h2 className="text-3xl font-bold mb-4 text-zinc-900">Why Sorcery UI?</h2>
+                <p className="text-zinc-500 font-light">Built for the "last mile" of UI development.</p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+                {[
+                    {
+                        icon: <Layers className="w-6 h-6 text-zinc-900" />,
+                        title: "Logic-Preserving Edits",
+                        desc: "We parse your code into a visual tree. Edit structure and styles without breaking logic."
+                    },
+                    {
+                        icon: <Zap className="w-6 h-6 text-zinc-900" />,
+                        title: "Tailwind Native",
+                        desc: "First-class support for Tailwind CSS. Visual pickers for spacing, colors, and typography."
+                    },
+                    {
+                        icon: <Cpu className="w-6 h-6 text-zinc-900" />,
+                        title: "Real Environment",
+                        desc: "Not just a picture. A real React runtime with props, context, and interactivity."
+                    }
+                ].map((feature, i) => (
+                    <div key={i} className="group p-8 rounded-2xl bg-white border border-zinc-200 hover:border-zinc-300 hover:shadow-lg transition-all duration-300">
+                        <div className="mb-6 p-3 rounded-xl bg-zinc-50 border border-zinc-100 w-fit group-hover:scale-110 transition-transform duration-300">
+                            {feature.icon}
+                        </div>
+                        <h3 className="text-lg font-semibold mb-3 text-zinc-900">{feature.title}</h3>
+                        <p className="text-sm text-zinc-500 leading-relaxed font-light">
+                            {feature.desc}
+                        </p>
+                    </div>
+                ))}
+            </div>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-800/50">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-zinc-500">
-              <Wand2 className="h-4 w-4" />
-              <span>Sorcery UI</span>
-              <span>·</span>
-              <span>Beta</span>
+      <footer className="border-t border-zinc-200 bg-white py-12">
+        <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-2">
+                <div className="p-1 rounded bg-zinc-100 border border-zinc-200">
+                    <Wand2 className="h-4 w-4 text-zinc-900" />
+                </div>
+                <span className="text-sm font-medium text-zinc-900">Sorcery UI</span>
             </div>
-            <div className="text-sm text-zinc-500">
-              Built for developers who value their time
+            <div className="text-sm text-zinc-400 font-light">
+                &copy; {new Date().getFullYear()} Sorcery UI Team
             </div>
-          </div>
         </div>
       </footer>
     </div>

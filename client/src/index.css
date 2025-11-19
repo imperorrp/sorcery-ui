@@ -26,6 +26,7 @@
  * - Ring offset utilities for focus states
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Merriweather:wght@300;400;700&family=IBM+Plex+Mono:wght@300;400;600&display=swap');
 @import "tailwindcss";
 
 @layer base {
@@ -89,7 +90,21 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    /* Use Inter for UI text for a refined, technical look */
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+}
+
+/* Headings should feel slightly more 'literary' / erudite */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Merriweather', Georgia, 'Times New Roman', serif;
+}
+
+/* Improve monospace for code areas */
+.font-mono, code, pre, kbd {
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
 }
 
 /* Semantic utility mappings for theme tokens
