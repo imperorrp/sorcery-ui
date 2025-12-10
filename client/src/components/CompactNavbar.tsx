@@ -49,6 +49,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { SettingsDialog } from './SettingsDialog';
 import { ComponentSwitcher } from './ComponentSwitcher';
+import { DesignImportDialog } from './DesignImportDialog';
 import type { Example } from '@/examples/examples';
 import type { ComponentData } from '@/store/componentStore';
 
@@ -124,6 +125,7 @@ export const CompactNavbar: React.FC<CompactNavbarProps> = ({
   const { isMobile } = useResponsive();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShortcutsHelpOpen, setIsShortcutsHelpOpen] = useState(false);
+  const [isDesignDialogOpen, setIsDesignDialogOpen] = useState(false);
   // Segmented control measurement refs/state
   const segContainerRef = useRef<HTMLDivElement | null>(null);
   const segButtonRefs = useRef<Record<SegmentOption['id'], HTMLButtonElement | null>>({
@@ -239,11 +241,12 @@ export const CompactNavbar: React.FC<CompactNavbarProps> = ({
   }, [recalcPill]);
 
   /**
-   * renderProjectMenuItems - helper for building project dropdown entries.
-   */
-  /**
-   * Renders the project menu items with card-based layout for examples.
-   * @returns JSX elements for the dropdown menu items
+   * Renders the project menu items for the project dropdown. The result is a
+   * card-based list of available Examples and Projects that supports both
+   * single-component and multi-component example entries. The menu integrates
+   * with project creation and selection behavior.
+   *
+   * @returns {JSX.Element} The dropdown menu content element
    */
   const renderProjectMenuItems = () => {
     // Combine all examples (single and multi-component)
@@ -522,6 +525,29 @@ export const CompactNavbar: React.FC<CompactNavbarProps> = ({
             <TooltipContent side="bottom" className="text-xs">
               <p className="font-medium">Navigator</p>
               <p className="text-[10px] text-muted-foreground mt-0.5">Ctrl+J</p>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* AI Design Import */}
+          <DesignImportDialog 
+            open={isDesignDialogOpen} 
+            onOpenChange={setIsDesignDialogOpen} 
+          />
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.button
+                onClick={() => setIsDesignDialogOpen(true)}
+                className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Wand2 className="h-4 w-4" />
+              </motion.button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              <p className="font-medium">AI Design Import</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Generate from Image</p>
             </TooltipContent>
           </Tooltip>
 

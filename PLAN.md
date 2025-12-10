@@ -163,14 +163,13 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 - [ ] **MCP:** Support for opening specific components from IDE selection.
 - [ ] **MCP:** Bidirectional sync between IDE and Sorcery UI.
 
-### Phase 9: Enhanced Component Support (Planned)
-- [ ] **Support:** Full shadcn/ui component support with proper prop handling.
-- [ ] **Support:** Aceternity UI components integration.
-- [ ] **Support:** Magic UI components integration.
-- [ ] **Support:** 21st.dev components integration.
-- [ ] **Support:** Radix UI primitives support.
-- [ ] **Support:** Headless UI components support.
-- [ ] **Support:** Custom component library SDK for third-party integrations.
+### Phase 9: The AI Design System Engine
+- [ ] **9.1. Server Infrastructure (Node/Express):** Setup server/ with express, multer (for image uploads), and dotenv. Install ai (Vercel AI SDK) and @ai-sdk/openai (or google) in the server. Define a Zod schema for the AI response that strictly enforces the components.build structure. Implement POST /api/generate-system endpoint that accepts image or URL and returns JSON with design tokens, tailwind config, and component registry.
+- [ ] **9.2. The "Design Eyedropper" Logic:** Create system prompt for AI including components.build principles, data-state/slot patterns, cn()/cva() utilities, and UI atomization requirements. Process images/URLs with LLM to generate structured design system output.
+- [ ] **9.3. Frontend Runtime Enhancements:** Update client/src/lib/renderer.ts to map class-variance-authority, clsx, tailwind-merge, @radix-ui/react-slot imports to CDN/local shims. Inject lib/utils.ts with cn function into iframe context for shadcn-style component support.
+- [ ] **9.4. Frontend UI: Design Import:** Create "Design Eyedropper" button/modal in Navbar. Implement flow: upload screenshot → AI processing → preview color palette/components → import to overwrite/merge theme CSS, tailwind config, and add registry items as new ComponentData in current project.
+
+**Present State:** The repository currently includes a working AI processing pipeline skeleton with server-side AI route handlers and schema validation in place. The client-side renderer implements defensive normalization (unwrapping parenthetical wrappers and removing export wrapper artifacts) to tolerate AI-generated code. Syntax validation and code-fence stripping are applied to incoming components to improve reliability of the import process. The Design Eyedropper UI and further AI training/fine-tuning are still in-progress.
 
 ### Phase 10: Inspector Panel Refinement (Planned)
 - [ ] **UX:** Streamline inspector panel UI controls for better usability.
@@ -266,6 +265,28 @@ DELETE /api/components/:id    // Delete component
 - Small, self-contained change: update `SelectionHighlighter` to sample computed style and set box-shadow accordingly.
 - Add an optional small label (element tag / id) positioned near the outline when element size allows.
 - Priority: low — UX polish to schedule as part of a later polish pass.
+
+### AI Model Fine-Tuning Requirements
+
+**Issue:** AI-generated code frequently contains syntax errors and fails to meet the required JSON schema, causing parsing failures and import errors.
+
+**Symptoms:**
+- Invalid JavaScript syntax in generated component code (e.g., malformed template literals, incorrect escape sequences)
+- JSON parsing failures despite seemingly valid structure
+- Import path inconsistencies not matching runtime environment
+- Schema violations in design token structure
+
+**Required Actions:**
+- Fine-tune AI models (Gemini 2.5 Flash) with additional training data focused on:
+  - Valid React/TypeScript component generation
+  - Proper JSON schema compliance
+  - Consistent import path usage
+  - Syntax error prevention
+- Implement stricter validation and error recovery in the API pipeline
+- Add code syntax checking before attempting to render components
+- Consider fallback to simpler model or manual code generation for complex cases
+
+**Priority:** High - Currently blocking reliable AI-powered design system extraction
 
 ### Style Application Policy
 

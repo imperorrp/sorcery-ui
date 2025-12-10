@@ -2,6 +2,8 @@
 import React from 'react';
 import { serializeComponent, resetIdCounter } from '@/lib/componentParser';
 import type { SerializableElement, JsxLocation, ElementLocationMap, ComponentData } from '@/store/componentStore';
+// Import the runtime registry
+import { RUNTIME_IMPORTS } from './runtimeSystem';
 
 /**
  * Renderer Library - Dual-AST Strategy for Interactive Component Editing
@@ -43,6 +45,18 @@ import type { SerializableElement, JsxLocation, ElementLocationMap, ComponentDat
  *
  * This architecture treats the user's Source Code as the ultimate source of truth for logic,
  * while using the Visual ASTs as the source of truth for UI state and interaction.
+ *
+ * NOTES ON TRANSFORMATION & SANITIZATION:
+ * - The renderer performs several sanitization and normalization steps before Babel transpilation
+ *   to harden against AI-generated code patterns that break the TypeScript/JSX parser
+ *   (e.g., top-level parentheses wrappers, IIFE-wrappers, or export-wrapped components).
+ * - Import statements are transformed into inline `const` declarations that reference the
+ *   `__deps__` runtime mapping (see `RUNTIME_IMPORTS` in `runtimeSystem.ts`). To avoid
+ *   statements appearing inside parenthesized expressions (which causes parser errors),
+ *   the renderer unwraps common wrappers and cleans common artifacts prior to running Babel.
+ * - Missing component detection and automatic runtime mock generation are implemented
+ *   so components that are referenced in the code but not available in the library are
+ *   safely rendered with a visible placeholder.
  */
 
 /**
@@ -238,7 +252,32 @@ export async function renderCodeToAst(
         // Find `import { Card } from './Card'` or `import Card from './Card'`
         ImportDeclaration(path: any) {
           const source = path.node.source.value;
-          // A simple heuristic: if the import is local, treat it as a library component
+          
+          // 1. Check Runtime Dependencies (e.g., lucide-react, @/lib/utils)
+          if (RUNTIME_IMPORTS[source]) {
+            const specifiers = path.node.specifiers;
+            const vars = specifiers.map((spec: any) => {
+              if (spec.type === 'ImportDefaultSpecifier') {
+                 // import X from 'y' -> const X = __deps__['y'].default || __deps__['y']
+                 return `const ${spec.local.name} = __deps__['${source}'].default || __deps__['${source}'];`;
+              } else if (spec.type === 'ImportSpecifier') {
+                 // import { X } from 'y' -> const { X } = __deps__['y']
+                 // Handle aliasing: import { X as Y } -> const { X: Y }
+                 const imported = spec.imported.name;
+                 const local = spec.local.name;
+                 return `const { ${imported}: ${local} } = __deps__['${source}'];`;
+              } else if (spec.type === 'ImportNamespaceSpecifier') {
+                 // import * as X from 'y' -> const X = __deps__['y']
+                 return `const ${spec.local.name} = __deps__['${source}'];`;
+              }
+              return '';
+            });
+            
+            path.replaceWithSourceString(vars.join('\n'));
+            return;
+          }
+
+          // 2. Check Local Components (e.g., ./Card)
           if (source.startsWith('./')) {
             const componentName = source.substring(2); // Get "Card" from "./Card"
             const componentData = Object.values(allComponents).find(c => c.name === componentName);
@@ -247,12 +286,13 @@ export async function renderCodeToAst(
               // Transpile the dependency component's code on the fly
               const result = Babel.transform(componentData.code, {
                 presets: ['react', 'typescript'],
+                plugins: [resolveLocalComponentsPlugin], // Use the same plugin for recursive resolution
                 filename: `${componentName}.tsx`, // e.g., 'Card.tsx'
               });
               if (result.code) {
                 // We need to get the actual exported function. We can do this with a trick.
-                const getComponentFunc = new Function('React', 'exports', `${result.code.replace(/export default/, 'exports.default =')}; return exports.default;`);
-                const ComponentFunction = getComponentFunc(React, {});
+                const getComponentFunc = new Function('React', 'exports', '__deps__', `${result.code.replace(/export default/, 'exports.default =')}; return exports.default;`);
+                const ComponentFunction = getComponentFunc(React, {}, RUNTIME_IMPORTS);
                 componentMap[componentName] = ComponentFunction;
 
                 // We've resolved it, so we can remove the import statement from the final code.
@@ -281,6 +321,23 @@ export async function renderCodeToAst(
               path.remove();
               // ▲▲▲ END OF MISSING COMPONENT DETECTION ▲▲▲
             }
+          } else {
+            // ▼▼▼ UNKNOWN IMPORT FALLBACK: Replace with mock for unknown imports ▼▼▼
+            console.warn(`Unknown import: ${source} - replacing with empty object`);
+            const specifiers = path.node.specifiers;
+            const vars = specifiers.map((spec: any) => {
+              if (spec.type === 'ImportDefaultSpecifier') {
+                return `const ${spec.local.name} = {};`;
+              } else if (spec.type === 'ImportSpecifier') {
+                const local = spec.local.name;
+                return `const ${local} = {};`;
+              } else if (spec.type === 'ImportNamespaceSpecifier') {
+                return `const ${spec.local.name} = {};`;
+              }
+              return '';
+            });
+            path.replaceWithSourceString(vars.join('\n'));
+            // ▲▲▲ END OF UNKNOWN IMPORT FALLBACK ▲▲▲
           }
         },
 
@@ -349,7 +406,25 @@ export async function renderCodeToAst(
     };
   };
 
-  const result = Babel.transform(sourceForTranspile, {
+  // Normalize the source before running Babel.transform to avoid
+  // invalid constructs like `(const React = __deps__['react'];)` which
+  // occur when the AI returns code wrapped in parentheses and our
+  // ImportDeclaration replacement inserts `const` declarations.
+  let codeToTranspile = sourceForTranspile.trim();
+
+  // Unwrap a single top-level pair of parentheses, e.g.:
+  // `( ...code... )` -> `...code...`
+  if (codeToTranspile.startsWith('(') && codeToTranspile.endsWith(')')) {
+    codeToTranspile = codeToTranspile.slice(1, -1).trim();
+  }
+
+  // Remove common export-wrapping artifacts such as `export default ( ... );`
+  // and trailing closing parens left by poorly-formed wrappers.
+  codeToTranspile = codeToTranspile
+    .replace(/^export\s+default\s*\(\s*/, 'export default ')
+    .replace(/\s*\)\s*;?\s*$/, '');
+
+  const result = Babel.transform(codeToTranspile, {
     presets: ['react', 'typescript'],
     plugins: [resolveLocalComponentsPlugin], // Use the plugin here
     filename: 'UserComponent.tsx',
@@ -363,6 +438,7 @@ export async function renderCodeToAst(
   const executionScope = {
     React: ReactShim,
     __localComponents__: componentMap,
+    __deps__: RUNTIME_IMPORTS,
   };
 
   // ▼▼▼ GLOBAL SCOPE INJECTION FOR MISSING COMPONENTS (v1.2) ▼▼▼
@@ -391,6 +467,7 @@ export async function renderCodeToAst(
   const runtimeExecutionScope = {
     React: React,
     __localComponents__: componentMap,
+    __deps__: RUNTIME_IMPORTS,
   };
 
   // ▼▼▼ RUNTIME GLOBAL SCOPE INJECTION ▼▼▼
