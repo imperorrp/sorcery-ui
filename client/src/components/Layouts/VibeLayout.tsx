@@ -32,6 +32,7 @@ import { CodeEditorContainer } from '../containers/CodeEditorContainer';
 import { NavigatorContainer } from '../containers/NavigatorContainer';
 import { InspectorContainer } from '../containers/InspectorContainer';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNotification } from '@/components/ui/notification';
 
 interface VibeLayoutProps {
   mainView: string;
@@ -87,6 +88,7 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
   /**
    * Handle applying visual changes back to the source code
    */
+  const { notify } = useNotification();
   const handleApplyChanges = async () => {
     const newCode = await applyAstChangesToCode();
 
@@ -95,9 +97,9 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
     } else {
       const { originalCode, jsxLocation } = useComponentStore.getState();
       if (!originalCode || !jsxLocation) {
-        alert('Cannot apply changes yet. Click "Render" first to parse the component, then try again.');
+        notify({ type: 'warning', title: 'Cannot apply changes', message: 'Click "Render" first to parse the component, then try again.' });
       } else {
-        alert('Failed to apply changes. Check the console for errors.');
+        notify({ type: 'error', title: 'Apply failed', message: 'Failed to apply changes. Check the console for errors.' });
       }
     }
   };

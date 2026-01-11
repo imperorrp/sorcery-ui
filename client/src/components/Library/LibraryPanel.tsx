@@ -17,9 +17,11 @@ import React, { useState } from 'react';
 import { useComponentStore } from '@/store/componentStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PlusCircle, Save, Trash2, Edit2, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { showNotification } from '@/components/ui/notification';
 
 export const LibraryPanel: React.FC = () => {
   console.log('[LibraryPanel] Render');
@@ -51,12 +53,27 @@ export const LibraryPanel: React.FC = () => {
   const [newName, setNewName] = useState('');
   const [isEditingProjectName, setIsEditingProjectName] = useState(false);
   const [projectNameInput, setProjectNameInput] = useState('');
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [saveNameInput, setSaveNameInput] = useState('New Saved Component');
 
   const handleSave = () => {
-    const name = prompt("Enter a name for the new component:", "New Saved Component");
-    if (name && name.trim()) {
-      saveActiveCodeAsNewComponent(name.trim());
+    // Open non-blocking save modal instead of native prompt
+    setSaveNameInput('New Saved Component');
+    setIsSaveModalOpen(true);
+  };
+
+  const handleSaveConfirm = () => {
+    if (saveNameInput && saveNameInput.trim()) {
+      saveActiveCodeAsNewComponent(saveNameInput.trim());
+      showNotification({ type: 'success', title: 'Saved', message: `${saveNameInput.trim()} added to library`, duration: 4000 });
     }
+    setIsSaveModalOpen(false);
+    setSaveNameInput('New Saved Component');
+  };
+
+  const handleSaveCancel = () => {
+    setIsSaveModalOpen(false);
+    setSaveNameInput('New Saved Component');
   };
 
   const handleRename = (componentId: string, currentName: string) => {
@@ -79,13 +96,27 @@ export const LibraryPanel: React.FC = () => {
 
   const handleDelete = (componentId: string, componentName: string) => {
     if (allComponents.length <= 1) {
-      alert("Cannot delete the last component. You must have at least one component.");
+      showNotification({ type: 'warning', title: 'Cannot delete component', message: 'You must have at least one component in a project.' });
       return;
     }
-    
-    if (confirm(`Delete "${componentName}"? This action cannot be undone.`)) {
-      deleteComponent(componentId);
-    }
+
+    // Use notification with action button to confirm deletion (non-blocking)
+    showNotification({
+      type: 'warning',
+      title: 'Confirm delete',
+      message: `Click Confirm to delete "${componentName}".`,
+      action: {
+        label: 'Confirm',
+        callback: () => {
+          try {
+            deleteComponent(componentId);
+            showNotification({ type: 'success', title: 'Deleted', message: `${componentName} deleted`, duration: 4000 });
+          } catch (err) {
+            showNotification({ type: 'error', title: 'Delete failed', message: String(err) });
+          }
+        }
+      }
+    });
   };
 
   const handleProjectNameEdit = () => {
@@ -215,6 +246,29 @@ export const LibraryPanel: React.FC = () => {
         </div>
       </div>
       
+      {/* Save modal (non-blocking) */}
+      <Dialog open={isSaveModalOpen} onOpenChange={(v) => !v && setIsSaveModalOpen(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save component</DialogTitle>
+          </DialogHeader>
+          <div className="mt-2">
+            <Input
+              value={saveNameInput}
+              onChange={(e) => setSaveNameInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveConfirm();
+                if (e.key === 'Escape') handleSaveCancel();
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={handleSaveCancel}>Cancel</Button>
+            <Button onClick={handleSaveConfirm}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Component List */}
       <div className="space-y-1 grow overflow-auto bg-card">
         {allComponents.map((component) => {

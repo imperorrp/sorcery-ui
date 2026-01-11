@@ -91,15 +91,18 @@ export function ComponentSwitcher() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700 min-w-40"
-        aria-label="Switch component"
+        aria-label={`Switch component — current: ${activeComponent?.name ?? 'No component'}`}
         aria-expanded={isOpen}
       >
         <FileCode className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-        <span className="flex-1 text-left text-sm truncate">
-          {activeComponent?.name || 'No Component'}
-        </span>
+        <div className="flex-1 text-left min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Component</span>
+            <span className="text-sm font-medium truncate">{activeComponent?.name ?? 'No Component'}</span>
+          </div>
+        </div>
         <div className="flex items-center gap-1">
-          <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">
+          <span className="text-xs text-muted-foreground bg-muted/10 px-1.5 py-0.5 rounded">
             {allComponents.length}
           </span>
           <ChevronDown

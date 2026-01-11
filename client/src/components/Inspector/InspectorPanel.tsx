@@ -19,6 +19,7 @@ import { ModifierStack, type ModifierValue } from './ModifierStack';
 import { Layers, Brush, Search } from 'lucide-react';
 import { useComponentStore } from '@/store/componentStore';
 import type { SerializableElement } from '@/store/componentStore';
+import { showNotification } from '@/components/ui/notification';
 
 // Import the definitions from tailwind-inspector.json
 import tailwindInspectorDefinitions from '../../lib/definitions/tailwind-inspector.json';
@@ -691,27 +692,28 @@ export const InspectorPanel: React.FC = () => {
                         }`}
                         title={addedTokens.includes(token) ? 'New this session (not yet applied to source)' : 'Click to remove this class'}
                         onClick={() => {
-                          const ok = window.confirm(`Remove class "${token}"?`);
-                          if (ok && displayNode) {
-                            const targetId = selectedNodeId || displayNode?.id || null;
-                            if (targetId) {
-                              const utilityState = displayNode.utilityClassState || {};
-                              const utilityClasses = Object.values(utilityState).filter(Boolean);
+                          // Non-blocking removal: remove immediately and show a brief notification.
+                          if (!displayNode) return;
+                          const targetId = selectedNodeId || displayNode?.id || null;
+                          if (!targetId) return;
 
-                              if (utilityClasses.includes(token)) {
-                                const category = Object.keys(utilityState).find(key => utilityState[key] === token);
-                                if (category) {
-                                  const { updateUtilityClass } = useComponentStore.getState();
-                                  updateUtilityClass(targetId, category, null);
-                                  return;
-                                }
-                              }
+                          const utilityState = displayNode.utilityClassState || {};
+                          const utilityClasses = Object.values(utilityState).filter(Boolean);
 
-                              const currentClassName = displayClassNameRef.current;
-                              const updatedClassName = currentClassName.split(/\s+/).filter(t => t !== token).join(' ');
-                              updateNodeClassName(targetId, updatedClassName);
+                          if (utilityClasses.includes(token)) {
+                            const category = Object.keys(utilityState).find(key => utilityState[key] === token);
+                            if (category) {
+                              const { updateUtilityClass } = useComponentStore.getState();
+                              updateUtilityClass(targetId, category, null);
+                              showNotification({ type: 'success', title: 'Class removed', message: `${token} removed`, duration: 4000, details: { removed: token } });
+                              return;
                             }
                           }
+
+                          const currentClassName = displayClassNameRef.current;
+                          const updatedClassName = currentClassName.split(/\s+/).filter(t => t !== token).join(' ');
+                          updateNodeClassName(targetId, updatedClassName);
+                          showNotification({ type: 'success', title: 'Class removed', message: `${token} removed`, duration: 4000, details: { removed: token } });
                         }}
                       >
                         {token}

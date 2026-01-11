@@ -25,6 +25,7 @@ import { NavigatorContainer } from '../components/containers/NavigatorContainer'
 import { InspectorContainer } from '../components/containers/InspectorContainer';
 import { ConfigurerContainer } from '../components/containers/ConfigurerContainer';
 import { Button } from '@/components/ui/button';
+import { useNotification } from '@/components/ui/notification';
 import { FileCode, Monitor, Palette, TreePine, Settings, Play } from 'lucide-react';
 
 /**
@@ -107,6 +108,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({ mainView = 'canvas' 
   /**
    * Handle applying visual changes back to the source code
    */
+  const { notify } = useNotification();
   const handleApplyChanges = async () => {
     const newCode = await applyAstChangesToCode();
 
@@ -117,9 +119,9 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({ mainView = 'canvas' 
 
     const { originalCode, jsxLocation } = useComponentStore.getState();
     if (!originalCode || !jsxLocation) {
-      alert('Cannot apply changes yet. Click "Render" first to parse the component, then try again.');
+      notify({ type: 'warning', title: 'Cannot apply changes', message: 'Click "Render" first to parse the component, then try again.' });
     } else {
-      alert('Failed to apply changes. Check the console for errors.');
+      notify({ type: 'error', title: 'Apply failed', message: 'Failed to apply changes. Check the console for errors.' });
     }
   };
 

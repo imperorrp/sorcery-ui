@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload, Loader2, CheckCircle2, FileCode, Palette } from 'lucide-react';
 import { generateDesignSystem, type DesignSystemResponse } from '@/lib/aiService';
+import { useNotification } from './ui/notification';
 import { jsonCssToCssString, jsonConfigToString } from '@/lib/importUtils';
 import { useComponentStore } from '@/store/componentStore';
 
@@ -59,6 +60,8 @@ export const DesignImportDialog: React.FC<DesignImportDialogProps> = ({
    * Sends the selected image to the server AI service and stores the
    * resulting design system data in local state for preview.
    */
+  const { notify } = useNotification();
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -67,9 +70,11 @@ export const DesignImportDialog: React.FC<DesignImportDialogProps> = ({
     try {
       const data = await generateDesignSystem(file);
       setResult(data);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
-      alert('Failed to analyze image. Check server logs.');
+      const message = err instanceof Error ? err.message : 'Failed to analyze image';
+      const details = (err as unknown as { details?: unknown })?.details ?? undefined;
+      notify({ type: 'error', title: 'Analysis Failed', message, details, duration: 10000 });
     } finally {
       setIsLoading(false);
       // Reset input so same file can be selected again if needed
@@ -197,22 +202,29 @@ export const DesignImportDialog: React.FC<DesignImportDialogProps> = ({
               </TabsContent>
 
               <TabsContent value="tokens" className="space-y-4 mt-4">
-                 <div className="grid grid-cols-2 gap-4">
+                 {(() => {
+                 // Safely extract colors object from a loosely-typed tailwindConfig
+                 const tc = (result.designTokens?.tailwindConfig as unknown) as { theme?: { extend?: { colors?: unknown } } } | undefined;
+                 const tailwindColorsStr = JSON.stringify(tc?.theme?.extend?.colors ?? {}, null, 2);
+                 return (
+                   <div className="grid grid-cols-2 gap-4">              
                     <div className="p-4 border rounded-lg">
-                        <h4 className="font-medium mb-2 flex items-center gap-2">
-                            <Palette className="h-4 w-4" /> Colors Detected
-                        </h4>
-                        <pre className="text-[10px] bg-muted p-2 rounded overflow-auto max-h-40">
-                            {JSON.stringify(result.designTokens.tailwindConfig?.theme?.extend?.colors, null, 2)}
-                        </pre>
+                      <h4 className="font-medium mb-2 flex items-center gap-2">
+                        <Palette className="h-4 w-4" /> Colors Detected
+                      </h4>
+                      <pre className="text-[10px] bg-muted p-2 rounded overflow-auto max-h-40">
+                        {tailwindColorsStr}
+                      </pre>
                     </div>
                     <div className="p-4 border rounded-lg">
-                        <h4 className="font-medium mb-2">CSS Variables</h4>
-                        <pre className="text-[10px] bg-muted p-2 rounded overflow-auto max-h-40">
-                            {JSON.stringify(result.designTokens.cssVars.root, null, 2)}
-                        </pre>
+                      <h4 className="font-medium mb-2">CSS Variables</h4>
+                      <pre className="text-[10px] bg-muted p-2 rounded overflow-auto max-h-40">
+                        {JSON.stringify(result.designTokens.cssVars.root, null, 2)}
+                      </pre>
                     </div>
-                 </div>
+                   </div>
+                 );
+                 })()}
               </TabsContent>
             </Tabs>
 

@@ -43,6 +43,16 @@ export interface DesignSystemResponse {
  * @returns {Promise<DesignSystemResponse>} The AI-generated design system
  * @throws {Error} When the server returns a non-OK response or an unexpected payload
  */
+class ApiError extends Error {
+  details?: unknown;
+  status?: number;
+  constructor(message: string, details?: unknown, status?: number) {
+    super(message);
+    this.details = details;
+    this.status = status;
+  }
+}
+
 export async function generateDesignSystem(imageFile: File): Promise<DesignSystemResponse> {
   const formData = new FormData();
   formData.append('image', imageFile);
@@ -53,8 +63,11 @@ export async function generateDesignSystem(imageFile: File): Promise<DesignSyste
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to generate design system');
+    let body = null;
+    try { body = await response.json(); } catch { body = null; }
+    const message = body?.error || 'Failed to generate design system';
+    const details = body?.details ?? body;
+    throw new ApiError(message, details, response.status);
   }
 
   const result = await response.json();

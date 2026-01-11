@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useNotification } from '@/components/ui/notification';
 import { useComponentStore } from '@/store/componentStore';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
@@ -150,6 +151,7 @@ export const ExperimentalLayout: React.FC<ExperimentalLayoutProps> = ({
    * Handle applying visual changes back to the source code
    * Uses AST-based surgical updates to preserve component logic
    */
+  const { notify } = useNotification();
   const handleApplyChanges = async () => {
     const newCode = await applyAstChangesToCode();
 
@@ -161,9 +163,9 @@ export const ExperimentalLayout: React.FC<ExperimentalLayoutProps> = ({
       // Let's check the store to give a specific reason
       const { originalCode, jsxLocation } = useComponentStore.getState();
       if (!originalCode || !jsxLocation) {
-        alert('Cannot apply changes yet. Click "Render" first to parse the component, then try again.');
+        notify({ type: 'warning', title: 'Cannot apply changes', message: 'Click "Render" first to parse the component, then try again.' });
       } else {
-        alert('Failed to apply changes. Check the console for errors.');
+        notify({ type: 'error', title: 'Apply failed', message: 'Failed to apply changes. Check the console for errors.' });
       }
     }
   };

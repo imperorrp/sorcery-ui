@@ -49,6 +49,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { NotificationProvider, showNotification } from '@/components/ui/notification';
 
 /**
  * Initialize and render the Live Component Editor application.
@@ -58,6 +59,27 @@ import App from './App.tsx'
  */
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <NotificationProvider>
+      <App />
+    </NotificationProvider>
   </StrictMode>,
 )
+
+// Temporary runtime polyfill to replace window.alert with our toast notifications
+// This is useful while the dev server rebuilds and prevents ugly modal alerts
+// from blocking the UI. We keep the original around just in case (dev only).
+if (typeof window !== 'undefined') {
+  type WindowWithAlert = Window & { alert?: (msg?: unknown) => void };
+  const w = window as WindowWithAlert;
+  if (typeof w.alert === 'function') {
+    const original = w.alert.bind(w);
+    w.alert = (msg: unknown) => {
+      try {
+        showNotification({ type: 'info', title: 'Notice', message: String(msg) });
+      } catch {
+        // fallback to original alert if something goes wrong
+        original(msg);
+      }
+    };
+  }
+}

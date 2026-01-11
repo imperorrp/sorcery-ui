@@ -582,8 +582,11 @@ export const CompactNavbar: React.FC<CompactNavbarProps> = ({
         <div className="flex flex-col gap-4 mt-6">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="justify-between">
-                <span className="truncate">{currentProjectName}</span>
+              <Button variant="outline" aria-label={`Switch project — current: ${currentProjectName}`} className="justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Project</span>
+                  <span className="truncate text-sm font-medium">{currentProjectName}</span>
+                </div>
                 <ChevronDown className="h-4 w-4 opacity-60" />
               </Button>
             </DropdownMenuTrigger>
@@ -695,12 +698,16 @@ export const CompactNavbar: React.FC<CompactNavbarProps> = ({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <motion.button
-                      className="h-8 px-2.5 rounded-md flex items-center gap-1.5 hover:bg-muted/50 transition-colors group"
+                      aria-label={`Switch project — current: ${currentProjectName}`}
+                      className="h-8 px-2.5 rounded-md flex items-center gap-1.5 min-w-0 hover:bg-muted/50 transition-colors group"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       <BookOpenCheck className="h-3.5 w-3.5 text-primary shrink-0" />
-                      <span className="text-xs font-medium text-foreground truncate">{currentProjectName}</span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Project</span>
+                        <span className="text-xs font-medium text-foreground truncate">{currentProjectName}</span>
+                      </div>
                       <ChevronDown className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
                     </motion.button>
                   </DropdownMenuTrigger>

@@ -3,6 +3,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useComponentStore } from '@/store/componentStore';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { FloatingDock } from '@/components/ui/floating-dock';
+import { useNotification } from '@/components/ui/notification';
 import { IconCode, IconLayoutSidebar, IconTree, IconPalette } from '@tabler/icons-react';
 import { InspectorContainer } from './containers/InspectorContainer';
 import { NavigatorContainer } from './containers/NavigatorContainer';
@@ -120,6 +121,7 @@ export const EditorLayout: React.FC = () => {
    * Handle applying visual changes back to the source code
    * Uses AST-based surgical updates to preserve component logic
    */
+  const { notify } = useNotification();
   const handleApplyChanges = async () => {
     const newCode = await applyAstChangesToCode();
 
@@ -129,9 +131,9 @@ export const EditorLayout: React.FC = () => {
       // Let's check the store to give a specific reason
       const { originalCode, jsxLocation } = useComponentStore.getState();
       if (!originalCode || !jsxLocation) {
-        alert('Cannot apply changes yet. Click "Render" first to parse the component, then try again.');
+        notify({ type: 'warning', title: 'Cannot apply changes', message: 'Click "Render" first to parse the component, then try again.' });
       } else {
-        alert('Failed to apply changes. Check the console for errors.');
+        notify({ type: 'error', title: 'Apply failed', message: 'Failed to apply changes. Check the console for errors.' });
       }
     }
   };

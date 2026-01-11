@@ -6,6 +6,7 @@ import { updateClassNameInCode } from '@/lib/classNameUpdater';
 import { generateClassNameFromState } from '@/lib/utilityStateHelpers';
 import { defaultExample } from '@/examples/examples';
 import { renderCodeToAst } from '@/lib/renderer';
+import { showNotification } from '@/components/ui/notification';
 import { examples, multiComponentExamples } from '@/examples/examples';
 
 /**
@@ -596,7 +597,7 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
     renderActiveComponent: async () => {
       const { activeComponentId, components } = get();
       if (!activeComponentId) {
-        alert("No active component selected.");
+        showNotification({ type: 'warning', title: 'No active component', message: 'Select a component before rendering.' });
         return;
       }
 
@@ -604,7 +605,7 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
       const activeCode = activeComponent?.code;
       
       if (!activeCode) {
-        alert("Code editor is empty.");
+        showNotification({ type: 'warning', title: 'Empty code', message: 'The code editor is empty. Please add or paste your component code before rendering.' });
         return;
       }
 
@@ -622,7 +623,7 @@ export const useComponentStore = create<ComponentState & ComponentActions & Comp
       } catch (error: unknown) {
         console.error('Error rendering component:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        alert(`Error: ${errorMessage}\n\nCheck the console for more details.`);
+        showNotification({ type: 'error', title: 'Render Failed', message: `Error: ${errorMessage}`, details: error instanceof Error ? { stack: error.stack } : undefined });
       } finally {
         set({ isRendering: false });
       }

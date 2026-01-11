@@ -14,6 +14,7 @@ import { renderCodeToAst } from '@/lib/renderer';
 import { updateStylesInCode } from '@/lib/styleUpdater';
 import { updateClassNameInCode } from '@/lib/classNameUpdater';
 import { examples, multiComponentExamples } from '@/examples/examples';
+import { showNotification } from '@/components/ui/notification';
 
 /**
  * Helper function to generate unique IDs
@@ -69,13 +70,13 @@ export const createRenderActions: StateCreator<
     
     if (!project) {
       console.error('[Render] No active project selected');
-      alert("No active project selected.");
+      showNotification({ type: 'error', title: 'No active project', message: 'Select or create a project before rendering.' });
       return;
     }
     
     if (!component) {
       console.error('[Render] No active component selected');
-      alert("No active component selected.");
+      showNotification({ type: 'error', title: 'No active component', message: 'Select a component before rendering.' });
       return;
     }
 
@@ -85,7 +86,7 @@ export const createRenderActions: StateCreator<
     
     if (!activeCode) {
       console.error('[Render] Code editor is empty');
-      alert("Code editor is empty.");
+      showNotification({ type: 'error', title: 'Empty code', message: 'The code editor is empty. Please add or paste your component code before rendering.' });
       return;
     }
 
@@ -109,7 +110,7 @@ export const createRenderActions: StateCreator<
     } catch (error: unknown) {
       console.error('[Render] Error rendering component:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`Error: ${errorMessage}\n\nCheck the console for more details.`);
+      showNotification({ type: 'error', title: 'Render Failed', message: `Error: ${errorMessage}`, details: error instanceof Error ? { stack: error.stack } : undefined });
     } finally {
       set({ isRendering: false });
     }

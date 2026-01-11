@@ -216,14 +216,12 @@ router.post('/generate-system', upload.single('image'), async (req, res) => {
     });
 
   } catch (error) {
-    // Capture extra details when available
-    const extra = {};
-    if (error.status) extra.status = error.status;
-    
-    logger.error('AI Generation Error:', { message: error.message, stack: error.stack, ...extra });
+    // Capture extra details when available (sanitized)
+    const extra = extractErrorDetails(error || {});
+    logger.error('AI Generation Error:', { message: (error && error.message) ?? String(error), details: extra });
     res.status(500).json({
       success: false,
-      error: error.message || 'Failed to generate design system',
+      error: (error && error.message) ?? 'Failed to generate design system',
       details: extra
     });
   }
@@ -324,7 +322,6 @@ export default router;
  * @param {any} raw - Raw object returned by AI
  * @returns {any} Normalized object matching expected shape where possible
  */
-function normalizeDesignSystem(raw) {
 function normalizeDesignSystem(raw) {
   try {
     const out = JSON.parse(JSON.stringify(raw)); // shallow clone

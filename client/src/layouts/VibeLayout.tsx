@@ -11,6 +11,7 @@
 import React, { useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useNotification } from '@/components/ui/notification';
 import { useComponentStore } from '@/store/componentStore';
 import { useResponsive } from '@/hooks/useResponsive';
 import { CanvasContainer } from '../components/containers/CanvasContainer';
@@ -93,6 +94,7 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
   /**
    * Handle applying visual changes back to the source code
    */
+  const { notify } = useNotification();
   const handleApplyChanges = async () => {
     const newCode = await applyAstChangesToCode();
 
@@ -102,9 +104,9 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
     } else {
       const { originalCode, jsxLocation } = useComponentStore.getState();
       if (!originalCode || !jsxLocation) {
-        alert('Cannot apply changes yet. Click "Render" first to parse the component, then try again.');
+        notify({ type: 'warning', title: 'Cannot apply changes', message: 'Click "Render" first to parse the component, then try again.' });
       } else {
-        alert('Failed to apply changes. Check the console for errors.');
+        notify({ type: 'error', title: 'Apply failed', message: 'Failed to apply changes. Check the console for errors.' });
       }
     }
   };

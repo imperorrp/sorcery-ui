@@ -154,6 +154,10 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 - [x] **Testing:** Test infrastructure setup with Vitest, Testing Library, and happy-dom for fast, reliable testing.
 - [x] **Testing:** Comprehensive test documentation and maintenance guidelines in TEST-IMPLEMENTATION-SUMMARY.md.
 - [x] **Testing:** Achieved 100% pass rate (44/44 tests) protecting core architectural capabilities.
+ - [ ] **Testing:** Unit tests for AI response normalization (server) - Add tests that validate the `normalizeDesignSystem` function and code normalization heuristics (strip code fences, unwrap top-level parentheses, remove common export wrappers, normalize `fontFamily`, and map `designTokens.colors` into `cssVars.root`). These tests should be targeted, run quickly, and smoke test the Zod schema validation logic.
+ - [ ] **Testing:** Client renderer normalization tests - Add client-side unit tests to validate `codeToTranspile` normalization behavior (parenthesis unwrapping, export wrapper removal). These tests should ensure that Babel transforms succeed on cases that would previously cause a parser error (like `(const React = ...)`), and assert graceful error handling and logging.
+ - [ ] **Testing:** Integration tests for AI pipeline - Automate `test-file-prompt.js` and `test-endpoint.js` flows to be run under CI using small sample inputs and mock responses to test end-to-end normalization and schema validation flow without invoking external provider APIs when run in CI (mock providers locally).
+ - [ ] **Testing:** CI Gateway - Ensure test scripts run in CI for both client and server, and add a step to the CI to run server normalization and client normalization tests explicitly. Block merging on failures of those tests.
 
 ### Phase 8: MCP Server Implementation (Planned)
 - [ ] **MCP:** Design MCP server protocol for IDE integration.
@@ -168,6 +172,12 @@ This hybrid, non-destructive approach allows the application to robustly handle 
 - [ ] **9.2. The "Design Eyedropper" Logic:** Create system prompt for AI including components.build principles, data-state/slot patterns, cn()/cva() utilities, and UI atomization requirements. Process images/URLs with LLM to generate structured design system output.
 - [ ] **9.3. Frontend Runtime Enhancements:** Update client/src/lib/renderer.ts to map class-variance-authority, clsx, tailwind-merge, @radix-ui/react-slot imports to CDN/local shims. Inject lib/utils.ts with cn function into iframe context for shadcn-style component support.
 - [ ] **9.4. Frontend UI: Design Import:** Create "Design Eyedropper" button/modal in Navbar. Implement flow: upload screenshot → AI processing → preview color palette/components → import to overwrite/merge theme CSS, tailwind config, and add registry items as new ComponentData in current project.
+
+**Testing & Validation Additions (Phase 9):**
+- [ ] Add server-side automated unit tests for `normalizeDesignSystem()` and AI response sanitation behaviors including: code fence stripping, wrapper unwrapping, `fontFamily` normalization, and mapping `designTokens.colors` into `cssVars.root`.
+- [ ] Add client-side unit tests to validate `codeToTranspile` normalization in `renderer.ts` for wrapped/parenthesized code, `export default` cases, and ensure Babel transpilation succeeds for sanitized inputs.
+- [ ] Add a set of mock AI integration test fixtures to test a variety of AI outputs (valid, malformed, wrapper-wrapped, markdown fenced) and assert the final normalized and validated response matches `designSystemSchema`.
+- [ ] Add CI integration to run the above tests; ensure the CI pipeline will block merges on failed normalization or parsing tests.
 
 **Present State:** The repository currently includes a working AI processing pipeline skeleton with server-side AI route handlers and schema validation in place. The client-side renderer implements defensive normalization (unwrapping parenthetical wrappers and removing export wrapper artifacts) to tolerate AI-generated code. Syntax validation and code-fence stripping are applied to incoming components to improve reliability of the import process. The Design Eyedropper UI and further AI training/fine-tuning are still in-progress.
 
