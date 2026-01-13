@@ -20,9 +20,10 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 });
 
-// Initialize Google Gen AI
-const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
-const ai = new GoogleGenAI({ apiKey });
+// Initialize Google Gen AI (default). For per-request overrides, we will
+// instantiate a client inside the handler using a provided API key.
+const defaultApiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+const ai = new GoogleGenAI({ apiKey: defaultApiKey });
 
 /**
  * POST /api/ai/generate-system
@@ -38,6 +39,11 @@ const ai = new GoogleGenAI({ apiKey });
  */
 router.post('/generate-system', upload.single('image'), async (req, res) => {
   try {
+    // Allow per-request API key override via multipart field `apiKey` or header `x-ai-api-key`
+    const providedKey = (req.body && req.body.apiKey) || req.headers['x-ai-api-key'];
+    const effectiveApiKey = typeof providedKey === 'string' && providedKey.trim().length > 0 ? providedKey.trim() : defaultApiKey;
+    const aiClient = new GoogleGenAI({ apiKey: effectiveApiKey });
+
     let imagePart;
 
       // Handle file upload (multipart/form-data)
@@ -107,7 +113,7 @@ router.post('/generate-system', upload.single('image'), async (req, res) => {
     }
     `;
 
-    const result = await ai.models.generateContent({
+    const result = await aiClient.models.generateContent({
       model: modelId,
       contents: [
         {

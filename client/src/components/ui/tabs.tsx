@@ -9,11 +9,16 @@ type TabsContextValue = {
 const TabsContext = createContext<TabsContextValue | null>(null);
 
 interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
-  defaultValue: string;
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
 }
 
-export const Tabs: React.FC<TabsProps> = ({ defaultValue, className, children, ...rest }) => {
-  const [value, setValue] = useState(defaultValue);
+export const Tabs: React.FC<TabsProps> = ({ defaultValue = '', className, children, onValueChange, ...rest }) => {
+  const [value, setValueInternal] = useState(defaultValue);
+  const setValue = (v: string) => {
+    setValueInternal(v);
+    if (onValueChange) onValueChange(v);
+  };
   const ctx = useMemo(() => ({ value, setValue }), [value]);
   return (
     <TabsContext.Provider value={ctx}>

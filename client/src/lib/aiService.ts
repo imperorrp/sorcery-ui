@@ -7,6 +7,7 @@
  *
  * Implementation details:
  * - Sends the file as multipart/form-data to the server's `/api/ai/generate-system` endpoint
+ * - Includes a user-provided AI API key in the multipart payload as `apiKey`
  * - Returns the `data` field's `DesignSystemResponse` if the server returns `success: true`
  * - Throws an Error with server-provided messages otherwise
  */
@@ -32,14 +33,12 @@ export interface DesignSystemResponse {
 /**
  * Sends the image file to the server AI endpoint and returns the generated
  * design system response.
- * @param imageFile - Image file for analysis (PNG/JPG/WebP)
- * @returns A DesignSystemResponse object with tokens and components
- */
-/**
+ *
  * generateDesignSystem - Client wrapper that uploads a screenshot and returns
  * a `DesignSystemResponse` with tokens and components for preview/import.
  *
  * @param {File} imageFile - Screenshot file to analyze (PNG/JPG/WebP)
+ * @param {string} apiKey - AI provider API key to use for this request
  * @returns {Promise<DesignSystemResponse>} The AI-generated design system
  * @throws {Error} When the server returns a non-OK response or an unexpected payload
  */
@@ -53,9 +52,11 @@ class ApiError extends Error {
   }
 }
 
-export async function generateDesignSystem(imageFile: File): Promise<DesignSystemResponse> {
+export async function generateDesignSystem(imageFile: File, apiKey: string): Promise<DesignSystemResponse> {
   const formData = new FormData();
   formData.append('image', imageFile);
+  // Include API key in multipart form-data so the backend can use a per-request key
+  formData.append('apiKey', apiKey);
 
   const response = await fetch(`${API_BASE_URL}/generate-system`, {
     method: 'POST',

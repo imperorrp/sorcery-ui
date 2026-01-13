@@ -27,6 +27,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { HomePage } from './components/HomePage';
+// import { HomePageAlt } from './components/HomePageAlt'; // temporarily disabled
 import { EditorPage } from './components/EditorPage';
 import { ExperimentalEditorPage } from './components/ExperimentalEditorPage';
 
@@ -45,6 +46,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          {/* /alt route temporarily disabled */}
+          {/* <Route path="/alt" element={<HomePageAlt />} /> */}
           <Route path="/editor" element={<EditorPage />} />
           <Route path="/editor-experimental" element={<ExperimentalEditorPage />} />
         </Routes>

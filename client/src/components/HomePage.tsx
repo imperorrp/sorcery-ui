@@ -12,13 +12,16 @@ import { Button } from '@/components/ui/button';
 import {
   Wand2,
   ArrowRight,
-  Github,
   Sparkles,
   Code2,
   Layers,
   Zap,
   Cpu,
-  MousePointer2
+  MousePointer2,
+  Camera,
+  Upload,
+  Brain,
+  Download
 } from 'lucide-react';
 
 /**
@@ -50,20 +53,7 @@ export function HomePage() {
           </Link>
           
           <div className="flex items-center gap-4">
-            <a 
-              href="https://github.com/imperorrp/runable-task" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors hidden sm:block"
-            >
-              Documentation
-            </a>
-            <Button variant="ghost" size="sm" asChild className="text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100">
-              <a href="https://github.com/imperorrp/runable-task" target="_blank" rel="noopener noreferrer">
-                <Github className="h-4 w-4 mr-2" />
-                GitHub
-              </a>
-            </Button>
+            
           </div>
         </div>
       </header>
@@ -82,16 +72,16 @@ export function HomePage() {
 
             {/* Main Title */}
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100 text-zinc-900">
-                Stop prompting. <br />
+                Stop endless prompting <br />
                 <span className="text-zinc-500">
-                    Start refining.
+                    Start visually refining
                 </span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-xl text-zinc-500 max-w-2xl mx-auto mb-10 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 font-light">
-                The missing GUI for your AI-generated React components. 
-                Paste code, tweak styles visually with Tailwind controls, and export clean JSX.
+                The complete visual toolkit for React. Edit, clone, and remix components with pixel-perfect precision. 
+                Built for modern standards like shadcn/ui and your own design systems.
             </p>
 
             {/* CTA Buttons */}
@@ -103,16 +93,30 @@ export function HomePage() {
                 </Button>
                 <Button asChild variant="outline" size="lg" className="h-12 px-8 text-base border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-600 hover:text-zinc-900 transition-all duration-300">
                     <Link to="/editor-experimental">
-                        <Sparkles className="mr-2 h-4 w-4 text-zinc-400" /> Try Experimental
+                        <Sparkles className="mr-2 h-4 w-4 text-zinc-400" /> Try Experimental editor 
                     </Link>
                 </Button>
+            </div>
+
+            {/* Coming Soon */}
+            <div className="text-center mt-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-400">
+                <p className="text-sm text-zinc-500 font-light">
+                    MCP integration into your IDE coming soon
+                </p>
             </div>
         </div>
       </section>
 
       {/* Visual Demo Section */}
-      <section className="px-6 pb-32">
+      <section className="px-6 pb-24">
          <div className="container mx-auto max-w-5xl">
+            <div className="text-center mb-12">
+               <h2 className="text-4xl font-bold mb-4 text-zinc-900">Direct Visual Manipulation</h2>
+               <p className="text-lg text-zinc-600 max-w-2xl mx-auto">
+                 Don't guess with prompts. Interact directly with your component tree in a real React runtime.
+               </p>
+            </div>
+
             <div className="relative rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-500">
                 {/* Fake Window Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 bg-zinc-50">
@@ -184,6 +188,97 @@ export function HomePage() {
          </div>
       </section>
 
+      {/* Screenshot Workflow Showcase */}
+      <section className="px-6 pb-24">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-zinc-100 text-zinc-700 text-xs font-semibold mb-4">
+              <Camera className="h-3 w-3" />
+              NEW: AI Design Extraction
+            </div>
+            <h2 className="text-4xl font-bold mb-4 text-zinc-900">From Screenshot to Code in Seconds</h2>
+            <p className="text-lg text-zinc-600 max-w-2xl mx-auto">
+              Upload any UI screenshot. Get shadcn-style components, design tokens, and Tailwind config instantly.
+            </p>
+          </div>
+
+          <div className="relative rounded-2xl border-2 border-zinc-200 bg-gradient-to-br from-zinc-50 to-zinc-100 shadow-xl overflow-hidden">
+            {/* Workflow Steps */}
+            <div className="grid md:grid-cols-3 divide-x divide-zinc-200">
+              {[
+                {
+                  step: '1',
+                  icon: Upload,
+                  title: 'Upload Screenshot',
+                  desc: 'Drag & drop any UI design',
+                  color: 'zinc'
+                },
+                {
+                  step: '2',
+                  icon: Brain,
+                  title: 'AI Extraction',
+                  desc: 'Extract components & tokens',
+                  color: 'zinc'
+                },
+                {
+                  step: '3',
+                  icon: Download,
+                  title: 'Export Code',
+                  desc: 'Production-ready React',
+                  color: 'zinc'
+                }
+              ].map((item) => (
+                <div key={item.step} className="p-8 text-center group hover:bg-white/50 transition-colors">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-zinc-500 to-zinc-600 text-white mb-4 group-hover:scale-110 transition-transform shadow-lg">
+                    <item.icon className="h-6 w-6" />
+                  </div>
+                  <div className="text-xs font-bold text-zinc-600 mb-2">STEP {item.step}</div>
+                  <h3 className="text-lg font-semibold text-zinc-900 mb-2">{item.title}</h3>
+                  <p className="text-sm text-zinc-600">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Demo Visual */}
+            <div className="p-12 bg-white/60 backdrop-blur-sm border-t-2 border-zinc-200">
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                {/* Before */}
+                <div className="space-y-3">
+                  <div className="text-sm font-semibold text-zinc-500 flex items-center gap-2">
+                    <Camera className="h-4 w-4" /> Input Screenshot
+                  </div>
+                  <div className="aspect-video bg-gradient-to-br from-zinc-100 to-zinc-200 rounded-xl border-2 border-dashed border-zinc-300 flex items-center justify-center">
+                    <div className="text-center">
+                      <Upload className="h-8 w-8 text-zinc-400 mx-auto mb-2" />
+                      <div className="text-xs text-zinc-500">Your UI Design</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* After */}
+                <div className="space-y-3">
+                  <div className="text-sm font-semibold text-zinc-600 flex items-center gap-2">
+                    <Code2 className="h-4 w-4" /> Generated Components
+                  </div>
+                  <div className="aspect-video bg-zinc-900 text-white rounded-xl border-2 border-zinc-400 p-4 font-mono text-xs overflow-hidden shadow-xl">
+                    <div className="space-y-2">
+                      <div className="text-violet-400">// Button.tsx</div>
+                      <div><span className="text-blue-400">export function</span> <span className="text-yellow-400">Button</span>() {'{'}</div>
+                      <div className="pl-3 text-zinc-400">return (</div>
+                      <div className="pl-6 text-emerald-400">&lt;button className="...</div>
+                      <div className="pl-3 text-zinc-500">...</div>
+                      <div>{'}'}</div>
+                      <div className="mt-4 text-violet-400">// Design Tokens</div>
+                      <div className="text-orange-400">colors: {'{'} primary: ... {'}'}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* The Problem & Solution */}
       <section className="py-24 px-6 relative bg-zinc-50 border-y border-zinc-200">
         <div className="container mx-auto max-w-5xl">
@@ -193,7 +288,7 @@ export function HomePage() {
               <div className="space-y-4 text-zinc-600 text-lg leading-relaxed font-light">
                 <p>
                   AI assistants are incredible. They generate 90% of what you need instantly. 
-                  But that final 10%—the padding tweaks, color adjustments, responsive spacing—takes forever through prompts.
+                  But that final 10%, the padding tweaks, color adjustments, and responsive spacing, takes forever through prompts.
                 </p>
                 <p>
                   You describe changes, wait for regeneration, and repeat. 
@@ -204,12 +299,12 @@ export function HomePage() {
             
             <div className="relative bg-white border border-zinc-200 rounded-2xl p-8 shadow-sm">
                <div className="absolute -top-4 -left-4 bg-zinc-900 text-white px-4 py-1 rounded-full text-sm font-medium shadow-lg">
-                  The Solution
+                  The Vision
                </div>
-               <h3 className="text-xl font-semibold text-zinc-900 mb-4 mt-2">Stop describing. Start clicking.</h3>
+               <h3 className="text-xl font-semibold text-zinc-900 mb-4 mt-2">Visually remix & refine.</h3>
                <p className="text-zinc-600 mb-6 font-light">
-                 Sorcery UI is designed for that specific frustration. Don't prompt for pixel-perfect design. 
-                 Just fix it yourself in seconds.
+                 Sorcery UI isn't a replacement—it's an addition to your workflow. 
+                 A richer set of tools to visually edit, clone, and remix React components with opinionated standards.
                </p>
                
                <div className="grid grid-cols-2 gap-6 pt-6 border-t border-zinc-100">
@@ -241,38 +336,43 @@ export function HomePage() {
       <section className="py-24 px-6">
         <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-16">
-                <h2 className="text-3xl font-bold mb-4 text-zinc-900">Why Sorcery UI?</h2>
-                <p className="text-zinc-500 font-light">Built for the "last mile" of UI development.</p>
+              <h2 className="text-3xl font-bold mb-4 text-zinc-900">Why Sorcery UI?</h2>
+              <p className="text-zinc-500 font-light">Built for serious frontend developers and teams who need runtime-editable components and design-system primitives.</p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
-                {[
-                    {
-                        icon: <Layers className="w-6 h-6 text-zinc-900" />,
-                        title: "Logic-Preserving Edits",
-                        desc: "We parse your code into a visual tree. Edit structure and styles without breaking logic."
-                    },
-                    {
-                        icon: <Zap className="w-6 h-6 text-zinc-900" />,
-                        title: "Tailwind Native",
-                        desc: "First-class support for Tailwind CSS. Visual pickers for spacing, colors, and typography."
-                    },
-                    {
-                        icon: <Cpu className="w-6 h-6 text-zinc-900" />,
-                        title: "Real Environment",
-                        desc: "Not just a picture. A real React runtime with props, context, and interactivity."
-                    }
-                ].map((feature, i) => (
-                    <div key={i} className="group p-8 rounded-2xl bg-white border border-zinc-200 hover:border-zinc-300 hover:shadow-lg transition-all duration-300">
-                        <div className="mb-6 p-3 rounded-xl bg-zinc-50 border border-zinc-100 w-fit group-hover:scale-110 transition-transform duration-300">
-                            {feature.icon}
-                        </div>
-                        <h3 className="text-lg font-semibold mb-3 text-zinc-900">{feature.title}</h3>
-                        <p className="text-sm text-zinc-500 leading-relaxed font-light">
-                            {feature.desc}
-                        </p>
-                    </div>
-                ))}
+            <div className="grid md:grid-cols-4 gap-8">
+              {[
+                {
+                  icon: <Layers className="w-6 h-6 text-zinc-900" />,
+                  title: "Logic-Preserving Edits",
+                  desc: "Sorcery UI parses your code into a visual tree. Edit structure and styles without breaking logic."
+                },
+                {
+                  icon: <Sparkles className="w-6 h-6 text-zinc-900" />,
+                  title: "Design System First",
+                  desc: "Built with a preference for composable, shadcn-like architectures. Build and tweak your own design systems with real inspiration."
+                },
+                {
+                  icon: <Cpu className="w-6 h-6 text-zinc-900" />,
+                  title: "Universal Workflow",
+                  desc: "Use it in the browser today. Soon to be integrated with your IDEs and vibe coding tools via MCP for a seamless workflow."
+                },
+                {
+                  icon: <MousePointer2 className="w-6 h-6 text-zinc-900" />,
+                  title: "For Frontend Pros",
+                  desc: "More than visual tweaks: unlike Cursor's quick edits or Figma-to-code exports, Sorcery UI provides editable runtime components and design-system primitives for production-quality development."
+                }
+              ].map((feature, i) => (
+                <div key={i} className="group p-8 rounded-2xl bg-white border border-zinc-200 hover:border-zinc-300 hover:shadow-lg transition-all duration-300">
+                  <div className="mb-6 p-3 rounded-xl bg-zinc-50 border border-zinc-100 w-fit group-hover:scale-110 transition-transform duration-300">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-lg font-semibold mb-3 text-zinc-900">{feature.title}</h3>
+                  <p className="text-sm text-zinc-500 leading-relaxed font-light">
+                    {feature.desc}
+                  </p>
+                </div>
+              ))}
             </div>
         </div>
       </section>
@@ -287,7 +387,7 @@ export function HomePage() {
                 <span className="text-sm font-medium text-zinc-900">Sorcery UI</span>
             </div>
             <div className="text-sm text-zinc-400 font-light">
-                &copy; {new Date().getFullYear()} Sorcery UI Team
+                &copy; {new Date().getFullYear()} Sorcery UI | <a href="https://ratishpanda.in" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-600 transition-colors underline">Contact</a>
             </div>
         </div>
       </footer>

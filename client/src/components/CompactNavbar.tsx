@@ -31,6 +31,7 @@ import {
   Eye,
   Code,
   Settings,
+  HelpCircle,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -89,6 +90,8 @@ interface CompactNavbarProps {
   // Layout switching
   currentLayout?: 'vibe' | 'experimental';
   onLayoutChange?: (layout: 'vibe' | 'experimental') => void;
+  // Help modal
+  onHelpClick?: () => void;
 }
 
 /**
@@ -120,6 +123,7 @@ export const CompactNavbar: React.FC<CompactNavbarProps> = ({
   // Layout switching
   currentLayout,
   onLayoutChange,
+  onHelpClick,
 }) => {
   const { theme, toggleTheme } = useTheme();
   const { isMobile } = useResponsive();
@@ -726,6 +730,23 @@ export const CompactNavbar: React.FC<CompactNavbarProps> = ({
           {/* Right Side - Settings and Theme */}
           {!isMobile && (
             <div className="flex items-center gap-2">
+              {/* Help Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <motion.button
+                    onClick={onHelpClick}
+                    className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <HelpCircle className="h-4 w-4" />
+                  </motion.button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  <p className="font-medium">Help & Tutorial</p>
+                </TooltipContent>
+              </Tooltip>
+
               {/* Settings Button */}
               <Tooltip>
                 <TooltipTrigger asChild>

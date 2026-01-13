@@ -45,6 +45,7 @@ export const DesignImportDialog: React.FC<DesignImportDialogProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<DesignSystemResponse | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [apiKey, setApiKey] = useState('');
 
   // Store Actions
   const {
@@ -65,10 +66,16 @@ export const DesignImportDialog: React.FC<DesignImportDialogProps> = ({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!apiKey.trim()) {
+      notify({ type: 'error', title: 'Missing API Key', message: 'Please enter your AI API key before uploading.', duration: 6000 });
+      // Reset input so same file can be selected again after key entry
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
 
     setIsLoading(true);
     try {
-      const data = await generateDesignSystem(file);
+      const data = await generateDesignSystem(file, apiKey.trim());
       setResult(data);
     } catch (err: unknown) {
       console.error(err);
@@ -129,12 +136,12 @@ export const DesignImportDialog: React.FC<DesignImportDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Design System Extraction</DialogTitle>
           <DialogDescription>
-            Upload a screenshot of a UI. AI will extract design tokens and rebuild the components.
+            Enter your AI API key, then upload a UI screenshot. AI will extract design tokens and rebuild the components.
           </DialogDescription>
         </DialogHeader>
 
         {!result ? (
-          <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-muted/50 transition-colors hover:bg-muted/80 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+          <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-muted/50 transition-colors hover:bg-muted/80">
             {isLoading ? (
               <div className="text-center space-y-4">
                 <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
@@ -144,11 +151,29 @@ export const DesignImportDialog: React.FC<DesignImportDialogProps> = ({
               </div>
             ) : (
               <div className="text-center space-y-4">
-                <div className="p-4 bg-background rounded-full inline-block shadow-sm">
+                <div className="grid gap-2 text-left w-full max-w-md mx-auto">
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor="ai-api-key">AI API Key</label>
+                  <input
+                    id="ai-api-key"
+                    type="password"
+                    placeholder="Enter your AI provider API key"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border rounded-md bg-background"
+                  />
+                  <p className="text-[11px] text-muted-foreground">Required: the key is sent securely with your upload and used only for this analysis.</p>
+                </div>
+                <div
+                  className="p-4 bg-background rounded-full inline-block shadow-sm cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }}
+                >
                   <Upload className="h-8 w-8 text-primary" />
                 </div>
                 <div>
-                  <Button variant="secondary" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
+                  <Button variant="secondary" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }} disabled={!apiKey.trim()}>
                     Upload Screenshot
                   </Button>
                   <input
@@ -160,7 +185,7 @@ export const DesignImportDialog: React.FC<DesignImportDialogProps> = ({
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Supports PNG, JPG, WebP.
+                  Supports PNG, JPG, WebP. API key required.
                 </p>
               </div>
             )}

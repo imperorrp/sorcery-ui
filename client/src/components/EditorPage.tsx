@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CompactNavbar } from './CompactNavbar';
+import { HelpModal, useHelpModal } from './HelpModal';
 import VibeLayout from '../layouts/VibeLayout';
 import { examples, multiComponentExamples } from '../examples/examples';
 import { useComponentStore } from '../store/componentStore';
@@ -29,6 +30,9 @@ export function EditorPage() {
   // Panel visibility state for dock system
   const [isInspectorVisible, setIsInspectorVisible] = useState(true);
   const [isNavigatorVisible, setIsNavigatorVisible] = useState(true);
+
+  // Help modal state
+  const { isOpen: isHelpOpen, openHelp, setIsOpen: setIsHelpOpen } = useHelpModal();
 
   const { isRendering, loadExample, renderActiveComponent, examplesVersion, currentExampleName } = useComponentStore();
   
@@ -91,6 +95,7 @@ export function EditorPage() {
         onRender={renderActiveComponent}
         currentLayout="vibe"
         onLayoutChange={handleLayoutChange}
+        onHelpClick={openHelp}
       />
       <div className="flex-1 overflow-hidden">
         <VibeLayout
@@ -100,6 +105,7 @@ export function EditorPage() {
           onNavigatorToggle={() => setIsNavigatorVisible(!isNavigatorVisible)}
         />
       </div>
+      <HelpModal open={isHelpOpen} onOpenChange={setIsHelpOpen} />
     </div>
   );
 }

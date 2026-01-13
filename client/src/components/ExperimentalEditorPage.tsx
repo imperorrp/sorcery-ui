@@ -10,6 +10,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CompactNavbar } from './CompactNavbar';
+import { HelpModal, useHelpModal } from './HelpModal';
 import { ExperimentalLayout } from '../layouts/ExperimentalLayout';
 import { examples, multiComponentExamples } from '../examples/examples';
 import { useComponentStore } from '../store/componentStore';
@@ -42,6 +43,9 @@ export function ExperimentalEditorPage() {
     configurer: true,
     preview: true
   });
+
+  // Help modal state
+  const { isOpen: isHelpOpen, openHelp, setIsOpen: setIsHelpOpen } = useHelpModal();
 
   const { isRendering, loadExample, renderActiveComponent, examplesVersion, currentExampleName } = useComponentStore();
   
@@ -125,6 +129,7 @@ export function ExperimentalEditorPage() {
         onPreviewToggle={() => setIsPreviewVisible(!isPreviewVisible)}
         currentLayout="experimental"
         onLayoutChange={handleLayoutChange}
+        onHelpClick={openHelp}
       />
       <div className="flex-1 overflow-hidden">
         <ExperimentalLayout
@@ -147,6 +152,7 @@ export function ExperimentalEditorPage() {
           isRendering={isRendering}
         />
       </div>
+      <HelpModal open={isHelpOpen} onOpenChange={setIsHelpOpen} />
     </div>
   );
 }
