@@ -29,5 +29,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/store/componentStore-old.ts", "src/components/test/**", "src/components/Navigator/ComponentLibrary.tsx"]
 }

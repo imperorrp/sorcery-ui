@@ -25,7 +25,6 @@ import {
   Settings,
   Download,
   Zap,
-  Keyboard,
   Eye,
   TreePine,
   Palette,

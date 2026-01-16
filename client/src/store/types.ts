@@ -30,18 +30,23 @@ export interface SerializableElement {
  * 
  * Used for highlighting the rendered JSX in the code editor
  */
-export type JsxLocation = { start: number; end: number };
+export interface JsxLocation {
+  start: number;
+  end: number;
+}
 
 /**
  * ElementLocationMap - Map of element IDs to their source code positions
  * 
  * Used for surgical code updates and highlighting
  */
-export type ElementLocationMap = Map<string, {
+export interface ElementLocationInfo {
   start: number;
   end: number;
   style?: { start: number; end: number };
-}>;
+}
+
+export type ElementLocationMap = Map<string, ElementLocationInfo>;
 
 /**
  * HistorySnapshot - Single point in undo/redo history

@@ -23,8 +23,6 @@ import {
   Sparkles,
   Camera,
   FolderTree,
-  Layers3,
-  Zap,
   Brain,
   FileCode2,
   Palette,

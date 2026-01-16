@@ -38,12 +38,16 @@ interface VibeLayoutProps {
   mainView: string;
   isInspectorVisible: boolean;
   isNavigatorVisible: boolean;
+  onRender: () => void | Promise<void>;
+  isRendering: boolean;
 }
 
 const VibeLayout: React.FC<VibeLayoutProps> = ({
   mainView,
   isInspectorVisible,
   isNavigatorVisible,
+  onRender,
+  isRendering,
 }) => {
   const { theme } = useTheme();
   const [isNavigatorExpanded, setIsNavigatorExpanded] = useState(false);
@@ -145,6 +149,8 @@ const VibeLayout: React.FC<VibeLayoutProps> = ({
                 isFullscreen={false}
                 onSelectionModeChange={setSelectionMode}
                 onFullscreenToggle={handleFullscreenToggle}
+                onRender={onRender}
+                isRendering={isRendering}
               />
             ) : (
               <CodeEditorContainer

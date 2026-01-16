@@ -15,7 +15,6 @@ import {
   Sparkles,
   Code2,
   Layers,
-  Zap,
   Cpu,
   MousePointer2,
   Camera,

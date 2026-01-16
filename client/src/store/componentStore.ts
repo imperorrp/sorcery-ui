@@ -28,6 +28,19 @@ import { createComponentActions } from './componentActions';
 import { createASTActions } from './astActions';
 import { createRenderActions } from './renderActions';
 import { createConfigActions } from './configActions';
+
+// Re-export types for convenience
+export type { 
+  SerializableElement, 
+  JsxLocation, 
+  ElementLocationMap, 
+  ElementLocationInfo,
+  HistorySnapshot, 
+  ComponentData, 
+  ProjectData,
+  ComponentState,
+  StoreType
+} from './types';
 import { createUIActions } from './uiActions';
 import { createSelectors } from './selectors';
 import { defaultExample } from '@/examples/examples';

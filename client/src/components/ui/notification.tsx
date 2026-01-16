@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './dialog';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './dialog';
 import { Button } from './button';
 import { X, Info, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -97,7 +97,13 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
                 </div>
               </div>
               {n.message && <div className="text-xs text-muted-foreground truncate">{n.message}</div>}
-              {n.details && <div className="mt-2"><button onClick={() => setActiveDetails(n)} className="text-[11px] text-muted-foreground underline">View details</button></div>}
+              {n.details && (
+                <div className="mt-2">
+                  <button onClick={() => setActiveDetails(n)} className="text-[11px] text-muted-foreground underline">
+                    View details
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}
