@@ -180,7 +180,4 @@ setTimeout(() => {
  * present for backward compatibility during migration.
  */
 
-// Export types for convenience
-export type { ComponentData, ProjectData, SerializableElement } from './types';
-
 

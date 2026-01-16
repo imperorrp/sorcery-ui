@@ -97,13 +97,13 @@ export const NotificationProvider: React.FC<{children: React.ReactNode}> = ({ ch
                 </div>
               </div>
               {n.message && <div className="text-xs text-muted-foreground truncate">{n.message}</div>}
-              {n.details && (
+              {n.details ? (
                 <div className="mt-2">
                   <button onClick={() => setActiveDetails(n)} className="text-[11px] text-muted-foreground underline">
                     View details
                   </button>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         ))}
