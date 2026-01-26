@@ -59,6 +59,10 @@ export function HomePage() {
             <Button asChild size="sm" className="h-9 px-3 text-sm bg-zinc-900 text-white hover:bg-zinc-800 transition-all duration-200">
               <Link to="/editor">Open Editor</Link>
             </Button>
+
+            <Button asChild variant="outline" size="sm" className="h-9 px-3 text-sm border-zinc-200 text-zinc-900 hover:bg-zinc-50 transition-all duration-200">
+              <a href="https://forms.gle/ZE48yyJdBwcKs92T7" target="_blank" rel="noopener noreferrer">Sign up</a>
+            </Button>
           </div>
         </div>
       </header>
@@ -656,7 +660,7 @@ export function HomePage() {
               
               {/* Google Form Button */}
               <a 
-                href="https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform" 
+                href="https://forms.gle/ZE48yyJdBwcKs92T7"
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-zinc-900 text-white rounded-xl font-semibold hover:bg-zinc-800 transition-colors shadow-lg shadow-zinc-900/20"
