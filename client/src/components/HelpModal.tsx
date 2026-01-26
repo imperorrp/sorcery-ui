@@ -66,7 +66,7 @@ export function HelpModal({ open, onOpenChange }: HelpModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="w-full h-full sm:w-auto sm:max-w-3xl sm:max-h-[85vh] sm:rounded-lg overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Welcome to Sorcery UI</DialogTitle>
           <DialogDescription className="text-base">
@@ -80,7 +80,7 @@ export function HelpModal({ open, onOpenChange }: HelpModalProps) {
           onValueChange={setActiveTab}
           className="mt-4"
         >
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-2">
             <TabsTrigger value="start">Getting Started</TabsTrigger>
             <TabsTrigger value="workflow">Workflow</TabsTrigger>
             <TabsTrigger value="shortcuts">Shortcuts</TabsTrigger>

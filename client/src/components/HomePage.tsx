@@ -78,7 +78,7 @@ export function HomePage() {
                 <span className="text-zinc-900">
                     You edit the last 10% 
                 </span>
-                <span className="text-zinc-400">visually.</span>
+                <span className="text-zinc-400"> visually.</span>
             </h1>
 
             {/* Subtitle */}
@@ -686,7 +686,7 @@ export function HomePage() {
 
           {/* Distinct editor CTA below trust signals */}
           <div className="mt-10 text-center">
-            <Button asChild size="lg" className="h-12 px-10 text-base bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-lg transition-all duration-200">
+            <Button asChild size="lg" className="h-12 px-10 text-base bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl shadow-lg transition-all duration-200">
               <Link to="/editor">
                 Start Editing Now <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
