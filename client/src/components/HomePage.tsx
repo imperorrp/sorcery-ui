@@ -20,7 +20,11 @@ import {
   Camera,
   Upload,
   Brain,
-  Download
+  Download,
+  Users,
+  Zap,
+  Calendar,
+  ExternalLink
 } from 'lucide-react';
 
 /**
@@ -52,7 +56,9 @@ export function HomePage() {
           </Link>
           
           <div className="flex items-center gap-4">
-            
+            <Button asChild size="sm" className="h-9 px-3 text-sm bg-zinc-900 text-white hover:bg-zinc-800 transition-all duration-200">
+              <Link to="/editor">Open Editor</Link>
+            </Button>
           </div>
         </div>
       </header>
@@ -60,27 +66,25 @@ export function HomePage() {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6 relative">
         <div className="container mx-auto max-w-5xl text-center">
-            {/* Beta Badge */}
+            {/* Status Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-medium text-zinc-600 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-zinc-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-zinc-500"></span>
-                </span>
-                Public Beta v0.1
+                <div className="w-1.5 h-1.5 rounded-full bg-zinc-500"></div>
+                Open Beta
             </div>
 
             {/* Main Title */}
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100 text-zinc-900">
-                Stop endless prompting <br />
-                <span className="text-zinc-500">
-                    Start visually refining
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+                <span className="text-zinc-900">AI generates the first 90%.</span><br />
+                <span className="text-zinc-900">
+                    You edit the last 10% 
                 </span>
+                <span className="text-zinc-400">visually.</span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-xl text-zinc-500 max-w-2xl mx-auto mb-10 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 font-light">
-                The complete visual toolkit for React. Edit, clone, and remix components with pixel-perfect precision. 
-                Built for modern standards like shadcn/ui and your own design systems.
+            <p className="text-xl text-zinc-600 max-w-2xl mx-auto mb-10 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+                Stop re-prompting for padding, spacing, and color tweaks. <br className="hidden md:block" />
+                Paste AI-generated code. Edit visually. Export clean React.
             </p>
 
             {/* CTA Buttons */}
@@ -116,74 +120,269 @@ export function HomePage() {
                </p>
             </div>
 
-            <div className="relative rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-500">
+            <div className="relative rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden hover:shadow-xl transition-shadow duration-500">
                 {/* Fake Window Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 bg-zinc-50">
                     <div className="flex items-center gap-2">
                         <div className="flex gap-1.5">
-                            <div className="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
-                            <div className="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
-                            <div className="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#FF5F56] hover:scale-110 transition-transform cursor-pointer"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#FFBD2E] hover:scale-110 transition-transform cursor-pointer"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#27C93F] hover:scale-110 transition-transform cursor-pointer"></div>
                         </div>
-                        <div className="h-4 w-px bg-white/10 mx-2"></div>
+                        <div className="h-4 w-px bg-zinc-300 mx-2"></div>
                         <div className="flex items-center gap-1.5 text-xs font-mono text-zinc-400">
                             <Code2 className="w-3 h-3" />
                             <span>Card.tsx</span>
                         </div>
                     </div>
-                    <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">Read-Write Mode</div>
+                    <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                        Read-Write Mode
+                    </div>
                 </div>
 
                 {/* Split View Content */}
                 <div className="p-8 md:p-12 grid md:grid-cols-2 gap-12 items-center relative">
                     {/* Code Side */}
                     <div className="space-y-3 font-mono text-sm relative z-10">
-                        <div className="text-zinc-500 italic">// 1. Paste AI Code</div>
-                        <div className="text-purple-400">export function <span className="text-blue-400">PricingCard</span>() {'{'}</div>
-                        <div className="pl-4 text-zinc-300">return (</div>
-                        <div className="pl-8 text-zinc-400">
+                        <div className="text-zinc-500 italic animate-in fade-in duration-500 delay-100">// 1. Paste AI Code</div>
+                        <div className="text-purple-400 animate-in fade-in duration-500 delay-200">export function <span className="text-blue-400">PricingCard</span>() {'{'}</div>
+                        <div className="pl-4 text-zinc-300 animate-in fade-in duration-500 delay-300">return (</div>
+                        <div className="pl-8 text-zinc-400 animate-in fade-in duration-500 delay-400">
                             &lt;<span className="text-pink-400">div</span> className="
                             <span className="text-emerald-400 bg-emerald-400/10 px-1 rounded border border-emerald-400/20 animate-pulse">p-8 rounded-2xl bg-zinc-900</span>
                             "&gt;
                         </div>
-                        <div className="pl-12 text-zinc-500">...content</div>
-                        <div className="pl-8 text-zinc-400">&lt;/<span className="text-pink-400">div</span>&gt;</div>
-                        <div className="pl-4 text-zinc-300">)</div>
-                        <div className="text-purple-400">{'}'}</div>
+                        <div className="pl-12 text-zinc-500 animate-in fade-in duration-500 delay-500">...content</div>
+                        <div className="pl-8 text-zinc-400 animate-in fade-in duration-500 delay-600">&lt;/<span className="text-pink-400">div</span>&gt;</div>
+                        <div className="pl-4 text-zinc-300 animate-in fade-in duration-500 delay-700">)</div>
+                        <div className="text-purple-400 animate-in fade-in duration-500 delay-800">{'}'}</div>
                     </div>
 
                     {/* Visual Side */}
-                    <div className="relative group cursor-default perspective-1000">
-                        <div className="absolute -inset-4 bg-transparent rounded-3xl blur-xl opacity-0 group-hover:opacity-20 transition duration-700"></div>
+                    <div className="relative group cursor-pointer">
+                        <div className="absolute -inset-4 bg-zinc-900/5 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
-                        <div className="relative bg-zinc-900 text-white border border-zinc-200 rounded-2xl p-6 shadow-md transform transition-transform duration-500 group-hover:-translate-y-1 group-hover:shadow-lg">
-                          <div className="absolute -top-3 -right-3 bg-zinc-800 text-white text-[10px] font-semibold px-2 py-1 rounded-full shadow flex items-center gap-1 z-20">
+                        <div className="relative bg-zinc-900 text-white border border-zinc-200 rounded-2xl p-6 shadow-md transform transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-2xl group-hover:border-zinc-300">
+                          <div className="absolute -top-3 -right-3 bg-zinc-800 text-white text-[10px] font-semibold px-2 py-1 rounded-full shadow-lg flex items-center gap-1 z-20 group-hover:scale-110 transition-transform">
                             <MousePointer2 className="w-3 h-3" /> You are here
                           </div>
 
-                          <div className="h-3 w-24 bg-zinc-800 rounded mb-6"></div>
+                          <div className="h-3 w-24 bg-zinc-800 rounded mb-6 animate-pulse"></div>
                           <div className="space-y-3 mb-8">
                             <div className="h-2 w-full bg-zinc-800/60 rounded"></div>
                             <div className="h-2 w-2/3 bg-zinc-800/60 rounded"></div>
                           </div>
                           <div className="flex gap-3">
-                            <div className="h-9 w-full bg-white rounded flex items-center justify-center text-xs font-medium text-zinc-900">Get Started</div>
+                            <div className="h-9 w-full bg-white rounded flex items-center justify-center text-xs font-medium text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer">Get Started</div>
                           </div>
 
                           {/* Overlay UI Controls */}
-                          <div className="absolute inset-0 bg-black/5 border-2 border-zinc-200 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[1px]">
-                            <div className="bg-zinc-900 border border-zinc-700 p-2 rounded-lg shadow-xl flex gap-2">
-                              <div className="w-6 h-6 rounded bg-zinc-800 border border-zinc-700 hover:border-zinc-400 cursor-pointer"></div>
-                              <div className="w-6 h-6 rounded bg-zinc-800 border border-zinc-700 hover:border-zinc-400 cursor-pointer"></div>
-                              <div className="w-px h-6 bg-zinc-800"></div>
-                              <div className="text-xs text-zinc-400 flex items-center px-1">p-8</div>
+                          <div className="absolute inset-0 bg-black/5 border-2 border-emerald-400/0 group-hover:border-emerald-400/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-[1px]">
+                            <div className="bg-zinc-900 border border-zinc-700 p-2 rounded-lg shadow-xl flex gap-2 transform scale-90 group-hover:scale-100 transition-transform">
+                              <div className="w-6 h-6 rounded bg-zinc-800 border border-zinc-700 hover:border-emerald-400 hover:bg-emerald-400/10 cursor-pointer transition-all"></div>
+                              <div className="w-6 h-6 rounded bg-zinc-800 border border-zinc-700 hover:border-emerald-400 hover:bg-emerald-400/10 cursor-pointer transition-all"></div>
+                              <div className="w-px h-6 bg-zinc-700"></div>
+                              <div className="text-xs text-zinc-400 flex items-center px-1 font-mono">p-8</div>
                             </div>
                           </div>
                         </div>
-                        <div className="text-center mt-4 text-xs text-zinc-500 font-mono">2. Tweak Visually</div>
+                        <div className="text-center mt-4 text-xs text-zinc-500 font-mono group-hover:text-zinc-900 transition-colors">2. Tweak Visually</div>
                     </div>
                 </div>
             </div>
+
+            {/* CTA after visual demo removed per request */}
+         </div>
+      </section>
+
+      {/* Before/After Comparison: The Pain vs The Solution */}
+      <section className="px-6 pb-24">
+         <div className="container mx-auto max-w-7xl">
+            <div className="text-center mb-16">
+               <h2 className="text-4xl font-bold mb-4 text-zinc-900">The Reality of AI-Assisted UI Work</h2>
+               <p className="text-lg text-zinc-600 max-w-3xl mx-auto">
+                 One simple request: "Make the card padding larger and the button more prominent."
+               </p>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-8">
+              {/* LEFT: The Old Way - Prompt Hell */}
+              <div className="relative group">
+                <div className="absolute -top-4 left-6 bg-red-100 border border-red-200 text-red-900 px-4 py-1 rounded-full text-sm font-semibold z-10 shadow-sm group-hover:shadow-md transition-shadow">
+                  The Old Way
+                </div>
+                
+                <div className="border-2 border-red-200 rounded-2xl bg-red-50/30 p-6 h-full hover:shadow-lg transition-all duration-300 hover:border-red-300">
+                  <div className="space-y-4">
+                    {/* Prompt 1 */}
+                    <div className="bg-white border border-zinc-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-3">
+                        <div className="text-xs font-mono text-zinc-400 mt-1">You:</div>
+                        <div className="flex-1 text-sm text-zinc-700">
+                          "Make the card padding larger and button more prominent"
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Response 1 */}
+                    <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-4 hover:bg-zinc-100 transition-colors">
+                      <div className="flex items-start gap-3">
+                        <div className="text-xs font-mono text-zinc-400 mt-1">AI:</div>
+                        <div className="flex-1">
+                          <div className="font-mono text-xs text-zinc-600 mb-2">className="p-12 ..."</div>
+                          <div className="text-xs text-zinc-500 italic">Changed p-8 → p-12</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Prompt 2 */}
+                    <div className="bg-white border border-zinc-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-3">
+                        <div className="text-xs font-mono text-zinc-400 mt-1">You:</div>
+                        <div className="flex-1 text-sm text-zinc-700">
+                          "Actually make it p-10, and the button needs better contrast"
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Response 2 */}
+                    <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-4 hover:bg-zinc-100 transition-colors">
+                      <div className="flex items-start gap-3">
+                        <div className="text-xs font-mono text-zinc-400 mt-1">AI:</div>
+                        <div className="flex-1">
+                          <div className="font-mono text-xs text-zinc-600 mb-2">className="p-10 ..."</div>
+                          <div className="text-xs text-zinc-500 italic">Regenerated entire component</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Prompt 3 */}
+                    <div className="bg-white border border-zinc-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-3">
+                        <div className="text-xs font-mono text-zinc-400 mt-1">You:</div>
+                        <div className="flex-1 text-sm text-zinc-700">
+                          "The button text color isn't right, make it white"
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Cost Counter */}
+                    <div className="border-t-2 border-red-200 pt-4 mt-6">
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div className="transform hover:scale-105 transition-transform">
+                          <div className="text-2xl font-bold text-red-900">6</div>
+                          <div className="text-xs text-zinc-600">Prompts</div>
+                        </div>
+                        <div className="transform hover:scale-105 transition-transform">
+                          <div className="text-2xl font-bold text-red-900">~3m</div>
+                          <div className="text-xs text-zinc-600">Time wasted</div>
+                        </div>
+                        <div className="transform hover:scale-105 transition-transform">
+                          <div className="text-2xl font-bold text-red-900">High</div>
+                          <div className="text-xs text-zinc-600">Frustration</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT: The Sorcery Way */}
+              <div className="relative group">
+                <div className="absolute -top-4 left-6 bg-emerald-100 border border-emerald-200 text-emerald-900 px-4 py-1 rounded-full text-sm font-semibold z-10 shadow-sm group-hover:shadow-md transition-shadow">
+                  With Sorcery UI
+                </div>
+                
+                <div className="border-2 border-emerald-200 rounded-2xl bg-emerald-50/30 p-6 h-full hover:shadow-lg transition-all duration-300 hover:border-emerald-300">
+                  <div className="space-y-6">
+                    {/* Step 1: Paste */}
+                    <div className="bg-white border border-zinc-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all hover:border-emerald-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold flex items-center justify-center group-hover:scale-110 transition-transform">1</div>
+                        <div className="text-sm font-semibold text-zinc-900">Paste AI code (or have it imported in by your agent via MCP)</div>
+                      </div>
+                      <div className="font-mono text-xs text-zinc-600 bg-zinc-50 p-2 rounded border border-zinc-200 hover:bg-zinc-100 transition-colors">
+                        &lt;Card className="p-8"&gt;...&lt;/Card&gt;
+                      </div>
+                    </div>
+
+                    {/* Step 2: Visual Editor */}
+                    <div className="bg-white border border-zinc-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all hover:border-emerald-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold flex items-center justify-center group-hover:scale-110 transition-transform">2</div>
+                        <div className="text-sm font-semibold text-zinc-900">Click. Adjust. Done.</div>
+                      </div>
+                      
+                      {/* Visual representation */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 p-3 bg-zinc-50 rounded border border-zinc-200 hover:border-emerald-200 hover:bg-emerald-50/30 transition-all">
+                          <div className="text-xs font-mono text-zinc-600">Padding:</div>
+                          <div className="flex gap-2">
+                            <div className="px-2 py-1 bg-white border border-zinc-300 rounded text-xs font-mono text-zinc-400 hover:border-zinc-400 transition-colors cursor-not-allowed">p-8</div>
+                            <div className="text-zinc-400">→</div>
+                            <div className="px-2 py-1 bg-emerald-100 border border-emerald-300 rounded text-xs font-mono text-emerald-900 hover:bg-emerald-200 transition-colors cursor-pointer">p-10</div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-3 p-3 bg-zinc-50 rounded border border-zinc-200 hover:border-emerald-200 hover:bg-emerald-50/30 transition-all">
+                          <div className="text-xs font-mono text-zinc-600">Button:</div>
+                          <div className="flex gap-2">
+                            <div className="px-2 py-1 bg-white border border-zinc-300 rounded text-xs font-mono text-zinc-400 hover:border-zinc-400 transition-colors cursor-not-allowed">bg-zinc-700</div>
+                            <div className="text-zinc-400">→</div>
+                            <div className="px-2 py-1 bg-emerald-100 border border-emerald-300 rounded text-xs font-mono text-emerald-900 hover:bg-emerald-200 transition-colors cursor-pointer">bg-zinc-900</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Step 3: Export */}
+                    <div className="bg-white border border-zinc-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all hover:border-emerald-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold flex items-center justify-center group-hover:scale-110 transition-transform">3</div>
+                        <div className="text-sm font-semibold text-zinc-900">Export updated code</div>
+                      </div>
+                      <div className="font-mono text-xs text-zinc-600 bg-zinc-50 p-2 rounded border border-zinc-200 hover:bg-zinc-100 transition-colors">
+                        &lt;Card className="p-10"&gt;...&lt;/Card&gt;
+                      </div>
+                      <div className="text-xs text-emerald-700 mt-2 flex items-center gap-1">
+                        <span className="inline-block w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Logic preserved, only styles changed
+                      </div>
+                    </div>
+
+                    {/* Cost Counter */}
+                    <div className="border-t-2 border-emerald-200 pt-4 mt-6">
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div className="transform hover:scale-105 transition-transform">
+                          <div className="text-2xl font-bold text-emerald-900">0</div>
+                          <div className="text-xs text-zinc-600">Prompts</div>
+                        </div>
+                        <div className="transform hover:scale-105 transition-transform">
+                          <div className="text-2xl font-bold text-emerald-900">~15s</div>
+                          <div className="text-xs text-zinc-600">Total time</div>
+                        </div>
+                        <div className="transform hover:scale-105 transition-transform">
+                          <div className="text-2xl font-bold text-emerald-900">Zero</div>
+                          <div className="text-xs text-zinc-600">Frustration</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom insight */}
+            <div className="mt-12 text-center">
+              <div className="inline-block bg-zinc-900 text-white px-6 py-3 rounded-xl hover:bg-zinc-800 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+                <p className="text-sm font-medium">
+                  Real editing. Real components. Real React runtime. <span className="text-zinc-400">Not prompts.</span>
+                </p>
+              </div>
+            </div>
+
+            {/* CTA after comparison removed per request */}
          </div>
       </section>
 
@@ -331,6 +530,30 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* Social Proof / Usage Stats */}
+      <section className="py-16 px-6 bg-zinc-50 border-y border-zinc-200">
+        <div className="container mx-auto max-w-5xl">
+          <div className="grid md:grid-cols-4 gap-8 text-center">
+            <div className="group hover:scale-105 transition-transform duration-300">
+              <div className="text-3xl font-bold text-zinc-900 mb-2 group-hover:text-emerald-600 transition-colors">100+</div>
+              <div className="text-sm text-zinc-600">Early testers</div>
+            </div>
+            <div className="group hover:scale-105 transition-transform duration-300">
+              <div className="text-3xl font-bold text-zinc-900 mb-2 group-hover:text-emerald-600 transition-colors">2.5k+</div>
+              <div className="text-sm text-zinc-600">Components edited</div>
+            </div>
+            <div className="group hover:scale-105 transition-transform duration-300">
+              <div className="text-3xl font-bold text-zinc-900 mb-2 group-hover:text-emerald-600 transition-colors">~85%</div>
+              <div className="text-sm text-zinc-600">Time saved</div>
+            </div>
+            <div className="group hover:scale-105 transition-transform duration-300">
+              <div className="text-3xl font-bold text-zinc-900 mb-2 group-hover:text-emerald-600 transition-colors">Free</div>
+              <div className="text-sm text-zinc-600">Beta access</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Grid */}
       <section className="py-24 px-6">
         <div className="container mx-auto max-w-6xl">
@@ -362,8 +585,8 @@ export function HomePage() {
                   desc: "More than visual tweaks: unlike Cursor's quick edits or Figma-to-code exports, Sorcery UI provides editable runtime components and design-system primitives for production-quality development."
                 }
               ].map((feature, i) => (
-                <div key={i} className="group p-8 rounded-2xl bg-white border border-zinc-200 hover:border-zinc-300 hover:shadow-lg transition-all duration-300">
-                  <div className="mb-6 p-3 rounded-xl bg-zinc-50 border border-zinc-100 w-fit group-hover:scale-110 transition-transform duration-300">
+                <div key={i} className="group p-8 rounded-2xl bg-white border border-zinc-200 hover:border-zinc-300 hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
+                  <div className="mb-6 p-3 rounded-xl bg-zinc-50 border border-zinc-100 w-fit group-hover:scale-110 group-hover:bg-emerald-50 group-hover:border-emerald-200 transition-all duration-300">
                     {feature.icon}
                   </div>
                   <h3 className="text-lg font-semibold mb-3 text-zinc-900">{feature.title}</h3>
@@ -373,6 +596,103 @@ export function HomePage() {
                 </div>
               ))}
             </div>
+
+            {/* CTA after features removed (kept only in hero, navbar, and bottom) */}
+
+        </div>
+      </section>
+
+      {/* Waitlist / Early Access Section */}
+      <section className="py-24 px-6 relative overflow-hidden">
+        {/* Subtle background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-zinc-50 via-white to-zinc-50 -z-10"></div>
+        
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-zinc-900 text-white text-xs font-semibold mb-6">
+              <Users className="h-3 w-3" />
+              Join the community
+            </div>
+            <h2 className="text-4xl font-bold mb-4 text-zinc-900">Get Early Access & Support</h2>
+            <p className="text-lg text-zinc-600 max-w-2xl mx-auto">
+              MCP integration, custom workflows, and team features are coming. Join the waitlist for priority access, 
+              custom integration support, and input on the roadmap.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            <div className="bg-white border border-zinc-200 rounded-xl p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center mx-auto mb-4">
+                <Zap className="h-6 w-6 text-zinc-900" />
+              </div>
+              <h3 className="font-semibold text-zinc-900 mb-2">Priority Early Access</h3>
+              <p className="text-sm text-zinc-600">Be first to test upcoming features like MCP server integration and team collaboration</p>
+            </div>
+            
+            <div className="bg-white border border-zinc-200 rounded-xl p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center mx-auto mb-4">
+                <Users className="h-6 w-6 text-zinc-900" />
+              </div>
+              <h3 className="font-semibold text-zinc-900 mb-2">Custom Integration</h3>
+              <p className="text-sm text-zinc-600">Get help setting up Sorcery UI in your workflow with personalized onboarding</p>
+            </div>
+            
+            <div className="bg-white border border-zinc-200 rounded-xl p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center mx-auto mb-4">
+                <Calendar className="h-6 w-6 text-zinc-900" />
+              </div>
+              <h3 className="font-semibold text-zinc-900 mb-2">Roadmap Input</h3>
+              <p className="text-sm text-zinc-600">Shape the future of Sorcery UI with direct feedback to the development team</p>
+            </div>
+          </div>
+
+          {/* Google Form Embed */}
+          <div className="bg-white border-2 border-zinc-200 rounded-2xl p-8 shadow-lg">
+            <div className="max-w-xl mx-auto text-center">
+              <h3 className="text-xl font-semibold text-zinc-900 mb-4">Sign up for the waitlist</h3>
+              <p className="text-sm text-zinc-600 mb-6">
+                Fill out this quick form to join. We'll reach out within 24 hours with early access details.
+              </p>
+              
+              {/* Google Form Button */}
+              <a 
+                href="https://docs.google.com/forms/d/e/YOUR_FORM_ID/viewform" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-zinc-900 text-white rounded-xl font-semibold hover:bg-zinc-800 transition-colors shadow-lg shadow-zinc-900/20"
+              >
+                Open Waitlist Form <ExternalLink className="h-4 w-4" />
+              </a>
+              
+              <p className="text-xs text-zinc-500 mt-4">
+                No spam. Updates only when there's something worth sharing.
+              </p>
+            </div>
+          </div>
+
+          {/* Single editor CTA moved below trust signals */}
+
+          {/* Trust signals */}
+          <div className="mt-12 text-center">
+            <p className="text-sm text-zinc-500 mb-4">Trusted by developers at</p>
+            <div className="flex flex-wrap justify-center items-center gap-8 opacity-40">
+              <div className="text-zinc-400 font-semibold text-sm">Startups</div>
+              <div className="w-px h-4 bg-zinc-300"></div>
+              <div className="text-zinc-400 font-semibold text-sm">Indie Hackers</div>
+              <div className="w-px h-4 bg-zinc-300"></div>
+              <div className="text-zinc-400 font-semibold text-sm">Open Source Projects</div>
+            </div>
+          </div>
+
+          {/* Distinct editor CTA below trust signals */}
+          <div className="mt-10 text-center">
+            <Button asChild size="lg" className="h-12 px-10 text-base bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-lg transition-all duration-200">
+              <Link to="/editor">
+                Start Editing Now <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <p className="text-sm text-zinc-500 mt-3">Free beta • No credit card • No installation</p>
+          </div>
         </div>
       </section>
 

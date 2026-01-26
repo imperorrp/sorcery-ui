@@ -353,8 +353,8 @@ export function HelpModal({ open, onOpenChange }: HelpModalProps) {
                 to see keyboard shortcuts.
               </p>
               <Button variant="outline" size="sm" asChild>
-                <a href="https://github.com/imperorrp/runable-task" target="_blank" rel="noopener noreferrer">
-                  View Documentation
+                <a href="#" target="_blank" rel="noopener noreferrer">
+                  View Documentation (coming soon)
                 </a>
               </Button>
             </div>
